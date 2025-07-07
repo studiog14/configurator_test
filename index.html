@@ -747,7 +747,7 @@ async function applyMaterial(variant) {
     const targetObject = container?.getObjectByName(targetName);
 
     if (targetObject && targetObject.material) {
-      const material = targetObject.material;
+      const material = targetObject.material.clone(); // Klonujemy materiał, aby nie wpływać na inne obiekty
 
       // Obsługa tekstury
       if (variant.Wartość && /\.(jpg|jpeg|png)$/i.test(variant.Wartość)) {
@@ -766,6 +766,8 @@ async function applyMaterial(variant) {
           material.map.needsUpdate = true;
           material.needsUpdate = true;
 
+          targetObject.material = material; // Przypisujemy nowy materiał tylko do tego obiektu
+
           triggerSceneRefresh();
           startForceRender();
 
@@ -782,6 +784,8 @@ async function applyMaterial(variant) {
           material.color = new THREE.Color(variant.Wartość);
           material.needsUpdate = true;
 
+          targetObject.material = material; // Przypisujemy nowy materiał tylko do tego obiektu
+
           triggerSceneRefresh();
           startForceRender();
 
@@ -797,35 +801,30 @@ async function applyMaterial(variant) {
     }
   }
 
-
   // 📘 Zapamiętaj wybór
-targetNames.forEach(targetName => {
-  selectedMaterials[targetName] = variant;
-  if (targetName === 'legs' || targetName === 'legs_material') {
-    selectedMaterials['legs_material'] = variant;
+  targetNames.forEach(targetName => {
+    selectedMaterials[targetName] = variant;
+    if (targetName === 'legs' || targetName === 'legs_material') {
+      selectedMaterials['legs_material'] = variant;
+    }
+  });
+
+  viewer.scene.traverse(obj => {
+    if (obj.isMesh && obj.material) {
+      obj.material.needsUpdate = true;
+    }
+  });
+
+  // ✅ Odświeżenie widoku 3D
+  if (viewer?.camera) {
+    viewer.camera.position.x += 0.00001;
+    viewer.camera.updateProjectionMatrix();
   }
-});
 
-viewer.scene.traverse(obj => {
-  if (obj.isMesh && obj.material) {
-    obj.material.needsUpdate = true;
-  }
-});
+  if (viewer?.render) viewer.render();
 
-
-// ✅ Odświeżenie widoku 3D
-if (viewer?.camera) {
-  viewer.camera.position.x += 0.00001;
-  viewer.camera.updateProjectionMatrix();
+  updateSummary();
 }
-
-if (viewer?.render) viewer.render();
-
-
-updateSummary();
-
-}
-
 
 
 
