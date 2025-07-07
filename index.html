@@ -621,60 +621,83 @@ import {
                 showScreen('config');
             } catch (e) { console.error(`BŁĄD ładowania modelu: ${e.message}`, e); }
         }
+function createLegMaterial(legData) {
+  const metalness = isNaN(parseFloat(legData.metalness)) ? 1 : parseFloat(legData.metalness);
+  const roughness = isNaN(parseFloat(legData.roughness)) ? 0.1 : parseFloat(legData.roughness);
+  const color = legData.color || '#FFFFFF';
 
-        async function setLegModel(variant) {
-            userInteracted = true;
-            const oldLegs = currentLegModel;
-            try {
-                const modelPath = `legs/${variant.Nazwa}.glb`;
-                const newLegs = await viewer.load(modelPath, { autoCenter: false });
-                newLegs.visible = false;
-                const legBounds = new Box3().setFromObject(newLegs);
-                const legHeight = legBounds.max.y - legBounds.min.y;
-                const legTop = legBounds.max.y;
+  return new THREE.MeshStandardMaterial({
+    color: new THREE.Color(color),
+    metalness: metalness,
+    roughness: roughness,
+  });
+}
 
-                if (currentModelContainer && selectedChair) {
-                    if (selectedChair.Grupa.toLowerCase() === 'kubełek') {
-                        let height = parseFloat(variant.height) || legHeight;
-                        newLegs.position.y = -height;
-                        currentModelContainer.position.y = 0;
-                    } else {
-                        currentModelContainer.position.y = legHeight + VERTICAL_OFFSET;
-                        newLegs.position.y = 0;
-                    }
-                }
+async function setLegModel(variant) {
+    userInteracted = true;
+    console.log("Wywołanie setLegModel dla wariantu:", variant);
+    const oldLegs = currentLegModel;
+    try {
+        const modelPath = `legs/${variant.Nazwa}.glb`;
+        console.log("Ładuję model nóg z ścieżki:", modelPath);
+        const newLegs = await viewer.load(modelPath, { autoCenter: false });
+        newLegs.visible = false;
+        const legBounds = new Box3().setFromObject(newLegs);
+        const legHeight = legBounds.max.y - legBounds.min.y;
 
-                if (oldLegs) {
-                    viewer.scene.remove(oldLegs);
-                    if (typeof oldLegs.dispose === 'function') oldLegs.dispose();
-                }
-                newLegs.visible = true;
-                currentLegModel = newLegs;
-                selectedLeg = variant;
-
-                // Odśwież listę nóg, żeby podświetlić wybrany wariant
-                const legs = allData.filter(d => d.Grupa.toLowerCase() === 'nogi');
-                renderOptions('legs-thumbnails', legs, item => {
-                    setLegModel(item);
-                });
-
-                // 1. Podświetl zakładkę "Nogi" w part-tabs
-                const partTabs = document.querySelectorAll('#part-tabs .thumbnail');
-                partTabs.forEach(tab => tab.classList.remove('selected'));
-                partTabs.forEach(tab => {
-                    if (tab.title && tab.title.toLowerCase().includes('nogi')) {
-                        tab.classList.add('selected');
-                    }
-                });
-
-                // 2. Wyświetl materiały nóg
-                document.getElementById('materials-section').style.display = 'block';
-                // KLUCZOWA LINIA:
-                renderFilteredMaterialOptions('legs');
-
-                updateSummary();
-            } catch (e) { console.error(`BŁĄD ładowania nóg: ${e.message}`, e); }
+        if (currentModelContainer && selectedChair) {
+            if (selectedChair.Grupa.toLowerCase() === 'kubełek') {
+                let height = parseFloat(variant.height) || legHeight;
+                newLegs.position.y = -height;
+                currentModelContainer.position.y = 0;
+            } else {
+                currentModelContainer.position.y = legHeight + VERTICAL_OFFSET;
+                newLegs.position.y = 0;
+            }
         }
+
+        if (oldLegs) {
+            viewer.scene.remove(oldLegs);
+            if (typeof oldLegs.dispose === 'function') oldLegs.dispose();
+        }
+        newLegs.visible = true;
+        currentLegModel = newLegs;
+        selectedLeg = variant;
+
+        // Zakomentuj to tymczasowo, by wykluczyć problem z materiałami
+        /*
+        const legMaterial = createLegMaterial(variant);
+        newLegs.traverse(child => {
+            if (child.isMesh) {
+                child.material = legMaterial;
+            }
+        });
+        */
+
+        // Odśwież listę nóg, żeby podświetlić wybrany wariant
+        const legs = allData.filter(d => d.Grupa.toLowerCase() === 'nogi');
+        renderOptions('legs-thumbnails', legs, item => {
+            setLegModel(item);
+        });
+
+        const partTabs = document.querySelectorAll('#part-tabs .thumbnail');
+        partTabs.forEach(tab => tab.classList.remove('selected'));
+        partTabs.forEach(tab => {
+            if (tab.title && tab.title.toLowerCase().includes('nogi')) {
+                tab.classList.add('selected');
+            }
+        });
+
+        document.getElementById('materials-section').style.display = 'block';
+        renderFilteredMaterialOptions('legs');
+
+        updateSummary();
+    } catch (e) {
+        console.error(`BŁĄD ładowania nóg: ${e.message}`, e);
+    }
+}
+
+
 
 let forceRenderInterval;
 
@@ -776,30 +799,53 @@ async function applyMaterial(variant) {
           console.warn(`❌ Nie udało się załadować tekstury: ${variant.Wartość}`, e);
         }
       }
+// Obsługa koloru HEX
+else if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(variant.Wartość)) {
+  try {
+    material.map = null;
+    material.color = new THREE.Color(variant.Wartość);
 
-      // Obsługa koloru HEX
-      else if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(variant.Wartość)) {
-        try {
-          material.map = null;
-          material.color = new THREE.Color(variant.Wartość);
-          material.needsUpdate = true;
+    // Metalness
+if (variant.Metalness !== undefined && variant.Metalness !== '') {
+  const metalVal = parseFloat(variant.Metalness);
+  material.metalness = !isNaN(metalVal) ? metalVal : 0.35;
+  console.log(`🔧 Metalness ustawiony na: ${material.metalness}`);
+} else {
+  material.metalness = 0.35; // domyślna wartość
+  console.log(`🔧 Metalness przywrócony do domyślnego: 0`);
+}
 
-          targetObject.material = material; // Przypisujemy nowy materiał tylko do tego obiektu
+// Roughness
+if (variant.Roughness !== undefined && variant.Roughness !== '') {
+  const roughVal = parseFloat(variant.Roughness);
+  material.roughness = !isNaN(roughVal) ? roughVal : 0.4;
+  console.log(`🔧 Roughness ustawiony na: ${material.roughness}`);
+} else {
+  material.roughness = 0.4; // domyślna wartość
+  console.log(`🔧 Roughness przywrócony do domyślnego: 1`);
+}
 
-          triggerSceneRefresh();
-          startForceRender();
+   
 
-          console.log(`🎨 Kolor ustawiony na '${targetName}':`, variant.Wartość);
-        } catch (e) {
-          console.warn(`❌ Nie udało się ustawić koloru: ${variant.Wartość}`, e);
-        }
-      } else {
-        console.warn(`⚠️ Niepoprawna wartość materiału:`, variant.Wartość);
-      }
-    } else {
-      console.warn(`⚠️ Mesh '${targetName}' nie znaleziony lub nie ma materiału.`);
-    }
+    material.needsUpdate = true;
+
+    targetObject.material = material; // Przypisujemy materiał tylko do tego obiektu
+
+    triggerSceneRefresh();
+    startForceRender();
+
+    console.log(`🎨 Kolor ustawiony na '${targetName}':`, variant.Wartość);
+  } catch (e) {
+    console.warn(`❌ Nie udało się ustawić koloru: ${variant.Wartość}`, e);
   }
+} else {
+  console.warn(`⚠️ Niepoprawna wartość materiału:`, variant.Wartość);
+}
+
+} else {
+  console.warn(`⚠️ Mesh '${targetName}' nie znaleziony lub nie ma materiału.`);
+}
+}
 
   // 📘 Zapamiętaj wybór
   targetNames.forEach(targetName => {
