@@ -690,10 +690,24 @@ async function applyMaterial(variant) {
     if (obj.isMesh) console.log('🔹', obj.name);
   });
 
+  
   for (const targetName of targetNames) {
-    const targetObject = currentModelContainer.getObjectByName(targetName);
+  if (targetName.toLowerCase() === 'legs' && !currentLegModel) {
+    console.warn(`🛑 Brak modelu nóg — nie można nałożyć materiału: ${variant.Wartość}`);
+    continue;
+  }
+
+  const targetObject = currentModelContainer.getObjectByName(targetName);
+}
+  for (const targetName of targetNames) {
+    const container =
+  targetName.toLowerCase() === 'legs' ? currentLegModel : currentModelContainer;
+
+const targetObject = container?.getObjectByName(targetName);
+
 
     if (targetObject && targetObject.material) {
+        
         
       const material = targetObject.material;
 
@@ -742,6 +756,8 @@ async function applyMaterial(variant) {
       selectedMaterials['legs_material'] = variant;
     }
   });
+
+  if (viewer?.render) viewer.render();
 
   updateSummary();
 }
