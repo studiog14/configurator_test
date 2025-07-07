@@ -1203,6 +1203,11 @@ if (selectedChair && selectedChair.Grupa) {
 updateSummary();
 }
 
+const visibleData = allData.filter(d =>
+  d.Visible?.toString().trim().length > 0
+);
+
+
             async function loadDataFromSheet() {
                 const sheetId = '1vCs6YeHgKqlYwg8rvJOqVzNRnXeATJCBuK-zh3NNj78';
                 const sheetURL = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=Dane&v=${new Date().getTime()}`;
