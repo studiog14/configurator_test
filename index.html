@@ -478,6 +478,7 @@ import {
 
         async function init() {
             const canvas = document.getElementById("canvas");
+            
             viewer = new ThreeViewer({
                 canvas: canvas,
                 plugins: [LoadingScreenPlugin, GBufferPlugin, SSAAPlugin, SSReflectionPlugin, BloomPlugin],
@@ -675,9 +676,54 @@ import {
             } catch (e) { console.error(`BŁĄD ładowania nóg: ${e.message}`, e); }
         }
 
+let forceRenderInterval;
+
+function triggerSceneRefresh() {
+  if (viewer?.camera) {
+    viewer.camera.position.x += 0.00001;
+    viewer.camera.zoom += 0.0001; // ⬅️ mikroskopijny zoom
+    viewer.camera.updateProjectionMatrix();
+  }
+  if (viewer?.renderer?.info) {
+    viewer.renderer.info.reset();
+  }
+  if (viewer?.render) viewer.render();
+}
 
 
-        const textureLoader = new TextureLoader();
+function startForceRender(duration = 2000) {
+  clearInterval(forceRenderInterval);
+  forceRenderInterval = setInterval(() => {
+    triggerSceneRefresh();
+  }, 100);
+
+  setTimeout(() => {
+    clearInterval(forceRenderInterval);
+    console.log("🛑 Zakończono wymuszone odświeżanie");
+  }, duration);
+}
+
+
+
+const textureLoader = new TextureLoader();
+
+if (
+  selectedChair?.Grupa?.toLowerCase() === 'kubełek' &&
+  variant.TargetMeshOrModel?.toLowerCase().includes('legs') &&
+  variant.WariantModelu
+) {
+  // 👉 dla kubełków z podmianą nóg — zmień model nóg
+  setLegModel(variant);
+}
+
+function applyMaterialToMesh(variant, forcedMeshName) {
+  const clone = { ...variant };
+  clone.TargetMeshOrModel = forcedMeshName;
+  console.log(`🎯 Przypisano '${clone.Nazwa}' tylko do mesh '${forcedMeshName}'`);
+  applyMaterial(clone);
+}
+
+
 
 async function applyMaterial(variant) {
   if (!currentModelContainer || !variant.TargetMeshOrModel) return;
@@ -690,25 +736,17 @@ async function applyMaterial(variant) {
     if (obj.isMesh) console.log('🔹', obj.name);
   });
 
-  
   for (const targetName of targetNames) {
-  if (targetName.toLowerCase() === 'legs' && !currentLegModel) {
-    console.warn(`🛑 Brak modelu nóg — nie można nałożyć materiału: ${variant.Wartość}`);
-    continue;
-  }
+    const container = targetName.toLowerCase() === 'legs' ? currentLegModel : currentModelContainer;
 
-  const targetObject = currentModelContainer.getObjectByName(targetName);
-}
-  for (const targetName of targetNames) {
-    const container =
-  targetName.toLowerCase() === 'legs' ? currentLegModel : currentModelContainer;
+    if (targetName.toLowerCase() === 'legs' && !currentLegModel) {
+      console.warn(`🛑 Brak modelu nóg — nie można nałożyć materiału: ${variant.Wartość}`);
+      continue;
+    }
 
-const targetObject = container?.getObjectByName(targetName);
-
+    const targetObject = container?.getObjectByName(targetName);
 
     if (targetObject && targetObject.material) {
-        
-        
       const material = targetObject.material;
 
       // Obsługa tekstury
@@ -719,32 +757,17 @@ const targetObject = container?.getObjectByName(targetName);
 
           texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
           texture.repeat.set(1, 1);
-
-          // Fallback: jeśli renderer nie istnieje
           texture.anisotropy =
             viewer?.renderer?.capabilities?.getMaxAnisotropy?.() || 1;
+          texture.encoding = THREE.sRGBEncoding;
 
           material.map = texture;
-texture.encoding = THREE.sRGBEncoding;
-material.color.set(0xffffff);
-material.map.needsUpdate = true;
-material.needsUpdate = true;
+          material.color.set(0xffffff);
+          material.map.needsUpdate = true;
+          material.needsUpdate = true;
 
-setTimeout(() => triggerSceneRefresh(), 50);
-
-function triggerSceneRefresh() {
-  if (viewer?.camera) {
-    viewer.camera.position.x += 0.00001;
-    viewer.camera.updateProjectionMatrix();
-  }
-  if (viewer?.renderer?.info) {
-    viewer.renderer.info.reset();
-  }
-  if (viewer?.render) viewer.render();
-}
-
-
-
+          triggerSceneRefresh();
+          startForceRender();
 
           console.log(`✅ Tekstura nałożona na '${targetName}':`, variant.Wartość);
         } catch (e) {
@@ -756,35 +779,24 @@ function triggerSceneRefresh() {
       else if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(variant.Wartość)) {
         try {
           material.map = null;
-material.color = new THREE.Color(variant.Wartość);
-material.needsUpdate = true;
-function triggerSceneRefresh() {
-  setTimeout(() => {
-    if (viewer?.camera) {
-      viewer.camera.position.x += 0.00001;
-      viewer.camera.updateProjectionMatrix();
-    }
+          material.color = new THREE.Color(variant.Wartość);
+          material.needsUpdate = true;
 
-    if (viewer?.renderer?.info) {
-      viewer.renderer.info.reset();
-    }
-
-    if (viewer?.render) viewer.render();
-  }, 30);
-}
-
-
-
+          triggerSceneRefresh();
+          startForceRender();
 
           console.log(`🎨 Kolor ustawiony na '${targetName}':`, variant.Wartość);
         } catch (e) {
           console.warn(`❌ Nie udało się ustawić koloru: ${variant.Wartość}`, e);
         }
+      } else {
+        console.warn(`⚠️ Niepoprawna wartość materiału:`, variant.Wartość);
       }
     } else {
       console.warn(`⚠️ Mesh '${targetName}' nie znaleziony lub nie ma materiału.`);
     }
   }
+
 
   // 📘 Zapamiętaj wybór
 targetNames.forEach(targetName => {
@@ -793,6 +805,13 @@ targetNames.forEach(targetName => {
     selectedMaterials['legs_material'] = variant;
   }
 });
+
+viewer.scene.traverse(obj => {
+  if (obj.isMesh && obj.material) {
+    obj.material.needsUpdate = true;
+  }
+});
+
 
 // ✅ Odświeżenie widoku 3D
 if (viewer?.camera) {
@@ -884,7 +903,9 @@ updateSummary();
                     d.TargetMeshOrModel.split(',').map(t => t.trim()).includes(targetMesh) &&
                     d.Grupa.toLowerCase() !== 'materiały_nóg'
                 );
-                renderOptions('material-options', materialOptions, (item) => applyMaterial(item));
+                renderOptions('material-options', materialOptions, (item) => applyMaterialToMesh(item, targetMesh));
+
+
             }
 
             function activateLegsTabAndShowMaterials() {
