@@ -749,17 +749,22 @@ const targetObject = container?.getObjectByName(targetName);
     }
   }
 
-  // Zapamiętanie wyboru
-  targetNames.forEach(targetName => {
-    selectedMaterials[targetName] = variant;
-    if (targetName === 'legs' || targetName === 'legs_material') {
-      selectedMaterials['legs_material'] = variant;
-    }
-  });
+  // 📘 Zapamiętaj wybór
+targetNames.forEach(targetName => {
+  selectedMaterials[targetName] = variant;
+  if (targetName === 'legs' || targetName === 'legs_material') {
+    selectedMaterials['legs_material'] = variant;
+  }
+});
 
-  if (viewer?.render) viewer.render();
+// ✅ Odświeżenie widoku 3D
+viewer.scene.visible = false;
+viewer.scene.visible = true;
+if (viewer?.render) viewer.render();
 
-  updateSummary();
+
+updateSummary();
+
 }
 
 
