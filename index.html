@@ -724,7 +724,12 @@ const targetObject = container?.getObjectByName(targetName);
             viewer?.renderer?.capabilities?.getMaxAnisotropy?.() || 1;
 
           material.map = texture;
-          material.needsUpdate = true;
+texture.encoding = THREE.sRGBEncoding;
+material.color.set(0xffffff);
+material.map.needsUpdate = true;
+material.needsUpdate = true;
+
+triggerSceneRefresh(); // 👈 to dodajesz!
 
           console.log(`✅ Tekstura nałożona na '${targetName}':`, variant.Wartość);
         } catch (e) {
@@ -758,8 +763,11 @@ targetNames.forEach(targetName => {
 });
 
 // ✅ Odświeżenie widoku 3D
-viewer.scene.visible = false;
-viewer.scene.visible = true;
+if (viewer?.camera) {
+  viewer.camera.position.x += 0.00001;
+  viewer.camera.updateProjectionMatrix();
+}
+
 if (viewer?.render) viewer.render();
 
 
