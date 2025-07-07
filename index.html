@@ -715,6 +715,7 @@ const targetObject = container?.getObjectByName(targetName);
       if (variant.Wartość && /\.(jpg|jpeg|png)$/i.test(variant.Wartość)) {
         try {
           const texture = await textureLoader.loadAsync(variant.Wartość);
+          console.log(`🎯 Tekstura '${variant.Wartość}' wczytana w całości`);
 
           texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
           texture.repeat.set(1, 1);
@@ -729,7 +730,21 @@ material.color.set(0xffffff);
 material.map.needsUpdate = true;
 material.needsUpdate = true;
 
-triggerSceneRefresh(); // 👈 to dodajesz!
+setTimeout(() => triggerSceneRefresh(), 50);
+
+function triggerSceneRefresh() {
+  if (viewer?.camera) {
+    viewer.camera.position.x += 0.00001;
+    viewer.camera.updateProjectionMatrix();
+  }
+  if (viewer?.renderer?.info) {
+    viewer.renderer.info.reset();
+  }
+  if (viewer?.render) viewer.render();
+}
+
+
+
 
           console.log(`✅ Tekstura nałożona na '${targetName}':`, variant.Wartość);
         } catch (e) {
@@ -741,8 +756,22 @@ triggerSceneRefresh(); // 👈 to dodajesz!
       else if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(variant.Wartość)) {
         try {
           material.map = null;
-          material.color = new THREE.Color(variant.Wartość);
-          material.needsUpdate = true;
+material.color = new THREE.Color(variant.Wartość);
+material.needsUpdate = true;
+function triggerSceneRefresh() {
+  if (viewer?.camera) {
+    viewer.camera.position.x += 0.00001;
+    viewer.camera.updateProjectionMatrix();
+  }
+
+  if (viewer?.renderer?.info) {
+    viewer.renderer.info.reset(); // czyści cache renderowy
+  }
+
+  if (viewer?.render) viewer.render();
+}
+
+
 
           console.log(`🎨 Kolor ustawiony na '${targetName}':`, variant.Wartość);
         } catch (e) {
