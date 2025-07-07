@@ -581,7 +581,7 @@ import {
             updateSummary();
         }
 
-        async function loadModel(variant) {
+       async function loadModel(variant) { 
     // Usuń poprzedni model (w tym Default.glb)
     if (currentModelContainer) {
         viewer.scene.remove(currentModelContainer);
@@ -800,6 +800,13 @@ function showLegMaterialsForSimpleChairs(chair) {
 
 //DOBRE ŁADOWANIE MATERIAŁÓW!!!
 
+function applyMaterialToSpecificMesh(variant, meshKey) {
+  const clone = { ...variant };
+  clone.TargetMeshOrModel = meshKey;
+  console.log(`🎯 Przypisano '${variant.Nazwa}' tylko do mesh '${meshKey}'`);
+  applyMaterial(clone);
+}
+
 async function applyMaterial(variant) {
   if (!currentModelContainer || !variant.TargetMeshOrModel) return;
 
@@ -812,14 +819,52 @@ async function applyMaterial(variant) {
   });
 
   for (const targetName of targetNames) {
-    const container = targetName.toLowerCase() === 'legs' ? currentLegModel : currentModelContainer;
 
-    if (targetName.toLowerCase() === 'legs' && !currentLegModel) {
-      console.warn(`🛑 Brak modelu nóg — nie można nałożyć materiału: ${variant.Wartość}`);
-      continue;
-    }
 
-    const targetObject = container?.getObjectByName(targetName);
+    let container;
+if (targetName.toLowerCase() === 'legs') {
+  if (
+    selectedChair?.Grupa?.toLowerCase() === 'krzesło' ||
+    !currentLegModel
+  ) {
+    container = currentModelContainer;
+  } else {
+    container = currentLegModel;
+  }
+} else {
+  container = currentModelContainer;
+}
+
+
+    if (targetName.toLowerCase() === 'legs') {
+  const isKrzeslo = selectedChair?.Grupa?.toLowerCase() === 'krzesło';
+  const hasValidLegSource = isKrzeslo ? currentModelContainer : currentLegModel;
+
+  if (!hasValidLegSource) {
+    console.warn(`🛑 Brak modelu nóg (group: ${selectedChair?.Grupa}) — nie można nałożyć materiału: ${variant.Wartość}`);
+    continue;
+  }
+}
+
+
+    let targetObject = null;
+
+container?.traverse(obj => {
+  if (
+    obj.isMesh &&
+    obj.name &&
+    obj.name.toLowerCase().trim() === targetName.toLowerCase().trim()
+  ) {
+    targetObject = obj;
+  }
+});
+
+if (!targetObject) {
+  console.warn(`❌ Mesh '${targetName}' nie znaleziony w modelu`);
+} else {
+  console.log(`✅ Znaleziono mesh: '${targetObject.name}'`);
+}
+
 
     if (targetObject && targetObject.material) {
       const material = targetObject.material.clone(); // Klonujemy materiał, aby nie wpływać na inne obiekty
@@ -975,35 +1020,55 @@ if (variant.Roughness !== undefined && variant.Roughness !== '') {
             }
 
             function renderFilteredMaterialOptions(targetMesh) {
-                // Filtrowanie materiałów nóg po typie nóg (np. metal/drewno)
-                if (
-                    (targetMesh === 'legs' || targetMesh === 'legs_material') &&
-                    selectedChair &&
-                    selectedChair.Grupa &&
-                    selectedChair.Grupa.toLowerCase() === 'kubełek'
-                ) {
-                    let materialOptions = allData.filter(d =>
-                        d.Grupa && d.Grupa.toLowerCase() === 'materiały_nóg'
-                    );
-                    // Filtrowanie po typie nóg jeśli jest wybrany wariant nóg i materiał ma pole Typ
-                    if (selectedLeg && selectedLeg.Typ) {
-                        materialOptions = materialOptions.filter(mat =>
-                            !mat.Typ || mat.Typ.toLowerCase().trim() === selectedLeg.Typ.toLowerCase().trim()
-                        );
-                    }
-                    renderOptions('material-options', materialOptions, (item) => applyMaterial(item));
-                    return;
-                }
-                // Dla wszystkich innych przypadków pokazuj tylko materiały NIE będące materiałami nóg
-                const materialOptions = allData.filter(d =>
-                    d.TargetMeshOrModel &&
-                    d.TargetMeshOrModel.split(',').map(t => t.trim()).includes(targetMesh) &&
-                    d.Grupa.toLowerCase() !== 'materiały_nóg'
-                );
-                renderOptions('material-options', materialOptions, (item) => applyMaterialToMesh(item, targetMesh));
+  // 🦵 MATERIAŁY NÓG DLA KUBEŁKA
+  if (
+    (targetMesh === 'legs' || targetMesh === 'legs_material') &&
+    selectedChair &&
+    selectedChair.Grupa &&
+    selectedChair.Grupa.toLowerCase() === 'kubełek'
+  ) {
+    let materialOptions = allData.filter(d =>
+      d.Grupa && d.Grupa.toLowerCase() === 'materiały_nóg'
+    );
+    if (selectedLeg && selectedLeg.Typ) {
+      materialOptions = materialOptions.filter(mat =>
+        !mat.Typ || mat.Typ.toLowerCase().trim() === selectedLeg.Typ.toLowerCase().trim()
+      );
+    }
+    renderOptions('material-options', materialOptions, item =>
+      applyMaterial(item)
+    );
+    return;
+  }
+
+  // 🪑 MATERIAŁY NÓG DLA KRZESŁA
+if (
+  targetMesh === 'legs' &&
+  selectedChair?.Grupa?.toLowerCase() === 'krzesło'
+) {
+  const materialOptions = allData.filter(d =>
+    d.Grupa?.toLowerCase() === 'materiały_nóg'
+  );
+
+  renderOptions('material-options', materialOptions, item =>
+    applyMaterialToSpecificMesh(item, 'legs')
+  );
+
+  return;
+}
 
 
-            }
+  // ✳️ MATERIAŁY KUBEŁKA (siedzisko, oparcia itd.)
+  const materialOptions = allData.filter(d =>
+    d.TargetMeshOrModel &&
+    d.TargetMeshOrModel.split(',').map(t => t.trim()).includes(targetMesh) &&
+    d.Grupa.toLowerCase() !== 'materiały_nóg'
+  );
+  renderOptions('material-options', materialOptions, item =>
+    applyMaterialToSpecificMesh(item, targetMesh)
+  );
+}
+
 
             function activateLegsTabAndShowMaterials() {
                 // Podświetl zakładkę "Nogi" po data-key
@@ -1103,28 +1168,36 @@ if (variant.Roughness !== undefined && variant.Roughness !== '') {
 
                 // Sekcja nóg i materiały nóg – nogi tylko dla kubełków, materiały dla kubełków i krzeseł
 if (selectedChair && selectedChair.Grupa) {
-    const grupa = selectedChair.Grupa.toLowerCase();
+  const grupa = selectedChair.Grupa.toLowerCase();
 
-    // Sekcja nóg tylko dla kubełek
-    if (grupa === 'kubełek') {
-        document.getElementById('legs-section').style.display = 'block';
-        renderOptions('legs-thumbnails', legs, item => {
-            setLegModel(item);
-        });
-    } else {
-        document.getElementById('legs-section').style.display = 'none';
-    }
+  if (grupa === 'kubełek') {
+    console.log("Pokazuję nogi i materiały nóg dla kubełka");
+    document.getElementById('legs-section').style.display = 'block';
+    renderOptions('legs-thumbnails', legs, item => {
+      setLegModel(item);
+    });
 
-    // Sekcja materiałów nóg dla kubełek i krzeseł
-    if (grupa === 'kubełek' || grupa === 'krzesło') {
-        document.getElementById('materials-section').style.display = 'block';
-    } else {
-        document.getElementById('materials-section').style.display = 'none';
-    }
-} else {
-    // Jeśli brak wybranego elementu lub grupy, ukryj obie sekcje
+    // materiały nóg dla kubełka pokażemy tylko po kliknięciu zakładki „Nogi”
+    document.getElementById('materials-section').style.display = 'none';
+  }
+
+  else if (grupa === 'krzesło') {
+    console.log("Ukrywam sekcję nóg dla krzesła");
+    document.getElementById('legs-section').style.display = 'none';
+
+    // materiały nóg dla krzesła też pokażemy dopiero po kliknięciu zakładki „Nogi”
+    document.getElementById('materials-section').style.display = 'none';
+  }
+
+  else {
+    console.log("Ukrywam sekcje nóg i materiałów");
     document.getElementById('legs-section').style.display = 'none';
     document.getElementById('materials-section').style.display = 'none';
+  }
+} else {
+  console.log("Brak wybranego elementu lub grupy");
+  document.getElementById('legs-section').style.display = 'none';
+  document.getElementById('materials-section').style.display = 'none';
 }
 
 updateSummary();
