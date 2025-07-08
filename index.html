@@ -791,6 +791,18 @@ function showLegMaterialsForSimpleChairs(chair) {
 // DOBRE ŁADOWANIE MATERIAŁÓW!!!
 
 async function applyMaterial(variant) {
+  console.log('applyMaterial wywołane z:', variant);
+  
+  if (!currentModelContainer) {
+    console.warn('currentModelContainer jest null lub undefined');
+    return;
+  }
+  
+  if (!variant.TargetMeshOrModel) {
+    console.warn('Brak TargetMeshOrModel w wariancie');
+    return;
+  }
+    
   if (!currentModelContainer || !variant.TargetMeshOrModel) return;
 
   const targetNames = variant.TargetMeshOrModel.split(',').map(name => name.trim());
