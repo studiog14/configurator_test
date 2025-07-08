@@ -649,16 +649,26 @@ import {
             document.getElementById('buy-button').innerHTML = '<span class="cart-icon">🛒</span>Zapytaj o produkt';
 
             document.getElementById('buy-button').onclick = () => {
+    const summary = generateSummaryText();
+    const subject = `Zapytanie o wycenę: ${selectedChair.Nazwa}`;
+    const body = `Dzień dobry,\n\nProszę o wycenę poniższej konfiguracji:\n\n${summary.text}\n-------------------\nSuma: ${summary.totalPrice.toFixed(2)} PLN\n\nPozdrawiam,\n[Imię i nazwisko]`;
 
-                // EMAIL
-                const emailAddress = 'ociepa-piotr@wp.pl';
+    console.log("Symulowana wysyłka wiadomości:");
+    console.log("Temat:", subject);
+    console.log("Treść:", body);
 
+    // Zamknij modal (jeśli był otwarty) i pokaż komunikat
+    const modal = document.getElementById('emailModal');
+    if (modal) modal.classList.add('hidden');
 
-                const summary = generateSummaryText();
-                const subject = `Zapytanie o wycenę: ${selectedChair.Nazwa}`;
-                let body = `Dzień dobry,\n\nProszę o wycenę poniższej konfiguracji:\n\n${summary.text}\n-------------------\nSuma: ${summary.totalPrice.toFixed(2)} PLN\n\nPozdrawiam,\n[Imię i nazwisko]`;
-                window.location.href = `mailto:${emailAddress}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-            };
+    const successMessage = document.getElementById('success-message');
+    if (successMessage) {
+        successMessage.classList.remove('hidden');
+        setTimeout(() => {
+            successMessage.classList.add('hidden');
+        }, 3000);
+    }
+};
 
             try {
                 await viewer.setEnvironmentMap("hdr/blocky_photo_studio_1k.hdr", { isHDR: true });
