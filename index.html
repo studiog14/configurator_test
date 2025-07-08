@@ -788,153 +788,159 @@ function showLegMaterialsForSimpleChairs(chair) {
 }
 
 
-//DOBRE ŁADOWANIE MATERIAŁÓW!!!
-
-function applyMaterialToSpecificMesh(variant, meshKey) {
-  const clone = { ...variant };
-  clone.TargetMeshOrModel = meshKey;
-  console.log(`🎯 Przypisano '${variant.Nazwa}' tylko do mesh '${meshKey}'`);
-  applyMaterial(clone);
-}
+// DOBRE ŁADOWANIE MATERIAŁÓW!!!
 
 async function applyMaterial(variant) {
   if (!currentModelContainer || !variant.TargetMeshOrModel) return;
 
   const targetNames = variant.TargetMeshOrModel.split(',').map(name => name.trim());
-
-  // DEBUG: pokaż dostępne meshe
-  console.log('📦 Lista dostępnych meshów w modelu:');
-  currentModelContainer.traverse(obj => {
-    if (obj.isMesh) console.log('🔹', obj.name);
-  });
+  const folderPath = variant.Wartość.startsWith('textures/') ? variant.Wartość : `textures/${variant.Wartość}`;
 
   for (const targetName of targetNames) {
-
-
     let container;
-if (targetName.toLowerCase() === 'legs') {
-  if (
-    selectedChair?.Grupa?.toLowerCase() === 'krzesło' ||
-    !currentLegModel
-  ) {
-    container = currentModelContainer;
-  } else {
-    container = currentLegModel;
-  }
-} else {
-  container = currentModelContainer;
-}
-
-
     if (targetName.toLowerCase() === 'legs') {
-  const isKrzeslo = selectedChair?.Grupa?.toLowerCase() === 'krzesło';
-  const hasValidLegSource = isKrzeslo ? currentModelContainer : currentLegModel;
-
-  if (!hasValidLegSource) {
-    console.warn(`🛑 Brak modelu nóg (group: ${selectedChair?.Grupa}) — nie można nałożyć materiału: ${variant.Wartość}`);
-    continue;
-  }
-}
-
+      if (selectedChair?.Grupa?.toLowerCase() === 'krzesło' || !currentLegModel) {
+        container = currentModelContainer;
+      } else {
+        container = currentLegModel;
+      }
+    } else {
+      container = currentModelContainer;
+    }
 
     let targetObject = null;
 
-container?.traverse(obj => {
-  if (
-    obj.isMesh &&
-    obj.name &&
-    obj.name.toLowerCase().trim() === targetName.toLowerCase().trim()
-  ) {
-    targetObject = obj;
-  }
-});
-
-if (!targetObject) {
-  console.warn(`❌ Mesh '${targetName}' nie znaleziony w modelu`);
-} else {
-  console.log(`✅ Znaleziono mesh: '${targetObject.name}'`);
-}
-
-
-    if (targetObject && targetObject.material) {
-      const material = targetObject.material.clone(); // Klonujemy materiał, aby nie wpływać na inne obiekty
-
-      // Obsługa tekstury
-      if (variant.Wartość && /\.(jpg|jpeg|png)$/i.test(variant.Wartość)) {
-        try {
-          const texture = await textureLoader.loadAsync(variant.Wartość);
-          console.log(`🎯 Tekstura '${variant.Wartość}' wczytana w całości`);
-
-          texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-          texture.repeat.set(1, 1);
-          texture.anisotropy =
-            viewer?.renderer?.capabilities?.getMaxAnisotropy?.() || 1;
-          texture.encoding = THREE.sRGBEncoding;
-
-          material.map = texture;
-          material.color.set(0xffffff);
-          material.map.needsUpdate = true;
-          material.needsUpdate = true;
-
-          targetObject.material = material; // Przypisujemy nowy materiał tylko do tego obiektu
-
-          triggerSceneRefresh();
-          startForceRender();
-
-          console.log(`✅ Tekstura nałożona na '${targetName}':`, variant.Wartość);
-        } catch (e) {
-          console.warn(`❌ Nie udało się załadować tekstury: ${variant.Wartość}`, e);
-        }
+    container?.traverse(obj => {
+      if (
+        obj.isMesh &&
+        obj.name &&
+        obj.name.toLowerCase().trim() === targetName.toLowerCase().trim()
+      ) {
+        targetObject = obj;
       }
-// Obsługa koloru HEX
-else if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(variant.Wartość)) {
-  try {
-    material.map = null;
-    material.color = new THREE.Color(variant.Wartość);
+    });
 
-    // Metalness
-if (variant.Metalness !== undefined && variant.Metalness !== '') {
-  const metalVal = parseFloat(variant.Metalness);
-  material.metalness = !isNaN(metalVal) ? metalVal : 0.35;
-  console.log(`🔧 Metalness ustawiony na: ${material.metalness}`);
-} else {
-  material.metalness = 0.35; // domyślna wartość
-  console.log(`🔧 Metalness przywrócony do domyślnego: 0`);
-}
+    if (!targetObject) {
+      console.warn(`❌ Mesh '${targetName}' nie znaleziony w modelu`);
+      continue;
+    }
 
-// Roughness
-if (variant.Roughness !== undefined && variant.Roughness !== '') {
-  const roughVal = parseFloat(variant.Roughness);
-  material.roughness = !isNaN(roughVal) ? roughVal : 0.4;
-  console.log(`🔧 Roughness ustawiony na: ${material.roughness}`);
-} else {
-  material.roughness = 0.4; // domyślna wartość
-  console.log(`🔧 Roughness przywrócony do domyślnego: 1`);
-}
+    if (!targetObject.material) {
+      console.warn(`⚠️ Mesh '${targetName}' nie ma materiału.`);
+      continue;
+    }
 
-   
+    const material = targetObject.material.clone();
 
-    material.needsUpdate = true;
+    // Funkcja do bezpiecznego ładowania tekstury (zwraca null, jeśli nie uda się załadować)
+    async function loadTextureSafe(url) {
+      try {
+        const tex = await textureLoader.loadAsync(url);
+        tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+        tex.encoding = THREE.sRGBEncoding;
+        return tex;
+      } catch {
+        return null;
+      }
+    }
 
-    targetObject.material = material; // Przypisujemy materiał tylko do tego obiektu
+    if (folderPath && !/\.(jpg|jpeg|png|gif)$/i.test(folderPath)) {
+      const baseColorTex = await loadTextureSafe(`${folderPath}/baseColor.jpg`);
+      const normalTex = await loadTextureSafe(`${folderPath}/normal.jpg`);
+      const roughnessTex = await loadTextureSafe(`${folderPath}/roughness.jpg`);
+      const metallicTex = await loadTextureSafe(`${folderPath}/metallic.jpg`);
 
-    triggerSceneRefresh();
-    startForceRender();
+      material.map = baseColorTex || null;
+      material.normalMap = normalTex || null;
+      material.roughnessMap = roughnessTex || null;
+      material.metalnessMap = metallicTex || null;
 
-    console.log(`🎨 Kolor ustawiony na '${targetName}':`, variant.Wartość);
-  } catch (e) {
-    console.warn(`❌ Nie udało się ustawić koloru: ${variant.Wartość}`, e);
+      material.color.set(0xffffff);
+
+      if (baseColorTex) baseColorTex.needsUpdate = true;
+      if (normalTex) normalTex.needsUpdate = true;
+      if (roughnessTex) roughnessTex.needsUpdate = true;
+      if (metallicTex) metallicTex.needsUpdate = true;
+
+      material.needsUpdate = true;
+
+      targetObject.material = material;
+
+      triggerSceneRefresh();
+      startForceRender();
+
+      console.log(`✅ Załadowano mapy na mesh '${targetName}':`, {
+        baseColorMap: !!material.map,
+        normalMap: !!material.normalMap,
+        roughnessMap: !!material.roughnessMap,
+        metallicMap: !!material.metalnessMap
+      });
+
+    } else if (variant.Wartość && /\.(jpg|jpeg|png)$/i.test(variant.Wartość)) {
+      // obsługa gdy podano pojedynczy plik (np. baseColor)
+      try {
+        const texture = await textureLoader.loadAsync(variant.Wartość);
+        texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+        texture.encoding = THREE.sRGBEncoding;
+
+        material.map = texture;
+        material.color.set(0xffffff);
+        material.map.needsUpdate = true;
+        material.needsUpdate = true;
+
+        targetObject.material = material;
+
+        triggerSceneRefresh();
+        startForceRender();
+
+        console.log(`✅ Tekstura '${variant.Wartość}' załadowana na mesh '${targetName}'`);
+      } catch (e) {
+        console.warn(`❌ Nie udało się załadować tekstury: ${variant.Wartość}`, e);
+      }
+    } else if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(variant.Wartość)) {
+      if (!(targetObject.material instanceof THREE.MeshStandardMaterial)) {
+        console.log(`🛠️ Zamiana materiału na MeshStandardMaterial dla '${targetName}'`);
+        const newMat = new THREE.MeshStandardMaterial();
+        targetObject.material.dispose();
+        targetObject.material = newMat;
+      }
+      const material = targetObject.material;
+
+      try {
+        material.map = null;
+        material.color = new THREE.Color(variant.Wartość);
+
+        // Logowanie surowych wartości
+        console.log(`Metalness raw: '${variant.Metalness}', Roughness raw: '${variant.Roughness}'`);
+
+        // Obcinamy spacje i konwertujemy na float
+        const metalRaw = (variant.Metalness || '').toString().trim();
+        const roughRaw = (variant.Roughness || '').toString().trim();
+
+        const metalVal = metalRaw !== '' ? parseFloat(metalRaw) : 0.35;
+        const roughVal = roughRaw !== '' ? parseFloat(roughRaw) : 0.4;
+
+        console.log(`Metalness parsed: ${metalVal}, Roughness parsed: ${roughVal}`);
+
+        material.metalness = !isNaN(metalVal) ? metalVal : 0.35;
+        material.roughness = !isNaN(roughVal) ? roughVal : 0.4;
+
+        material.needsUpdate = true;
+        targetObject.material = material;
+
+        triggerSceneRefresh();
+        startForceRender();
+
+        console.log(`🎨 Kolor i właściwości materiału ustawione na '${targetName}': kolor ${variant.Wartość}, metalness ${material.metalness}, roughness ${material.roughness}`);
+      } catch (e) {
+        console.warn(`❌ Nie udało się ustawić koloru lub właściwości: ${variant.Wartość}`, e);
+      }
+    } else {
+      console.warn(`⚠️ Niepoprawna wartość materiału: ${variant.Wartość}`);
+    }
   }
-} else {
-  console.warn(`⚠️ Niepoprawna wartość materiału:`, variant.Wartość);
-}
 
-} else {
-  console.warn(`⚠️ Mesh '${targetName}' nie znaleziony lub nie ma materiału.`);
-}
-}
-
-  // 📘 Zapamiętaj wybór
+  // Zapamiętanie wyboru i odświeżenie sceny - możesz tu zostawić swój oryginalny kod
   targetNames.forEach(targetName => {
     selectedMaterials[targetName] = variant;
     if (targetName === 'legs' || targetName === 'legs_material') {
@@ -948,7 +954,6 @@ if (variant.Roughness !== undefined && variant.Roughness !== '') {
     }
   });
 
-  // ✅ Odświeżenie widoku 3D
   if (viewer?.camera) {
     viewer.camera.position.x += 0.00001;
     viewer.camera.updateProjectionMatrix();
@@ -959,7 +964,15 @@ if (variant.Roughness !== undefined && variant.Roughness !== '') {
   updateSummary();
 }
 
-//DOBRE ŁADOWANIE MATERIAŁOW!!!
+function applyMaterialToSpecificMesh(variant, meshKey) {
+  const clone = { ...variant };
+  clone.TargetMeshOrModel = meshKey;
+  console.log(`🎯 Przypisano '${variant.Nazwa}' tylko do mesh '${meshKey}'`);
+  applyMaterial(clone);
+}
+
+// DOBRE ŁADOWANIE MATERIAŁÓW!!!
+
 
 
 
