@@ -649,6 +649,8 @@ import {
 
             document.getElementById('buy-button').onclick = () => {
     const summary = generateSummaryText();
+    const emailAddress = 'ociepa-piotr@wp.pl'; // <- adres docelowy
+
     const subject = `Zapytanie o wycenę: ${selectedChair.Nazwa}`;
     const body = `Dzień dobry,\n\nProszę o wycenę poniższej konfiguracji:\n\n${summary.text}\n-------------------\nSuma: ${summary.totalPrice.toFixed(2)} PLN\n\nPozdrawiam,\n[Imię i nazwisko]`;
 
@@ -656,18 +658,29 @@ import {
     console.log("Temat:", subject);
     console.log("Treść:", body);
 
-    // Zamknij modal (jeśli był otwarty) i pokaż komunikat
+    // Zamknij modal (jeśli był otwarty)
     const modal = document.getElementById('emailModal');
     if (modal) modal.classList.add('hidden');
 
+    // Pokaż komunikat sukcesu
     const successMessage = document.getElementById('success-message');
     if (successMessage) {
         successMessage.classList.remove('hidden');
+
+        // Po 3 sekundach ukryj komunikat
         setTimeout(() => {
             successMessage.classList.add('hidden');
         }, 3000);
     }
+
+    // Otwórz domyślnego klienta poczty z gotowym emailem po krótkim opóźnieniu,
+    // żeby komunikat zdążył się wyświetlić
+    setTimeout(() => {
+        window.location.href = `mailto:${emailAddress}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    }, 500); // 0.5s opóźnienia - możesz zwiększyć, jeśli trzeba
 };
+
+
 
             try {
                 await viewer.setEnvironmentMap("hdr/blocky_photo_studio_1k.hdr", { isHDR: true });
