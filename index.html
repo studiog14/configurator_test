@@ -370,16 +370,20 @@
   display: none;
 }
 
-modal-content {
+.modal-content {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 320px;
   background: #fff;
   padding: 24px 28px;
   border-radius: 16px;
-  width: 320px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-  position: relative;
   font-family: "Poppins", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   color: #222;
 }
+
 
 .close-button {
   position: absolute;
@@ -428,7 +432,7 @@ modal-content {
 
 .modal-content button[type="submit"] {
   width: 100%;
-  background: #000; /* czarny przycisk jak na podsumowaniu */
+  background: #000;
   color: #fff;
   font-weight: 700;
   font-size: 16px;
@@ -445,20 +449,28 @@ modal-content {
 
 /* Komunikat sukcesu */
 #success-message {
-  background: #d4edda;
-  border: 1.5px solid #c3e6cb;
-  color: #155724;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  
+  background: #ffffff; /* jasne zielone tło */
+  border: 1.5px solid #1f1f1f; /* zielona ramka, spójna z tłem */
+  color: #000000; /* ciemnozielony tekst */
+  
   font-weight: 700;
-  margin-top: 14px;
-  padding: 14px 18px;
-  border-radius: 16px;
-  text-align: center;
-  box-shadow: 0 8px 32px rgba(21, 87, 36, 0.15);
   font-family: "Poppins", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  
+  padding: 20px 28px;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(21, 87, 36, 0.15);
+  
   max-width: 320px;
-  margin-left: auto;
-  margin-right: auto;
+  width: 90%;
+  text-align: center;
+  z-index: 9999;
 }
+
 
 /* Ukrywanie i pokazywanie */
 .hidden {
@@ -468,6 +480,8 @@ modal-content {
 .visible {
   display: block;
 }
+
+
 
 
 
@@ -648,37 +662,42 @@ import {
             document.getElementById('buy-button').innerHTML = '<span class="cart-icon">🛒</span>Zapytaj o produkt';
 
             document.getElementById('buy-button').onclick = () => {
-    const summary = generateSummaryText();
-    const emailAddress = 'ociepa-piotr@wp.pl'; // <- adres docelowy
+  const summary = generateSummaryText();
+  const emailAddress = 'ociepa-piotr@wp.pl'; // adres docelowy
 
-    const subject = `Zapytanie o wycenę: ${selectedChair.Nazwa}`;
-    const body = `Dzień dobry,\n\nProszę o wycenę poniższej konfiguracji:\n\n${summary.text}\n-------------------\nSuma: ${summary.totalPrice.toFixed(2)} PLN\n\nPozdrawiam,\n[Imię i nazwisko]`;
+  const subject = `Zapytanie o wycenę: ${selectedChair.Nazwa}`;
+  const body = `Dzień dobry,\n\nProszę o wycenę poniższej konfiguracji:\n\n${summary.text}\n-------------------\nSuma: ${summary.totalPrice.toFixed(2)} PLN\n\nPozdrawiam,\n[Imię i nazwisko]`;
 
-    console.log("Symulowana wysyłka wiadomości:");
-    console.log("Temat:", subject);
-    console.log("Treść:", body);
+  console.log("Symulowana wysyłka wiadomości:");
+  console.log("Temat:", subject);
+  console.log("Treść:", body);
 
-    // Zamknij modal (jeśli był otwarty)
-    const modal = document.getElementById('emailModal');
-    if (modal) modal.classList.add('hidden');
+  // Zamknij modal jeśli otwarty
+  const modal = document.getElementById('emailModal');
+  if (modal) modal.classList.add('hidden');
 
-    // Pokaż komunikat sukcesu
-    const successMessage = document.getElementById('success-message');
-    if (successMessage) {
-        successMessage.classList.remove('hidden');
+  // Pokaż komunikat sukcesu (dodaj klasę visible i usuń hidden)
+  const successMessage = document.getElementById('success-message');
+  if (successMessage) {
+    successMessage.classList.add('visible');
+    successMessage.classList.remove('hidden');
 
-        // Po 3 sekundach ukryj komunikat
-        setTimeout(() => {
-            successMessage.classList.add('hidden');
-        }, 3000);
-    }
-
-    // Otwórz domyślnego klienta poczty z gotowym emailem po krótkim opóźnieniu,
-    // żeby komunikat zdążył się wyświetlić
+    // Po 0.5s otwórz mailto, by dać czas na pokazanie komunikatu
     setTimeout(() => {
-        window.location.href = `mailto:${emailAddress}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    }, 500); // 0.5s opóźnienia - możesz zwiększyć, jeśli trzeba
+      window.location.href = `mailto:${emailAddress}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    }, 500);
+
+    // Ukryj komunikat po 3 sekundach
+    setTimeout(() => {
+      successMessage.classList.remove('visible');
+      successMessage.classList.add('hidden');
+    }, 3500);
+  } else {
+    // Jeżeli brak komunikatu, to od razu wywołaj mailto
+    window.location.href = `mailto:${emailAddress}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  }
 };
+
 
 
 
