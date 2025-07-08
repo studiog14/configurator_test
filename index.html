@@ -910,6 +910,7 @@ async function applyMaterial(variant) {
         console.warn(`❌ Nie udało się załadować tekstury: ${variant.Wartość}`, e);
       }
     } else if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(variant.Wartość)) {
+        
       if (!(targetObject.material instanceof THREE.MeshStandardMaterial)) {
         console.log(`🛠️ Zamiana materiału na MeshStandardMaterial dla '${targetName}'`);
         const newMat = new THREE.MeshStandardMaterial();
