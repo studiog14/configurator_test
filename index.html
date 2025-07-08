@@ -444,6 +444,8 @@ import {
         let selectedChair, selectedLeg, selectedMaterials = {};
         let globalCameraTargetPosition;
         let userInteracted = false;
+        
+
 
         const ELEMENT_ICONS = {
             seat: 'icons/m_seat_icon.png',
@@ -581,8 +583,7 @@ import {
             updateSummary();
         }
 
-       async function loadModel(variant) { 
-    // Usuń poprzedni model (w tym Default.glb)
+       async function loadModel(variant) {
     if (currentModelContainer) {
         viewer.scene.remove(currentModelContainer);
         if (typeof currentModelContainer.dispose === 'function') currentModelContainer.dispose();
@@ -591,9 +592,9 @@ import {
         viewer.scene.remove(currentLegModel);
         if (typeof currentLegModel.dispose === 'function') currentLegModel.dispose();
     }
-    currentModelContainer = null; 
-    currentLegModel = null; 
-    selectedLeg = null; 
+    currentModelContainer = null;
+    currentLegModel = null;
+    selectedLeg = null;
     selectedMaterials = {};
 
     try {
@@ -601,7 +602,7 @@ import {
         currentModelContainer = await viewer.load(modelPath, { autoCenter: true });
 
         selectedChair = variant;
-        userInteracted = true; // ważne!
+        userInteracted = true;
 
         if (selectedChair.Grupa && selectedChair.Grupa.toLowerCase() === 'kubełek') {
             const chairBounds = new Box3().setFromObject(currentModelContainer);
@@ -615,15 +616,22 @@ import {
             }
 
             document.getElementById('legs-section').style.display = 'block';
+            
+            // Pokaż materiały nóg
+            activateLegsTabAndShowMaterials();
         } else {
             document.getElementById('legs-section').style.display = 'none';
-
             if (currentLegModel) {
                 viewer.scene.remove(currentLegModel);
                 currentLegModel = null;
                 selectedLeg = null;
             }
         }
+
+        setCameraView(globalCameraTargetPosition);
+        enforceZoomLimits();
+        updateUI();
+        showScreen('config');
 
         // **Sekcja materiałów nóg - zawsze widoczna dla każdego krzesła!**
         document.getElementById('materials-section').style.display = 'block';
@@ -668,7 +676,7 @@ async function setLegModel(variant) {
         const modelPath = `legs/${variant.Nazwa}.glb`;
         console.log("Ładuję model nóg z ścieżki:", modelPath);
         const newLegs = await viewer.load(modelPath, { autoCenter: false });
-        newLegs.visible = false;
+        
         const legBounds = new Box3().setFromObject(newLegs);
         const legHeight = legBounds.max.y - legBounds.min.y;
 
@@ -687,19 +695,9 @@ async function setLegModel(variant) {
             viewer.scene.remove(oldLegs);
             if (typeof oldLegs.dispose === 'function') oldLegs.dispose();
         }
-        newLegs.visible = true;
+        viewer.scene.add(newLegs);
         currentLegModel = newLegs;
         selectedLeg = variant;
-
-        // Zakomentuj to tymczasowo, by wykluczyć problem z materiałami
-        /*
-        const legMaterial = createLegMaterial(variant);
-        newLegs.traverse(child => {
-            if (child.isMesh) {
-                child.material = legMaterial;
-            }
-        });
-        */
 
         // Odśwież listę nóg, żeby podświetlić wybrany wariant
         const legs = allData.filter(d => d.Grupa.toLowerCase() === 'nogi');
@@ -707,18 +705,10 @@ async function setLegModel(variant) {
             setLegModel(item);
         });
 
-        const partTabs = document.querySelectorAll('#part-tabs .thumbnail');
-        partTabs.forEach(tab => tab.classList.remove('selected'));
-        partTabs.forEach(tab => {
-            if (tab.title && tab.title.toLowerCase().includes('nogi')) {
-                tab.classList.add('selected');
-            }
-        });
-
-        document.getElementById('materials-section').style.display = 'block';
-        renderFilteredMaterialOptions('legs');
-
         updateSummary();
+        
+        // Wymuszenie odświeżenia sceny
+        if (viewer.render) viewer.render();
     } catch (e) {
         console.error(`BŁĄD ładowania nóg: ${e.message}`, e);
     }
@@ -1019,55 +1009,73 @@ if (variant.Roughness !== undefined && variant.Roughness !== '') {
                 });
             }
 
-            function renderFilteredMaterialOptions(targetMesh) {
-  // 🦵 MATERIAŁY NÓG DLA KUBEŁKA
-  if (
-    (targetMesh === 'legs' || targetMesh === 'legs_material') &&
-    selectedChair &&
-    selectedChair.Grupa &&
-    selectedChair.Grupa.toLowerCase() === 'kubełek'
-  ) {
-    let materialOptions = allData.filter(d =>
-      d.Grupa && d.Grupa.toLowerCase() === 'materiały_nóg'
+            
+
+
+
+function renderFilteredMaterialOptions(targetMesh) {
+  let materialOptions = [];
+
+  if (!selectedChair || !selectedChair.Grupa) return;
+  const grupa = selectedChair.Grupa.toLowerCase();
+
+  // 🔧 FUNKCJA POMOCNICZA: sprawdza czy wpis pasuje do grupy docelowej
+  const isAllowedForGroup = (entryGroupDocelowa) => {
+    if (!entryGroupDocelowa) return false; // pusta = nie pokazuj
+    const values = entryGroupDocelowa.toLowerCase().split(',').map(s => s.trim());
+    return values.includes('wszystkie') || values.includes(grupa) || values.includes('kubełek, krzesło');
+  };
+
+  // 🦵 MATERIAŁY NÓG
+  if (targetMesh === 'legs' || targetMesh === 'legs_material') {
+    materialOptions = allData.filter(d =>
+      d.Grupa?.toLowerCase() === 'materiały_nóg' &&
+      isAllowedForGroup(d.GrupaDocelowa) &&
+      d.Visible?.toLowerCase() !== 'false'
     );
+
+    // Filtrowanie po typie nóg, jeśli istnieje
     if (selectedLeg && selectedLeg.Typ) {
       materialOptions = materialOptions.filter(mat =>
         !mat.Typ || mat.Typ.toLowerCase().trim() === selectedLeg.Typ.toLowerCase().trim()
       );
     }
+
+    // Dodatkowo filtruj po DlaModeluNóg
+    if (selectedLeg && selectedLeg.Nazwa) {
+      const currentLegName = selectedLeg.Nazwa.toLowerCase().trim();
+      materialOptions = materialOptions.filter(mat => {
+        const allowedLegs = mat.DlaModeluNóg
+          ? mat.DlaModeluNóg.split(',').map(s => s.trim().toLowerCase())
+          : [];
+        return allowedLegs.length === 0 || allowedLegs.includes(currentLegName);
+      });
+    }
+
     renderOptions('material-options', materialOptions, item =>
-      applyMaterial(item)
+      applyMaterialToSpecificMesh(item, 'legs')
     );
     return;
   }
 
-  // 🪑 MATERIAŁY NÓG DLA KRZESŁA
-if (
-  targetMesh === 'legs' &&
-  selectedChair?.Grupa?.toLowerCase() === 'krzesło'
-) {
-  const materialOptions = allData.filter(d =>
-    d.Grupa?.toLowerCase() === 'materiały_nóg'
-  );
-
-  renderOptions('material-options', materialOptions, item =>
-    applyMaterialToSpecificMesh(item, 'legs')
-  );
-
-  return;
-}
-
-
-  // ✳️ MATERIAŁY KUBEŁKA (siedzisko, oparcia itd.)
-  const materialOptions = allData.filter(d =>
+  // ✳️ MATERIAŁY TKANINOWE (siedzisko, oparcia itd.)
+  materialOptions = allData.filter(d =>
+    d.Grupa?.toLowerCase() === 'tkanina' &&
     d.TargetMeshOrModel &&
-    d.TargetMeshOrModel.split(',').map(t => t.trim()).includes(targetMesh) &&
-    d.Grupa.toLowerCase() !== 'materiały_nóg'
+    d.TargetMeshOrModel.split(',').map(s => s.trim()).includes(targetMesh) &&
+    isAllowedForGroup(d.GrupaDocelowa) &&
+    d.Visible?.toLowerCase() !== 'false'
   );
+
   renderOptions('material-options', materialOptions, item =>
     applyMaterialToSpecificMesh(item, targetMesh)
   );
 }
+
+
+
+
+
 
 
             function activateLegsTabAndShowMaterials() {
@@ -1083,6 +1091,7 @@ if (
                 // Pokaż sekcję materiałów i wyświetl wszystkie materiały nóg
                 document.getElementById('materials-section').style.display = 'block';
                 renderFilteredMaterialOptions('legs');
+                
             }
 
             function renderPartTabs() {
@@ -1132,75 +1141,71 @@ if (
             }
 
             function updateUI() {
-                const backContainer = document.getElementById('back-to-models-container');
-                backContainer.innerHTML = '';
-                if (selectedChair && (selectedChair.Obrazek || selectedChair.Image)) {
-                    // Stwórz ramkę z ikonką i X
-                    const btn = document.createElement('div');
-                    btn.className = 'back-to-model-btn';
-                    btn.title = 'Wróć do wyboru modelu';
+    const backContainer = document.getElementById('back-to-models-container');
+    backContainer.innerHTML = '';
+    if (selectedChair && (selectedChair.Obrazek || selectedChair.Image)) {
+        // Stwórz ramkę z ikonką i X
+        const btn = document.createElement('div');
+        btn.className = 'back-to-model-btn';
+        btn.title = 'Wróć do wyboru modelu';
 
-                    // Ikonka modelu
-                    const img = document.createElement('img');
-                    img.src = selectedChair.Obrazek || selectedChair.Image;
-                    img.alt = selectedChair.Nazwa;
-                    btn.appendChild(img);
+        // Ikonka modelu
+        const img = document.createElement('img');
+        img.src = selectedChair.Obrazek || selectedChair.Image;
+        img.alt = selectedChair.Nazwa;
+        btn.appendChild(img);
 
-                    // Przycisk X w rogu
-                    const xBtn = document.createElement('button');
-                    xBtn.className = 'close-x';
-                    xBtn.innerHTML = '&times;';
-                    xBtn.title = 'Wróć do wyboru modelu';
-                    xBtn.onclick = (e) => {
-                        e.stopPropagation();
-                        showScreen('models');
-                    };
-                    btn.appendChild(xBtn);
+        // Przycisk X w rogu
+        const xBtn = document.createElement('button');
+        xBtn.className = 'close-x';
+        xBtn.innerHTML = '&times;';
+        xBtn.title = 'Wróć do wyboru modelu';
+        xBtn.onclick = (e) => {
+            e.stopPropagation();
+            showScreen('models');
+        };
+        btn.appendChild(xBtn);
 
-                    // Kliknięcie w całą ramkę też wraca do wyboru modelu
-                    btn.onclick = () => showScreen('models');
+        // Kliknięcie w całą ramkę też wraca do wyboru modelu
+        btn.onclick = () => showScreen('models');
 
-                    backContainer.appendChild(btn);
-                }
+        backContainer.appendChild(btn);
+    }
 
-                const legs = allData.filter(d => d.Grupa.toLowerCase() === 'nogi');
-                renderPartTabs();
+    const legs = allData.filter(d => d.Grupa.toLowerCase() === 'nogi');
+    renderPartTabs();
 
-                // Sekcja nóg i materiały nóg – nogi tylko dla kubełków, materiały dla kubełków i krzeseł
-if (selectedChair && selectedChair.Grupa) {
-  const grupa = selectedChair.Grupa.toLowerCase();
+    // Sekcja nóg i materiały nóg – nogi tylko dla kubełków, materiały dla kubełków i krzeseł
+    if (selectedChair && selectedChair.Grupa) {
+        const grupa = selectedChair.Grupa.toLowerCase();
 
-  if (grupa === 'kubełek') {
-    console.log("Pokazuję nogi i materiały nóg dla kubełka");
-    document.getElementById('legs-section').style.display = 'block';
-    renderOptions('legs-thumbnails', legs, item => {
-      setLegModel(item);
-    });
+        if (grupa === 'kubełek') {
+            console.log("Pokazuję nogi i materiały nóg dla kubełka");
+            document.getElementById('legs-section').style.display = 'block';
+            renderOptions('legs-thumbnails', legs, item => {
+                setLegModel(item);
+            });
 
-    // materiały nóg dla kubełka pokażemy tylko po kliknięciu zakładki „Nogi”
-    document.getElementById('materials-section').style.display = 'none';
-  }
+            // Ukryj sekcję materiałów, pokaże się po kliknięciu w zakładkę
+            document.getElementById('materials-section').style.display = 'none';
+        } else if (grupa === 'krzesło') {
+            console.log("Ukrywam sekcję nóg dla krzesła");
+            document.getElementById('legs-section').style.display = 'none';
 
-  else if (grupa === 'krzesło') {
-    console.log("Ukrywam sekcję nóg dla krzesła");
-    document.getElementById('legs-section').style.display = 'none';
+            // Ukryj sekcję materiałów, pokaże się po kliknięciu w zakładkę
+            document.getElementById('materials-section').style.display = 'none';
+        } else {
+            console.log("Ukrywam sekcje nóg i materiałów");
+            document.getElementById('legs-section').style.display = 'none';
+            document.getElementById('materials-section').style.display = 'none';
+        }
+    } else {
+        console.log("Brak wybranego elementu lub grupy");
+        document.getElementById('legs-section').style.display = 'none';
+        document.getElementById('materials-section').style.display = 'none';
+    }
 
-    // materiały nóg dla krzesła też pokażemy dopiero po kliknięciu zakładki „Nogi”
-    document.getElementById('materials-section').style.display = 'none';
-  }
-
-  else {
-    console.log("Ukrywam sekcje nóg i materiałów");
-    document.getElementById('legs-section').style.display = 'none';
-    document.getElementById('materials-section').style.display = 'none';
-  }
-} else {
-  console.log("Brak wybranego elementu lub grupy");
-  document.getElementById('legs-section').style.display = 'none';
-  document.getElementById('materials-section').style.display = 'none';
-}
-
-updateSummary();
+    updateSummary();
 }
 
 const visibleData = allData.filter(d =>
@@ -1217,11 +1222,11 @@ const visibleData = allData.filter(d =>
                     const rows = csvText.trim().split('\n');
                     const headers = rows.shift().split(',').map(h => h.trim().replace(/"/g, ''));
                     allData = rows.map(row => {
-                        const values = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
-                        const obj = {};
-                        headers.forEach((header, index) => obj[header] = values[index]?.trim().replace(/"/g, '') || '');
-                        return obj;
-                    }).filter(item => item.Visible?.toLowerCase() !== 'false');
+    const values = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
+    const obj = {};
+    headers.forEach((header, index) => obj[header] = values[index]?.trim().replace(/"/g, '') || '');
+    return obj;
+  }).filter(item => item.Visible?.toLowerCase() !== 'false');
 
                     const mainModels = allData.filter(d => ['krzesło', 'kubełek'].includes(d.Grupa.toLowerCase()));
                     renderOptions('model-thumbnails', mainModels, item => loadModel(item));
