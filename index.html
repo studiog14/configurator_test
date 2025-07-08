@@ -938,8 +938,10 @@ async function applyMaterial(variant) {
         material.metalness = !isNaN(metalVal) ? metalVal : 0.35;
         material.roughness = !isNaN(roughVal) ? roughVal : 0.4;
 
-        material.needsUpdate = true;
         targetObject.material = material;
+targetObject.geometry.computeVertexNormals(); // ⬅️ to dodaj
+material.needsUpdate = true;
+
 
         triggerSceneRefresh();
         startForceRender();
