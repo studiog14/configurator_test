@@ -355,6 +355,126 @@
             padding: 12px 0;
             transition: box-shadow 0.2s;
         }
+
+        .modal {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal.hidden {
+  display: none;
+}
+
+modal-content {
+  background: #fff;
+  padding: 24px 28px;
+  border-radius: 16px;
+  width: 320px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  position: relative;
+  font-family: "Poppins", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  color: #222;
+}
+
+.close-button {
+  position: absolute;
+  top: 12px; right: 16px;
+  cursor: pointer;
+  font-size: 26px;
+  font-weight: 700;
+  color: #888;
+  transition: color 0.2s ease;
+}
+
+.close-button:hover {
+  color: #444;
+}
+
+.modal-content h2 {
+  margin-top: 0;
+  margin-bottom: 16px;
+  font-weight: 700;
+  font-size: 20px;
+  text-align: center;
+}
+
+.modal-content label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.modal-content input {
+  width: 100%;
+  padding: 10px 12px;
+  margin-bottom: 18px;
+  border: 1.5px solid #ddd;
+  border-radius: 12px;
+  font-size: 15px;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease;
+}
+
+.modal-content input:focus {
+  border-color: #888;
+  outline: none;
+}
+
+.modal-content button[type="submit"] {
+  width: 100%;
+  background: #000; /* czarny przycisk jak na podsumowaniu */
+  color: #fff;
+  font-weight: 700;
+  font-size: 16px;
+  padding: 12px 0;
+  border: none;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.modal-content button[type="submit"]:hover {
+  background: #333;
+}
+
+/* Komunikat sukcesu */
+#success-message {
+  background: #d4edda;
+  border: 1.5px solid #c3e6cb;
+  color: #155724;
+  font-weight: 700;
+  margin-top: 14px;
+  padding: 14px 18px;
+  border-radius: 16px;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(21, 87, 36, 0.15);
+  font-family: "Poppins", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  display: none;
+  max-width: 320px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#success-message.visible {
+  display: block;
+}
+
+.hidden {
+  display: none;
+}
+
+.visible {
+  display: block;
+}
+
+
+
     </style>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
@@ -400,6 +520,29 @@
             <div id="summary"></div>
         </div>
     </div>
+<!-- FORMULARZ EMAIL - POPUP -->
+<div id="emailModal" class="modal hidden">
+  <div class="modal-content">
+    <span class="close-button">&times;</span>
+    <h2>Wyślij swoją konfigurację</h2>
+    <form id="emailForm">
+      <label for="name">Imię i nazwisko:</label>
+      <input type="text" id="name" name="name" required>
+
+      <label for="email">Adres e-mail:</label>
+      <input type="email" id="email" name="email" required>
+
+      <label for="phone">Numer telefonu:</label>
+      <input type="tel" id="phone" name="phone">
+
+      <button type="submit">Wyślij</button>
+    </form>
+  </div>
+</div>
+
+<!-- KOMUNIKAT SUKCESU -->
+<div id="success-message" style="display:none;">✅ Dziękujemy! Formularz został wysłany.</div>
+
 
 
 
@@ -1451,6 +1594,50 @@ const visibleData = allData.filter(d =>
 
 
             init();
+
+            // Pokaż/ukryj popup
+  const emailModal = document.getElementById('emailModal');
+  const closeBtn = emailModal.querySelector('.close-button');
+  const buyButton = document.getElementById('buy-button');
+  const emailForm = document.getElementById('emailForm');
+  const successMessage = document.getElementById('success-message');
+
+  buyButton.addEventListener('click', () => {
+    emailModal.classList.remove('hidden');
+    successMessage.classList.add('hidden'); // ukryj przy otwieraniu modala
+  });
+
+  closeBtn.addEventListener('click', () => {
+    emailModal.classList.add('hidden');
+  });
+
+  emailModal.addEventListener('click', (e) => {
+    if (e.target === emailModal) {
+      emailModal.classList.add('hidden');
+    }
+  });
+
+  emailForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    // Wysłanie danych formularza (jeśli masz backend/endpoint)
+    // Tu możesz dodać fetch() lub EmailJS
+
+    // Po wysłaniu:
+    emailModal.classList.add('hidden');            // Ukryj modal
+    successMessage.classList.remove('hidden');     // Pokaż komunikat sukcesu
+
+    setTimeout(() => {
+      successMessage.classList.add('hidden');      // Ukryj po 3 sekundach
+    }, 3000);
+
+    emailForm.reset(); // wyczyść pola formularza
+  });
+
+
+
+
+
     </script>
 </body>
 
