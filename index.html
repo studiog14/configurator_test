@@ -455,16 +455,12 @@ modal-content {
   text-align: center;
   box-shadow: 0 8px 32px rgba(21, 87, 36, 0.15);
   font-family: "Poppins", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  display: none;
   max-width: 320px;
   margin-left: auto;
   margin-right: auto;
 }
 
-#success-message.visible {
-  display: block;
-}
-
+/* Ukrywanie i pokazywanie */
 .hidden {
   display: none;
 }
@@ -472,6 +468,7 @@ modal-content {
 .visible {
   display: block;
 }
+
 
 
 
@@ -541,7 +538,9 @@ modal-content {
 </div>
 
 <!-- KOMUNIKAT SUKCESU -->
-<div id="success-message" style="display:none;">✅ Dziękujemy! Formularz został wysłany.</div>
+<div id="success-message" class="hidden">✅ Dziękujemy! Formularz został wysłany.</div>
+
+
 
 
 
@@ -1606,43 +1605,52 @@ const visibleData = allData.filter(d =>
             init();
 
             // Pokaż/ukryj popup
-  const emailModal = document.getElementById('emailModal');
-  const closeBtn = emailModal.querySelector('.close-button');
-  const buyButton = document.getElementById('buy-button');
-  const emailForm = document.getElementById('emailForm');
-  const successMessage = document.getElementById('success-message');
+const emailModal = document.getElementById('emailModal');
+const closeBtn = emailModal.querySelector('.close-button');
+const buyButton = document.getElementById('buy-button');
+const emailForm = document.getElementById('emailForm');
+const successMessage = document.getElementById('success-message');
 
-  buyButton.addEventListener('click', () => {
-    emailModal.classList.remove('hidden');
-    successMessage.classList.add('hidden'); // ukryj przy otwieraniu modala
-  });
+buyButton.addEventListener('click', () => {
+  emailModal.classList.remove('hidden');
+  emailModal.classList.add('visible');
+  successMessage.classList.remove('visible'); // ukryj komunikat na otwarciu
+  successMessage.classList.add('hidden');
+});
 
-  closeBtn.addEventListener('click', () => {
+closeBtn.addEventListener('click', () => {
+  emailModal.classList.remove('visible');
+  emailModal.classList.add('hidden');
+});
+
+emailModal.addEventListener('click', (e) => {
+  if (e.target === emailModal) {
+    emailModal.classList.remove('visible');
     emailModal.classList.add('hidden');
-  });
+  }
+});
 
-  emailModal.addEventListener('click', (e) => {
-    if (e.target === emailModal) {
-      emailModal.classList.add('hidden');
-    }
-  });
+emailForm.addEventListener('submit', (e) => {
+  e.preventDefault();
 
-  emailForm.addEventListener('submit', (e) => {
-    e.preventDefault();
+  // Tutaj wysyłka danych formularza (jeśli masz backend)
+  // Można dodać fetch lub EmailJS
 
-    // Wysłanie danych formularza (jeśli masz backend/endpoint)
-    // Tu możesz dodać fetch() lub EmailJS
+  // Po wysłaniu:
+  emailModal.classList.remove('visible');
+  emailModal.classList.add('hidden');
 
-    // Po wysłaniu:
-    emailModal.classList.add('hidden');            // Ukryj modal
-    successMessage.classList.remove('hidden');     // Pokaż komunikat sukcesu
+  successMessage.classList.remove('hidden');
+  successMessage.classList.add('visible');
 
-    setTimeout(() => {
-      successMessage.classList.add('hidden');      // Ukryj po 3 sekundach
-    }, 3000);
+  setTimeout(() => {
+    successMessage.classList.remove('visible');
+    successMessage.classList.add('hidden');
+  }, 3000);
 
-    emailForm.reset(); // wyczyść pola formularza
-  });
+  emailForm.reset(); // wyczyść formularz
+});
+
 
 
 
