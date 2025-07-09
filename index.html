@@ -788,7 +788,7 @@ import {
 
 
             try {
-                await viewer.setEnvironmentMap("hdr/blocky_photo_studio_1k.hdr", { isHDR: true });
+                await viewer.setEnvironmentMap("hdr/hamburg_hbf_1k.hdr", { isHDR: true });
             } catch (e) { console.error("Błąd ładowania HDR:", e); }
 
             await loadCameraTarget();
@@ -1118,8 +1118,15 @@ async function applyMaterial(variant) {
     async function loadTextureSafe(url) {
       try {
         const tex = await textureLoader.loadAsync(url);
+        tex.magFilter = THREE.LinearFilter;
+        tex.minFilter = THREE.LinearMipMapLinearFilter;
+        tex.anisotropy = viewer?.renderer?.capabilities?.getMaxAnisotropy?.() || 4;
+
         tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
         tex.encoding = THREE.sRGBEncoding;
+        tex.offset.set(0, 0);            // ← brak przesunięcia
+        tex.repeat.set(1, 1);            // ← domyślne powielenie
+        tex.needsUpdate = true;         // ← odświeżenie
         return tex;
       } catch {
         return null;
@@ -1132,10 +1139,61 @@ async function applyMaterial(variant) {
       const roughnessTex = await loadTextureSafe(`${folderPath}/roughness.jpg`);
       const metallicTex = await loadTextureSafe(`${folderPath}/metallic.jpg`);
 
-      material.map = baseColorTex || null;
-      material.normalMap = normalTex || null;
-      material.roughnessMap = roughnessTex || null;
-      material.metalnessMap = metallicTex || null;
+      // ⬇️ BASE COLOR
+if (baseColorTex) {
+  baseColorTex.wrapS = THREE.RepeatWrapping;
+  baseColorTex.wrapT = THREE.RepeatWrapping;
+  baseColorTex.offset.set(0, 0);
+  baseColorTex.repeat.set(1.001, 1.001);
+  baseColorTex.encoding = THREE.sRGBEncoding;
+  baseColorTex.magFilter = THREE.LinearFilter;
+  baseColorTex.minFilter = THREE.LinearMipMapLinearFilter;
+  baseColorTex.anisotropy = viewer?.renderer?.capabilities?.getMaxAnisotropy?.() || 4;
+  baseColorTex.needsUpdate = true;
+  material.map = baseColorTex;
+} else {
+  material.map = null;
+}
+
+// ⬇️ NORMAL
+if (normalTex) {
+  normalTex.wrapS = THREE.RepeatWrapping;
+  normalTex.wrapT = THREE.RepeatWrapping;
+  normalTex.offset.set(0, 0);
+  normalTex.repeat.set(1.001, 1.001);
+  normalTex.encoding = THREE.LinearEncoding;
+  normalTex.needsUpdate = true;
+  material.normalMap = normalTex;
+} else {
+  material.normalMap = null;
+}
+
+// ⬇️ ROUGHNESS
+if (roughnessTex) {
+  roughnessTex.wrapS = THREE.RepeatWrapping;
+  roughnessTex.wrapT = THREE.RepeatWrapping;
+  roughnessTex.offset.set(0, 0);
+  roughnessTex.repeat.set(1.001, 1.001);
+  roughnessTex.encoding = THREE.LinearEncoding;
+  roughnessTex.needsUpdate = true;
+  material.roughnessMap = roughnessTex;
+} else {
+  material.roughnessMap = null;
+}
+
+// ⬇️ METALLIC
+if (metallicTex) {
+  metallicTex.wrapS = THREE.RepeatWrapping;
+  metallicTex.wrapT = THREE.RepeatWrapping;
+  metallicTex.offset.set(0, 0);
+  metallicTex.repeat.set(1.001, 1.001);
+  metallicTex.encoding = THREE.LinearEncoding;
+  metallicTex.needsUpdate = true;
+  material.metalnessMap = metallicTex;
+} else {
+  material.metalnessMap = null;
+}
+
 
       material.color.set(0xffffff);
 
@@ -1162,8 +1220,15 @@ async function applyMaterial(variant) {
       // obsługa gdy podano pojedynczy plik (np. baseColor)
       try {
         const texture = await textureLoader.loadAsync(variant.Wartość);
+        tex.magFilter = THREE.LinearFilter;
+        tex.minFilter = THREE.LinearMipMapLinearFilter;
+        tex.anisotropy = viewer?.renderer?.capabilities?.getMaxAnisotropy?.() || 4;
+
         texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
         texture.encoding = THREE.sRGBEncoding;
+        tex.offset.set(0, 0);            // ← brak przesunięcia
+        tex.repeat.set(1, 1);            // ← domyślne powielenie
+        tex.needsUpdate = true;         // ← odświeżenie
 
         material.map = texture;
         material.color.set(0xffffff);
