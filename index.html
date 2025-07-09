@@ -546,13 +546,49 @@
       <label for="phone">Numer telefonu:</label>
       <input type="tel" id="phone" name="phone">
 
+      <!-- Ukryte pola na dane konfiguracji -->
+      <input type="hidden" id="model" name="model">
+      <input type="hidden" id="price" name="price">
+      <input type="hidden" id="total" name="total">
+
       <button type="submit">Wyślij</button>
     </form>
   </div>
 </div>
 
+
 <!-- KOMUNIKAT SUKCESU -->
 <div id="success-message" class="hidden">✅ Dziękujemy! Formularz został wysłany.</div>
+
+<script src="https://cdn.emailjs.com/dist/email.min.js"></script>
+<script>
+  emailjs.init('y6_uovUeRS8M7gZ1H');
+
+  // Przykładowe dane - podmień na dynamiczne wartości z konfiguratora!
+  const currentModel = "Amy-2";      // np. pobierz z konfiguratora
+  const currentPrice = "560.00";     // cena modelu
+  const totalPrice = "560.00";       // suma całej konfiguracji
+
+  const form = document.getElementById('emailForm');
+
+  form.addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    // Ustaw wartości ukrytych inputów PRZED wysłaniem
+    document.getElementById('model').value = currentModel;
+    document.getElementById('price').value = currentPrice;
+    document.getElementById('total').value = totalPrice;
+
+    emailjs.sendForm('service_h3otax9', 'template_aykvcls', this)
+      .then(() => {
+        alert('Wysłano wiadomość! Dziękujemy.');
+        form.reset();
+      }, (error) => {
+        alert('Coś poszło nie tak. Spróbuj ponownie.');
+        console.error(error);
+      });
+  });
+</script>
 
 
 
@@ -1682,6 +1718,7 @@ emailForm.addEventListener('submit', (e) => {
 
   emailForm.reset(); // wyczyść formularz
 });
+
 
 
 
