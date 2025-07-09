@@ -482,7 +482,112 @@
 }
 
 
+#bottom-toolbar {
+  position: fixed;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fff;
+  border: 1.5px solid #ccc;
+  border-radius: 12px;
+  padding: 8px 14px;
+  display: flex;
+  gap: 16px;
+  z-index: 2000;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
 
+#bottom-toolbar button {
+  background: #f0f0f0;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+#bottom-toolbar.visible {
+  opacity: 1;
+}
+
+#bottom-toolbar button:hover {
+  background: #e0e0e0;
+}
+
+#dimension-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 999;
+  display: none;
+}
+
+#dimension-box {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 260px;
+  height: 260px;
+  background-color: rgba(255, 255, 255, 0.7);
+  transform: translate(-50%, -50%);
+  border-radius: 12px;
+  box-shadow: 0 0 30px rgba(0,0,0,0.15);
+}
+
+.axis-line {
+  position: absolute;
+  height: 2px;
+  background-color: #222;
+  opacity: 0.6;
+}
+
+.axis-line.x {
+  top: 50%;
+  left: 0;
+  width: 100%;
+  transform: translateY(-50%);
+}
+
+.axis-line.y {
+  left: 50%;
+  top: 0;
+  width: 2px;
+  height: 100%;
+  transform: translateX(-50%);
+}
+
+.axis-line.z {
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 2px dashed #888;
+  box-sizing: border-box;
+  border-radius: 10px;
+}
+
+.dimension-label {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: Poppins, sans-serif;
+  font-size: 16px;
+  font-weight: bold;
+  color: #000;
+  background: rgba(255,255,255,0.85);
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+
+.dimension-label:nth-child(4) { top: 20px; }
+.dimension-label:nth-child(5) { top: 50%; transform: translate(-50%, -50%); }
+.dimension-label:nth-child(6) { bottom: 20px; }
 
 
 
@@ -559,6 +664,36 @@
 
 <!-- KOMUNIKAT SUKCESU -->
 <div id="success-message" class="hidden">✅ Dziękujemy! Formularz został wysłany.</div>
+
+<div id="bottom-toolbar" style="display: none;">
+
+  <button id="hdr-toggle" title="Zmień tło HDR">
+  <img src="icons/bulb_icon.png" alt="HDR" style="width: 20px; height: 20px;">
+</button>
+
+<button id="autorotate-toggle" title="Auto obrót">
+  <img src="icons/rotate_icon.png" alt="Obrót" style="width: 20px; height: 20px;">
+</button>
+
+<button id="dimensions-show" title="Wymiary modelu">
+  <img src="icons/dimmension_icon.png" alt="Wymiary" style="width: 20px; height: 20px;">
+</button>
+
+<button id="export-config" title="Pobierz konfigurację">
+  <img src="icons/export_icon.png" alt="Eksport" style="width: 20px; height: 20px;">
+</button>
+</div>
+
+<div id="dimension-overlay">
+  <div id="dimension-box">
+    <div class="axis-line x"></div>
+    <div class="axis-line y"></div>
+    <div class="axis-line z"></div>
+    <div class="dimension-label">x = 58.5 cm</div>
+    <div class="dimension-label">y = 47.6 cm</div>
+    <div class="dimension-label">z = 56.5 cm</div>
+  </div>
+</div>
 
 
 
@@ -645,24 +780,36 @@
 
 
     <script type="module">
-        import * as THREE from 'three'; // ⬅️ korzysta z importmap
+        // Główna biblioteka Three.js (z importmap)
+import * as THREE from 'three'; // opcjonalne, jeśli używasz tylko konkretnych importów
 
+// Konkretnie z Three.js (potrzebne do wymiarów i geometrii)
+import {
+  Group,
+  Box3,
+  Vector3,
+  ArrowHelper,
+  Sprite,
+  SpriteMaterial,
+  CanvasTexture,
+  Color,
+  TextureLoader
+} from 'three';
+
+// ThreePipe core – viewer i pluginy
 import {
   ThreeViewer,
   LoadingScreenPlugin,
   GBufferPlugin,
   SSAAPlugin,
-  Box3,
-  Vector3,
-  Color,
-  TextureLoader
 } from 'threepipe';
 
+// Pluginy z WebGI (ThreePipe)
+import {
+  SSReflectionPlugin,
+  BloomPlugin
+} from '@threepipe/webgi-plugins';
 
-        import {
-            SSReflectionPlugin,
-            BloomPlugin
-        } from '@threepipe/webgi-plugins';
 
        
 
@@ -685,7 +832,13 @@ import {
         let selectedChair, selectedLeg, selectedMaterials = {};
         let globalCameraTargetPosition;
         let userInteracted = false;
+        let dimensionHelpers = [];
+        let currentModel = null;
+
         
+
+
+
 
 
         const ELEMENT_ICONS = {
@@ -700,6 +853,7 @@ import {
             document.getElementById('config-section').style.display = screenName === 'config' ? 'block' : 'none';
         }
 
+        
         async function loadCameraTarget() {
             try {
                 const targetsContainer = await viewer.load('camera_target.glb');
@@ -719,6 +873,7 @@ import {
                 globalCameraTargetPosition = new Vector3(0, 0, 0);
             }
         }
+            
 
         
         async function init() {
@@ -812,11 +967,11 @@ import {
             // Całkowicie wyłącz kontrolki pozycjonowania
             if (viewer.controls) {
                 viewer.controls.target.copy(center);
-                viewer.controls.enableRotate = false;
+                viewer.controls.enableRotate = true;
                 viewer.controls.enablePan = false;
                 viewer.controls.screenSpacePanning = false;
                 viewer.controls.enableZoom = false;
-                viewer.controls.enabled = false; // to blokuje WSZYSTKIE interakcje
+                viewer.controls.enabled = true; // to blokuje WSZYSTKIE interakcje
                 viewer.controls.update();
             }
         }
@@ -870,6 +1025,11 @@ import {
     try {
         const modelPath = `chairs/${variant.Nazwa}.glb`;
         currentModelContainer = await viewer.load(modelPath, { autoCenter: true });
+        // 🔓 Pokaż dolny panel UI po załadowaniu modelu
+const toolbar = document.getElementById('bottom-toolbar');
+toolbar.classList.add('visible');
+toolbar.style.display = 'flex';
+
 
         selectedChair = variant;
         userInteracted = true;
@@ -902,6 +1062,7 @@ import {
         enforceZoomLimits();
         updateUI();
         showScreen('config');
+        
 
         // **Sekcja materiałów nóg - zawsze widoczna dla każdego krzesła!**
         document.getElementById('materials-section').style.display = 'block';
@@ -918,6 +1079,7 @@ import {
         enforceZoomLimits();
         updateUI();
         showScreen('config');
+        
     } catch (e) { 
         console.error(`BŁĄD ładowania modelu: ${e.message}`, e); 
     }
@@ -1607,6 +1769,12 @@ const visibleData = allData.filter(d =>
                     selectedMaterials = {};
                     userInteracted = false;
                     updateSummary();
+                    const toolbar = document.getElementById('bottom-toolbar');
+if (toolbar) {
+  toolbar.style.display = 'flex';
+  toolbar.classList.add('visible');
+}
+
                 } catch (e) { console.error("Błąd ładowania danych:", e); document.body.innerHTML = `Błąd ładowania danych: ${e.message}`; }
             }
 
@@ -1774,6 +1942,100 @@ window.selectedMaterials = selectedMaterials;
             animateBubbleZoomLimit();
 
 
+
+            //Dolne UI
+
+            document.getElementById('hdr-toggle')?.addEventListener('click', () => {
+  viewer.setEnvironmentMap("hdr/blocky_photo_studio_1k.hdr", { isHDR: true });
+});
+
+
+
+
+
+document.getElementById('export-config')?.addEventListener('click', () => {
+  // Placeholder — tutaj można podłączyć WebGi exporter albo wygenerować scenę do pliku
+  alert('🛠️ Eksport konfiguracji zostanie dodany w wersji PRO.\nDla testu: eksport do .fbx, .obj, .glb.');
+});
+
+
+// — Obsługa dolnego paska narzędziowego
+document.getElementById('hdr-toggle')?.addEventListener('click', () => {
+  viewer.setEnvironmentMap("hdr/blocky_photo_studio_1k.hdr", { isHDR: true });
+});
+
+let autorotationEnabled = false;
+document.getElementById('autorotate-toggle')?.addEventListener('click', () => {
+  autorotationEnabled = !autorotationEnabled;
+  if (viewer?.controls) viewer.controls.autoRotate = autorotationEnabled;
+});
+
+document.getElementById('dimensions-show')?.addEventListener('click', (e) => {
+  e.stopPropagation();
+  console.log("📐 Kliknięto przycisk wymiarów");
+  toggleDimensions();
+
+
+
+
+
+
+
+  console.log("📐 Kliknięto przycisk wymiarów");
+  toggleDimensions();
+});
+
+document.getElementById('export-config')?.addEventListener('click', () => {
+  alert('🛠️ Eksport konfiguracji zostanie dodany w wersji PRO.\nDla testu: eksport do .fbx, .obj, .glb.');
+});
+
+
+
+
+// 🔧 Ukrywanie panelu
+document.getElementById('dimensions-show')?.addEventListener('click', () => {
+  const overlay = document.getElementById('dimension-overlay');
+  const labels = overlay.querySelectorAll('.dimension-label');
+
+  // 🧾 Pobierz z arkusza
+  const item = allData.find(i => {
+    const g = (i.Grupa || '').toLowerCase();
+    return (g === 'krzesło' || g === 'kubełek') && i.Wymiary;
+  });
+
+  const dims = item?.Wymiary?.match(/x\s*=\s*(\d+[\.,]?\d*)\s*cm.*?y\s*=\s*(\d+[\.,]?\d*)\s*cm.*?z\s*=\s*(\d+[\.,]?\d*)\s*cm/i);
+
+  if (dims) {
+    labels[0].textContent = `x = ${dims[1]} cm`;
+    labels[1].textContent = `y = ${dims[2]} cm`;
+    labels[2].textContent = `z = ${dims[3]} cm`;
+  }
+
+  overlay.style.display = 'block';
+
+  // ⏱ Opcjonalnie ukryj po 6 sek.
+  setTimeout(() => overlay.style.display = 'none', 6000);
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             init();
 
             // Pokaż/ukryj popup
@@ -1824,6 +2086,15 @@ emailForm.addEventListener('submit', (e) => {
 });
 
 
+const btn = document.getElementById('dimensions-show');
+if (btn) {
+  btn.onclick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log("📐 Kliknięto przycisk wymiarów");
+    toggleDimensions();
+  };
+}
 
 
 

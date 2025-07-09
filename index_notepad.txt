@@ -482,6 +482,40 @@
 }
 
 
+#bottom-toolbar {
+  position: fixed;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fff;
+  border: 1.5px solid #ccc;
+  border-radius: 12px;
+  padding: 8px 14px;
+  display: flex;
+  gap: 16px;
+  z-index: 2000;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+#bottom-toolbar button {
+  background: #f0f0f0;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+#bottom-toolbar.visible {
+  opacity: 1;
+}
+
+#bottom-toolbar button:hover {
+  background: #e0e0e0;
+}
 
 
 
@@ -560,69 +594,91 @@
 <!-- KOMUNIKAT SUKCESU -->
 <div id="success-message" class="hidden">✅ Dziękujemy! Formularz został wysłany.</div>
 
-<!-- EMAILJS -->
+<div id="bottom-toolbar" style="display: none;">
+
+  <button id="hdr-toggle" title="Zmień tło HDR">🌅 HDR</button>
+  <button id="autorotate-toggle" title="Auto obrót">🔁 Obrót</button>
+  <button id="dimensions-show" title="Wymiary modelu">📐 Wymiary</button>
+  <button id="export-config" title="Pobierz konfigurację">💾 Eksport</button>
+</div>
+
+
 <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
 <script>
-  function generateSummaryText() {
-                let text = ""; let totalPrice = 0;
-                if (selectedChair) {
-                    const price = parseFloat(selectedChair.Cena) || 0;
-                    text += `Model: ${selectedChair.Nazwa} (${price.toFixed(2)} PLN)\n`;
-                    totalPrice += price;
-                }
-                const partOrder = ['seat', 'backseat_inside', 'backseat_outside', 'legs_material'];
-                const iconPlaceholders = [selectedChair];
-                const detailPlaceholders = { 'Model': selectedChair };
-
-                partOrder.forEach(partKey => {
-                    if (selectedMaterials[partKey]) {
-                        iconPlaceholders.push(selectedMaterials[partKey]);
-                        detailPlaceholders[partKey.replace(/_/g, ' ')] = selectedMaterials[partKey];
-                    } else {
-                        iconPlaceholders.push(null);
-                    }
-                });
-
-                return { text, totalPrice };
-            }
   emailjs.init('y6_uovUeRS8M7gZ1H');
 
-  const form = document.getElementById('emailForm');
+  function generateSummaryText() {
+    let text = "";
+    let totalPrice = 0;
 
-  form.addEventListener('submit', function(event) {
-    event.preventDefault();
+    if (window.selectedChair) {
+      const price = parseFloat(window.selectedChair.Cena) || 0;
+      totalPrice += price;
+      text += `Model: ${window.selectedChair.Nazwa} (${price.toFixed(2)} PLN)\n`;
+    }
 
-    // 🔄 Pobierz dane z konfiguratora
+    if (window.selectedLeg) {
+      const price = parseFloat(window.selectedLeg.Cena) || 0;
+      totalPrice += price;
+      text += `Wariant nóg: ${window.selectedLeg.Nazwa} (${price.toFixed(2)} PLN)\n`;
+    }
+
+    const partOrder = ['seat', 'backseat_inside', 'backseat_outside', 'legs_material'];
+    partOrder.forEach(part => {
+      const mat = window.selectedMaterials?.[part];
+      if (mat) {
+        const price = parseFloat(mat.Cena) || 0;
+        totalPrice += price;
+        text += `${part.replace(/_/g, ' ')}: ${mat.Nazwa} (${price.toFixed(2)} PLN)\n`;
+      }
+    });
+
+    text += `\nSuma konfiguracji: ${totalPrice.toFixed(2)} PLN`;
+    return { text, totalPrice };
+  }
+
+  
+
+  emailForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+
     const summary = generateSummaryText();
 
-    // 🧩 Wypełnij pola ukryte
-    document.getElementById('model').value = selectedChair?.Nazwa || 'Brak modelu';
-    document.getElementById('price').value = parseFloat(selectedChair?.Cena || 0).toFixed(2);
+    document.getElementById('model').value = window.selectedChair?.Nazwa || 'Brak modelu';
+    document.getElementById('price').value = parseFloat(window.selectedChair?.Cena || 0).toFixed(2);
     document.getElementById('total').value = summary.totalPrice.toFixed(2);
 
-    // 📝 Wypełnij pole configText jeśli je masz
     let configTextInput = document.getElementById('configText');
     if (!configTextInput) {
       configTextInput = document.createElement('textarea');
       configTextInput.name = 'configText';
       configTextInput.id = 'configText';
       configTextInput.hidden = true;
-      form.appendChild(configTextInput);
+      emailForm.appendChild(configTextInput);
     }
     configTextInput.value = summary.text;
 
-    // 📤 Wyślij dane przez EmailJS
-    emailjs.sendForm('service_h3otax9', 'template_aykvcls', this)
+    emailjs.sendForm('service_h3otax9', 'template_aykvcls', emailForm)
       .then(() => {
-        alert('Wysłano wiadomość! Dziękujemy.');
-        form.reset();
-      }, (error) => {
-        alert('Coś poszło nie tak. Spróbuj ponownie.');
-        console.error(error);
+        document.getElementById('emailModal')?.classList.add('hidden');
+
+        const successMessage = document.getElementById('success-message');
+        successMessage.classList.remove('hidden');
+        successMessage.classList.add('visible');
+
+        setTimeout(() => {
+          successMessage.classList.remove('visible');
+          successMessage.classList.add('hidden');
+        }, 3500);
+
+        emailForm.reset();
+      })
+      .catch((error) => {
+        alert('❌ Coś poszło nie tak. Spróbuj ponownie.');
+        console.error('EmailJS error:', error);
       });
   });
 </script>
-
 
 
 
@@ -648,6 +704,7 @@ import {
             SSReflectionPlugin,
             BloomPlugin
         } from '@threepipe/webgi-plugins';
+import { ArrowHelper, Sprite, SpriteMaterial, CanvasTexture } from 'three';
 
        
 
@@ -705,6 +762,7 @@ import {
             }
         }
 
+        
         async function init() {
             const canvas = document.getElementById("canvas");
             
@@ -733,7 +791,7 @@ import {
 
             document.getElementById('buy-button').onclick = () => {
   const summary = generateSummaryText();
-  const emailAddress = 'ociepa-piotr@wp.pl'; // adres docelowy
+  const emailAddress = 'mrpeter@o2.pl'; // adres docelowy
 
   const subject = `Zapytanie o wycenę: ${selectedChair.Nazwa}`;
   const body = `Dzień dobry,\n\nProszę o wycenę poniższej konfiguracji:\n\n${summary.text}\n-------------------\nSuma: ${summary.totalPrice.toFixed(2)} PLN\n\nPozdrawiam,\n[Imię i nazwisko]`;
@@ -772,7 +830,7 @@ import {
 
 
             try {
-                await viewer.setEnvironmentMap("hdr/blocky_photo_studio_1k.hdr", { isHDR: true });
+                await viewer.setEnvironmentMap("hdr/hamburg_hbf_1k.hdr", { isHDR: true });
             } catch (e) { console.error("Błąd ładowania HDR:", e); }
 
             await loadCameraTarget();
@@ -854,6 +912,11 @@ import {
     try {
         const modelPath = `chairs/${variant.Nazwa}.glb`;
         currentModelContainer = await viewer.load(modelPath, { autoCenter: true });
+        // 🔓 Pokaż dolny panel UI po załadowaniu modelu
+const toolbar = document.getElementById('bottom-toolbar');
+toolbar.classList.add('visible');
+toolbar.style.display = 'flex';
+
 
         selectedChair = variant;
         userInteracted = true;
@@ -886,6 +949,7 @@ import {
         enforceZoomLimits();
         updateUI();
         showScreen('config');
+        
 
         // **Sekcja materiałów nóg - zawsze widoczna dla każdego krzesła!**
         document.getElementById('materials-section').style.display = 'block';
@@ -902,6 +966,7 @@ import {
         enforceZoomLimits();
         updateUI();
         showScreen('config');
+        
     } catch (e) { 
         console.error(`BŁĄD ładowania modelu: ${e.message}`, e); 
     }
@@ -1102,8 +1167,15 @@ async function applyMaterial(variant) {
     async function loadTextureSafe(url) {
       try {
         const tex = await textureLoader.loadAsync(url);
+        tex.magFilter = THREE.LinearFilter;
+        tex.minFilter = THREE.LinearMipMapLinearFilter;
+        tex.anisotropy = viewer?.renderer?.capabilities?.getMaxAnisotropy?.() || 4;
+
         tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
         tex.encoding = THREE.sRGBEncoding;
+        tex.offset.set(0, 0);            // ← brak przesunięcia
+        tex.repeat.set(1, 1);            // ← domyślne powielenie
+        tex.needsUpdate = true;         // ← odświeżenie
         return tex;
       } catch {
         return null;
@@ -1116,10 +1188,61 @@ async function applyMaterial(variant) {
       const roughnessTex = await loadTextureSafe(`${folderPath}/roughness.jpg`);
       const metallicTex = await loadTextureSafe(`${folderPath}/metallic.jpg`);
 
-      material.map = baseColorTex || null;
-      material.normalMap = normalTex || null;
-      material.roughnessMap = roughnessTex || null;
-      material.metalnessMap = metallicTex || null;
+      // ⬇️ BASE COLOR
+if (baseColorTex) {
+  baseColorTex.wrapS = THREE.RepeatWrapping;
+  baseColorTex.wrapT = THREE.RepeatWrapping;
+  baseColorTex.offset.set(0, 0);
+  baseColorTex.repeat.set(1.001, 1.001);
+  baseColorTex.encoding = THREE.sRGBEncoding;
+  baseColorTex.magFilter = THREE.LinearFilter;
+  baseColorTex.minFilter = THREE.LinearMipMapLinearFilter;
+  baseColorTex.anisotropy = viewer?.renderer?.capabilities?.getMaxAnisotropy?.() || 4;
+  baseColorTex.needsUpdate = true;
+  material.map = baseColorTex;
+} else {
+  material.map = null;
+}
+
+// ⬇️ NORMAL
+if (normalTex) {
+  normalTex.wrapS = THREE.RepeatWrapping;
+  normalTex.wrapT = THREE.RepeatWrapping;
+  normalTex.offset.set(0, 0);
+  normalTex.repeat.set(1.001, 1.001);
+  normalTex.encoding = THREE.LinearEncoding;
+  normalTex.needsUpdate = true;
+  material.normalMap = normalTex;
+} else {
+  material.normalMap = null;
+}
+
+// ⬇️ ROUGHNESS
+if (roughnessTex) {
+  roughnessTex.wrapS = THREE.RepeatWrapping;
+  roughnessTex.wrapT = THREE.RepeatWrapping;
+  roughnessTex.offset.set(0, 0);
+  roughnessTex.repeat.set(1.001, 1.001);
+  roughnessTex.encoding = THREE.LinearEncoding;
+  roughnessTex.needsUpdate = true;
+  material.roughnessMap = roughnessTex;
+} else {
+  material.roughnessMap = null;
+}
+
+// ⬇️ METALLIC
+if (metallicTex) {
+  metallicTex.wrapS = THREE.RepeatWrapping;
+  metallicTex.wrapT = THREE.RepeatWrapping;
+  metallicTex.offset.set(0, 0);
+  metallicTex.repeat.set(1.001, 1.001);
+  metallicTex.encoding = THREE.LinearEncoding;
+  metallicTex.needsUpdate = true;
+  material.metalnessMap = metallicTex;
+} else {
+  material.metalnessMap = null;
+}
+
 
       material.color.set(0xffffff);
 
@@ -1146,8 +1269,15 @@ async function applyMaterial(variant) {
       // obsługa gdy podano pojedynczy plik (np. baseColor)
       try {
         const texture = await textureLoader.loadAsync(variant.Wartość);
+        tex.magFilter = THREE.LinearFilter;
+        tex.minFilter = THREE.LinearMipMapLinearFilter;
+        tex.anisotropy = viewer?.renderer?.capabilities?.getMaxAnisotropy?.() || 4;
+
         texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
         texture.encoding = THREE.sRGBEncoding;
+        tex.offset.set(0, 0);            // ← brak przesunięcia
+        tex.repeat.set(1, 1);            // ← domyślne powielenie
+        tex.needsUpdate = true;         // ← odświeżenie
 
         material.map = texture;
         material.color.set(0xffffff);
@@ -1526,6 +1656,12 @@ const visibleData = allData.filter(d =>
                     selectedMaterials = {};
                     userInteracted = false;
                     updateSummary();
+                    const toolbar = document.getElementById('bottom-toolbar');
+if (toolbar) {
+  toolbar.style.display = 'flex';
+  toolbar.classList.add('visible');
+}
+
                 } catch (e) { console.error("Błąd ładowania danych:", e); document.body.innerHTML = `Błąd ładowania danych: ${e.message}`; }
             }
 
@@ -1610,12 +1746,22 @@ const visibleData = allData.filter(d =>
                     detailLine.innerHTML = `<span>Wariant nóg: ${selectedLeg.Nazwa}</span><strong>: ${price.toFixed(2)} PLN</strong>`;
                     overviewDetailsDiv.appendChild(detailLine);
                 }
+                if (selectedLeg) {
+  const price = parseFloat(selectedLeg.Cena) || 0;
+  totalPrice += price;
+}
+
                 const hr = document.createElement('hr');
                 overviewDetailsDiv.appendChild(hr);
 
                 overviewTotalPriceSpan.textContent = `${totalPrice.toFixed(2)} PLN`;
                 document.getElementById("selected-chair-name").textContent = `Wybrany model: ${selectedChair ? selectedChair.Nazwa : "Brak"}`;
                 overviewPanel.style.display = selectedChair ? 'block' : 'none';
+
+                window.selectedChair = selectedChair;
+window.selectedLeg = selectedLeg;
+window.selectedMaterials = selectedMaterials;
+
             }
 
             function enforceZoomLimits() {
@@ -1681,6 +1827,154 @@ const visibleData = allData.filter(d =>
                 requestAnimationFrame(animateBubbleZoomLimit);
             }
             animateBubbleZoomLimit();
+
+            document.getElementById('hdr-toggle')?.addEventListener('click', () => {
+  viewer.setEnvironmentMap("hdr/blocky_photo_studio_1k.hdr", { isHDR: true });
+});
+
+
+
+
+
+document.getElementById('export-config')?.addEventListener('click', () => {
+  // Placeholder — tutaj można podłączyć WebGi exporter albo wygenerować scenę do pliku
+  alert('🛠️ Eksport konfiguracji zostanie dodany w wersji PRO.\nDla testu: eksport do .fbx, .obj, .glb.');
+});
+
+
+// — Obsługa dolnego paska narzędziowego
+document.getElementById('hdr-toggle')?.addEventListener('click', () => {
+  viewer.setEnvironmentMap("hdr/blocky_photo_studio_1k.hdr", { isHDR: true });
+});
+
+let autorotationEnabled = false;
+document.getElementById('autorotate-toggle')?.addEventListener('click', () => {
+  autorotationEnabled = !autorotationEnabled;
+  if (viewer?.controls) viewer.controls.autoRotate = autorotationEnabled;
+});
+
+document.getElementById('dimensions-show')?.addEventListener('click', () => {
+  console.log("📐 Kliknięto przycisk wymiarów");
+  showModelDimensions();
+});
+
+document.getElementById('export-config')?.addEventListener('click', () => {
+  alert('🛠️ Eksport konfiguracji zostanie dodany w wersji PRO.\nDla testu: eksport do .fbx, .obj, .glb.');
+});
+
+
+// 📐 Strzałki i etykiety wymiarowe
+let dimensionHelpers = [];
+
+function showModelDimensions() {
+    // ✅ Odblokuj kamerę — pozwól obracać i zoomować
+  if (viewer?.controls) {
+    viewer.controls.enabled = true;
+    viewer.controls.enableRotate = true;
+    viewer.controls.enablePan = true;
+    viewer.controls.enableZoom = true;
+    viewer.controls.autoRotate = false;
+    viewer.controls.update(); // ⬅️ ważne: odświeża kontrolki!
+  }
+
+  console.log('🔍 Wywołano funkcję wymiarów');
+
+  if (!currentModelContainer || !viewer || !viewer.scene) {
+    console.warn('⛔ currentModelContainer lub scena nie gotowa!');
+    return;
+  }
+
+  // ✅ Odblokuj obrót kamery
+  if (viewer.controls) {
+    viewer.controls.enabled = true;
+    viewer.controls.enableRotate = true;
+    viewer.controls.enablePan = true;
+    viewer.controls.enableZoom = true;
+    viewer.controls.autoRotate = false;
+  }
+
+  // 🔄 Wyczyść stare
+  dimensionHelpers.forEach(h => viewer.scene.remove(h));
+  dimensionHelpers = [];
+
+  const box = new Box3().setFromObject(currentModelContainer);
+  const size = box.getSize(new Vector3());
+  const center = box.getCenter(new Vector3());
+
+  console.log('📦 Rozmiar modelu:', size);
+  console.log('🎯 Środek modelu:', center);
+
+  // Jeśli model ma zerowy rozmiar — testowa strzałka
+  if (size.x === 0 && size.y === 0 && size.z === 0) {
+    console.warn('❌ Model ma zerowe rozmiary — pokazuję strzałkę testową');
+
+    const start = new Vector3(0, 0, 0);
+    const end = new Vector3(1, 0, 0);
+    const dir = new Vector3().subVectors(end, start).normalize();
+    const length = start.distanceTo(end);
+
+    const arrow = new ArrowHelper(dir, start, length, 0x00ff00, 0.4, 0.2);
+    viewer.scene.add(arrow);
+    return;
+  }
+
+  // 🔧 Funkcja tworząca strzałkę + tekst
+  const createDimensionLine = (start, end, labelText) => {
+    const dir = new Vector3().subVectors(end, start).normalize();
+    const length = start.distanceTo(end);
+
+    const arrow = new ArrowHelper(dir, start, length, 0xff0000, 0.2, 0.1);
+    viewer.scene.add(arrow);
+
+    // ✅ Widoczność
+    if (arrow.line?.material) {
+      arrow.line.material.depthTest = false;
+      arrow.line.material.transparent = true;
+      arrow.line.material.opacity = 1;
+    }
+
+    dimensionHelpers.push(arrow);
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 128;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#000000';
+    ctx.font = 'bold 36px Arial';
+    ctx.fillText(labelText, 20, 80);
+
+    const tex = new CanvasTexture(canvas);
+    const mat = new SpriteMaterial({ map: tex });
+    mat.depthTest = false;
+
+    const sprite = new Sprite(mat);
+    sprite.position.copy(start.clone().add(dir.multiplyScalar(length / 2)));
+    sprite.scale.set(2, 0.5, 1);
+    viewer.scene.add(sprite);
+    dimensionHelpers.push(sprite);
+  };
+
+  createDimensionLine(
+    new Vector3(box.min.x, center.y, center.z),
+    new Vector3(box.max.x, center.y, center.z),
+    `Szerokość: ${size.x.toFixed(2)}`
+  );
+  createDimensionLine(
+    new Vector3(center.x, box.min.y, center.z),
+    new Vector3(center.x, box.max.y, center.z),
+    `Wysokość: ${size.y.toFixed(2)}`
+  );
+  createDimensionLine(
+    new Vector3(center.x, center.y, box.min.z),
+    new Vector3(center.x, center.y, box.max.z),
+    `Głębokość: ${size.z.toFixed(2)}`
+  );
+}
+
+
+
 
 
             init();
