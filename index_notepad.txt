@@ -355,6 +355,137 @@
             padding: 12px 0;
             transition: box-shadow 0.2s;
         }
+
+        .modal {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal.hidden {
+  display: none;
+}
+
+.modal-content {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 320px;
+  background: #fff;
+  padding: 24px 28px;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  font-family: "Poppins", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  color: #222;
+}
+
+
+.close-button {
+  position: absolute;
+  top: 12px; right: 16px;
+  cursor: pointer;
+  font-size: 26px;
+  font-weight: 700;
+  color: #888;
+  transition: color 0.2s ease;
+}
+
+.close-button:hover {
+  color: #444;
+}
+
+.modal-content h2 {
+  margin-top: 0;
+  margin-bottom: 16px;
+  font-weight: 700;
+  font-size: 20px;
+  text-align: center;
+}
+
+.modal-content label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.modal-content input {
+  width: 100%;
+  padding: 10px 12px;
+  margin-bottom: 18px;
+  border: 1.5px solid #ddd;
+  border-radius: 12px;
+  font-size: 15px;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease;
+}
+
+.modal-content input:focus {
+  border-color: #888;
+  outline: none;
+}
+
+.modal-content button[type="submit"] {
+  width: 100%;
+  background: #000;
+  color: #fff;
+  font-weight: 700;
+  font-size: 16px;
+  padding: 12px 0;
+  border: none;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.modal-content button[type="submit"]:hover {
+  background: #333;
+}
+
+/* Komunikat sukcesu */
+#success-message {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  
+  background: #ffffff; /* jasne zielone tło */
+  border: 1.5px solid #1f1f1f; /* zielona ramka, spójna z tłem */
+  color: #000000; /* ciemnozielony tekst */
+  
+  font-weight: 700;
+  font-family: "Poppins", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  
+  padding: 20px 28px;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(21, 87, 36, 0.15);
+  
+  max-width: 320px;
+  width: 90%;
+  text-align: center;
+  z-index: 9999;
+}
+
+
+/* Ukrywanie i pokazywanie */
+.hidden {
+  display: none;
+}
+
+.visible {
+  display: block;
+}
+
+
+
+
+
+
     </style>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
@@ -400,6 +531,101 @@
             <div id="summary"></div>
         </div>
     </div>
+<!-- FORMULARZ EMAIL - POPUP -->
+<div id="emailModal" class="modal hidden">
+  <div class="modal-content">
+    <span class="close-button">&times;</span>
+    <h2>Wyślij swoją konfigurację</h2>
+    <form id="emailForm">
+      <label for="name">Imię i nazwisko:</label>
+      <input type="text" id="name" name="name" required>
+
+      <label for="email">Adres e-mail:</label>
+      <input type="email" id="email" name="email" required>
+
+      <label for="phone">Numer telefonu:</label>
+      <input type="tel" id="phone" name="phone">
+
+      <!-- Ukryte pola na dane konfiguracji -->
+      <input type="hidden" id="model" name="model">
+      <input type="hidden" id="price" name="price">
+      <input type="hidden" id="total" name="total">
+
+      <button type="submit">Wyślij</button>
+    </form>
+  </div>
+</div>
+
+
+<!-- KOMUNIKAT SUKCESU -->
+<div id="success-message" class="hidden">✅ Dziękujemy! Formularz został wysłany.</div>
+
+<!-- EMAILJS -->
+<script src="https://cdn.emailjs.com/dist/email.min.js"></script>
+<script>
+  function generateSummaryText() {
+                let text = ""; let totalPrice = 0;
+                if (selectedChair) {
+                    const price = parseFloat(selectedChair.Cena) || 0;
+                    text += `Model: ${selectedChair.Nazwa} (${price.toFixed(2)} PLN)\n`;
+                    totalPrice += price;
+                }
+                const partOrder = ['seat', 'backseat_inside', 'backseat_outside', 'legs_material'];
+                const iconPlaceholders = [selectedChair];
+                const detailPlaceholders = { 'Model': selectedChair };
+
+                partOrder.forEach(partKey => {
+                    if (selectedMaterials[partKey]) {
+                        iconPlaceholders.push(selectedMaterials[partKey]);
+                        detailPlaceholders[partKey.replace(/_/g, ' ')] = selectedMaterials[partKey];
+                    } else {
+                        iconPlaceholders.push(null);
+                    }
+                });
+
+                return { text, totalPrice };
+            }
+  emailjs.init('y6_uovUeRS8M7gZ1H');
+
+  const form = document.getElementById('emailForm');
+
+  form.addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    // 🔄 Pobierz dane z konfiguratora
+    const summary = generateSummaryText();
+
+    // 🧩 Wypełnij pola ukryte
+    document.getElementById('model').value = selectedChair?.Nazwa || 'Brak modelu';
+    document.getElementById('price').value = parseFloat(selectedChair?.Cena || 0).toFixed(2);
+    document.getElementById('total').value = summary.totalPrice.toFixed(2);
+
+    // 📝 Wypełnij pole configText jeśli je masz
+    let configTextInput = document.getElementById('configText');
+    if (!configTextInput) {
+      configTextInput = document.createElement('textarea');
+      configTextInput.name = 'configText';
+      configTextInput.id = 'configText';
+      configTextInput.hidden = true;
+      form.appendChild(configTextInput);
+    }
+    configTextInput.value = summary.text;
+
+    // 📤 Wyślij dane przez EmailJS
+    emailjs.sendForm('service_h3otax9', 'template_aykvcls', this)
+      .then(() => {
+        alert('Wysłano wiadomość! Dziękujemy.');
+        form.reset();
+      }, (error) => {
+        alert('Coś poszło nie tak. Spróbuj ponownie.');
+        console.error(error);
+      });
+  });
+</script>
+
+
+
+
 
 
 
@@ -428,6 +654,7 @@ import {
 
 
 
+
         const CAMERA_FOV = 12;
         const CAMERA_NEAR = 0.1;
         const CAMERA_FAR = 100;
@@ -443,6 +670,8 @@ import {
         let selectedChair, selectedLeg, selectedMaterials = {};
         let globalCameraTargetPosition;
         let userInteracted = false;
+        
+
 
         const ELEMENT_ICONS = {
             seat: 'icons/m_seat_icon.png',
@@ -503,19 +732,47 @@ import {
             document.getElementById('buy-button').innerHTML = '<span class="cart-icon">🛒</span>Zapytaj o produkt';
 
             document.getElementById('buy-button').onclick = () => {
+  const summary = generateSummaryText();
+  const emailAddress = 'ociepa-piotr@wp.pl'; // adres docelowy
 
-                // EMAIL
-                const emailAddress = 'ociepa-piotr@wp.pl';
+  const subject = `Zapytanie o wycenę: ${selectedChair.Nazwa}`;
+  const body = `Dzień dobry,\n\nProszę o wycenę poniższej konfiguracji:\n\n${summary.text}\n-------------------\nSuma: ${summary.totalPrice.toFixed(2)} PLN\n\nPozdrawiam,\n[Imię i nazwisko]`;
+
+  console.log("Symulowana wysyłka wiadomości:");
+  console.log("Temat:", subject);
+  console.log("Treść:", body);
+
+  // Zamknij modal jeśli otwarty
+  const modal = document.getElementById('emailModal');
+  if (modal) modal.classList.add('hidden');
+
+  // Pokaż komunikat sukcesu (dodaj klasę visible i usuń hidden)
+  const successMessage = document.getElementById('success-message');
+  if (successMessage) {
+    successMessage.classList.add('visible');
+    successMessage.classList.remove('hidden');
+
+    // Po 0.5s otwórz mailto, by dać czas na pokazanie komunikatu
+    setTimeout(() => {
+      window.location.href = `mailto:${emailAddress}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    }, 500);
+
+    // Ukryj komunikat po 3 sekundach
+    setTimeout(() => {
+      successMessage.classList.remove('visible');
+      successMessage.classList.add('hidden');
+    }, 3500);
+  } else {
+    // Jeżeli brak komunikatu, to od razu wywołaj mailto
+    window.location.href = `mailto:${emailAddress}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  }
+};
 
 
-                const summary = generateSummaryText();
-                const subject = `Zapytanie o wycenę: ${selectedChair.Nazwa}`;
-                let body = `Dzień dobry,\n\nProszę o wycenę poniższej konfiguracji:\n\n${summary.text}\n-------------------\nSuma: ${summary.totalPrice.toFixed(2)} PLN\n\nPozdrawiam,\n[Imię i nazwisko]`;
-                window.location.href = `mailto:${emailAddress}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-            };
+
 
             try {
-                await viewer.setEnvironmentMap("hdr/hamburg_hbf_4k.hdr", { isHDR: true });
+                await viewer.setEnvironmentMap("hdr/blocky_photo_studio_1k.hdr", { isHDR: true });
             } catch (e) { console.error("Błąd ładowania HDR:", e); }
 
             await loadCameraTarget();
@@ -571,7 +828,7 @@ import {
             if (currentModelContainer) viewer.scene.remove(currentModelContainer);
             currentModelContainer = await viewer.load(`chairs/${variant.Nazwa}.glb`, { autoCenter: true });
             console.log("Meshe w modelu:", currentModelContainer.children.map(obj => obj.name)); // <-- DODAJ TO TUTAJ
-            // selectedChair = variant; // <-- DODAJ TO!
+            //selectedChair = variant; // <-- DODAJ TO!
             // Wyśrodkuj kamerę na modelu
             const box = new Box3().setFromObject(currentModelContainer);
             const center = box.getCenter(new Vector3());
@@ -580,101 +837,138 @@ import {
             updateSummary();
         }
 
-        async function loadModel(variant) {
-            // Usuń poprzedni model (w tym Default.glb)
-            if (currentModelContainer) {
-                viewer.scene.remove(currentModelContainer);
-                if (typeof currentModelContainer.dispose === 'function') currentModelContainer.dispose();
+       async function loadModel(variant) {
+    if (currentModelContainer) {
+        viewer.scene.remove(currentModelContainer);
+        if (typeof currentModelContainer.dispose === 'function') currentModelContainer.dispose();
+    }
+    if (currentLegModel) {
+        viewer.scene.remove(currentLegModel);
+        if (typeof currentLegModel.dispose === 'function') currentLegModel.dispose();
+    }
+    currentModelContainer = null;
+    currentLegModel = null;
+    selectedLeg = null;
+    selectedMaterials = {};
+
+    try {
+        const modelPath = `chairs/${variant.Nazwa}.glb`;
+        currentModelContainer = await viewer.load(modelPath, { autoCenter: true });
+
+        selectedChair = variant;
+        userInteracted = true;
+
+        if (selectedChair.Grupa && selectedChair.Grupa.toLowerCase() === 'kubełek') {
+            const chairBounds = new Box3().setFromObject(currentModelContainer);
+            currentModelContainer.position.y -= chairBounds.min.y;
+
+            // Automatyczne dodanie nóg "Regularne" jeśli istnieją
+            const legsVariants = allData.filter(d => d.Grupa.toLowerCase() === 'nogi');
+            const defaultLeg = legsVariants.find(l => l.Nazwa.toLowerCase().includes('regularne')) || legsVariants[0];
+            if (defaultLeg) {
+                await setLegModel(defaultLeg);
             }
+
+            document.getElementById('legs-section').style.display = 'block';
+            
+            // Pokaż materiały nóg
+            activateLegsTabAndShowMaterials();
+        } else {
+            document.getElementById('legs-section').style.display = 'none';
             if (currentLegModel) {
                 viewer.scene.remove(currentLegModel);
-                if (typeof currentLegModel.dispose === 'function') currentLegModel.dispose();
+                currentLegModel = null;
+                selectedLeg = null;
             }
-            currentModelContainer = null; currentLegModel = null; selectedLeg = null; selectedMaterials = {};
-
-            try {
-                const modelPath = `chairs/${variant.Nazwa}.glb`;
-                currentModelContainer = await viewer.load(modelPath, { autoCenter: true });
-                // Dodaj poniżej:
-                function printAllMeshNames(obj) {
-                    if (obj.name) console.log(obj.name);
-                    if (obj.children) obj.children.forEach(printAllMeshNames);
-                }
-                printAllMeshNames(currentModelContainer);
-                selectedChair = variant;
-                userInteracted = true; // <-- ważne!
-                if (selectedChair.Grupa && selectedChair.Grupa.toLowerCase() === 'kubełek') {
-                    const chairBounds = new Box3().setFromObject(currentModelContainer);
-                    currentModelContainer.position.y -= chairBounds.min.y;
-
-                    // AUTOMATYCZNE DODANIE NÓG "Regularne" jeśli istnieją
-                    const legsVariants = allData.filter(d => d.Grupa.toLowerCase() === 'nogi');
-                    const defaultLeg = legsVariants.find(l => l.Nazwa.toLowerCase().includes('regularne')) || legsVariants[0];
-                    if (defaultLeg) {
-                        await setLegModel(defaultLeg);
-                    }
-                }
-
-                setCameraView(globalCameraTargetPosition);
-                enforceZoomLimits();
-                updateUI();
-                showScreen('config');
-            } catch (e) { console.error(`BŁĄD ładowania modelu: ${e.message}`, e); }
         }
 
-        async function setLegModel(variant) {
-            userInteracted = true;
-            const oldLegs = currentLegModel;
-            try {
-                const modelPath = `legs/${variant.Nazwa}.glb`;
-                const newLegs = await viewer.load(modelPath, { autoCenter: false });
-                newLegs.visible = false;
-                const legBounds = new Box3().setFromObject(newLegs);
-                const legHeight = legBounds.max.y - legBounds.min.y;
-                const legTop = legBounds.max.y;
+        setCameraView(globalCameraTargetPosition);
+        enforceZoomLimits();
+        updateUI();
+        showScreen('config');
 
-                if (currentModelContainer && selectedChair) {
-                    if (selectedChair.Grupa.toLowerCase() === 'kubełek') {
-                        let height = parseFloat(variant.height) || legHeight;
-                        newLegs.position.y = -height;
-                        currentModelContainer.position.y = 0;
-                    } else {
-                        currentModelContainer.position.y = legHeight + VERTICAL_OFFSET;
-                        newLegs.position.y = 0;
-                    }
-                }
+        // **Sekcja materiałów nóg - zawsze widoczna dla każdego krzesła!**
+        document.getElementById('materials-section').style.display = 'block';
+        
+        // Renderujemy materiały nóg — czyli kafelki materiałów z grupy "nogi"
+        const legsMaterials = allData.filter(d => d.Grupa.toLowerCase() === 'nogi');
+        renderOptions('materials-thumbnails', legsMaterials, (item) => {
+            // Tutaj funkcja ustawiająca materiał nogi
+            // (dopasuj do swojej funkcji obsługi kliknięcia)
+            setLegMaterial(item);
+        });
 
-                if (oldLegs) {
-                    viewer.scene.remove(oldLegs);
-                    if (typeof oldLegs.dispose === 'function') oldLegs.dispose();
-                }
-                newLegs.visible = true;
-                currentLegModel = newLegs;
-                selectedLeg = variant;
+        setCameraView(globalCameraTargetPosition);
+        enforceZoomLimits();
+        updateUI();
+        showScreen('config');
+    } catch (e) { 
+        console.error(`BŁĄD ładowania modelu: ${e.message}`, e); 
+    }
+}
 
-                // Odśwież listę nóg, żeby podświetlić wybrany wariant
-                const legs = allData.filter(d => d.Grupa.toLowerCase() === 'nogi');
-                renderOptions('legs-thumbnails', legs, item => {
-                    setLegModel(item);
-                });
 
-                // 1. Podświetl zakładkę "Nogi" w part-tabs
-                const partTabs = document.querySelectorAll('#part-tabs .thumbnail');
-                partTabs.forEach(tab => tab.classList.remove('selected'));
-                partTabs.forEach(tab => {
-                    if (tab.title && tab.title.toLowerCase().includes('nogi')) {
-                        tab.classList.add('selected');
-                    }
-                });
 
-                // 2. Wyświetl materiały nóg
-                document.getElementById('materials-section').style.display = 'block';
-                // KLUCZOWA LINIA:
-                renderFilteredMaterialOptions('legs');
 
-                updateSummary();
-            } catch (e) { console.error(`BŁĄD ładowania nóg: ${e.message}`, e); }
+function createLegMaterial(legData) {
+  const metalness = isNaN(parseFloat(legData.metalness)) ? 1 : parseFloat(legData.metalness);
+  const roughness = isNaN(parseFloat(legData.roughness)) ? 0.1 : parseFloat(legData.roughness);
+  const color = legData.color || '#FFFFFF';
+
+  return new THREE.MeshStandardMaterial({
+    color: new THREE.Color(color),
+    metalness: metalness,
+    roughness: roughness,
+  });
+}
+
+async function setLegModel(variant) {
+    userInteracted = true;
+    console.log("Wywołanie setLegModel dla wariantu:", variant);
+    const oldLegs = currentLegModel;
+    try {
+        const modelPath = `legs/${variant.Nazwa}.glb`;
+        console.log("Ładuję model nóg z ścieżki:", modelPath);
+        const newLegs = await viewer.load(modelPath, { autoCenter: false });
+        
+        const legBounds = new Box3().setFromObject(newLegs);
+        const legHeight = legBounds.max.y - legBounds.min.y;
+
+        if (currentModelContainer && selectedChair) {
+            if (selectedChair.Grupa.toLowerCase() === 'kubełek') {
+                let height = parseFloat(variant.height) || legHeight;
+                newLegs.position.y = -height;
+                currentModelContainer.position.y = 0;
+            } else {
+                currentModelContainer.position.y = legHeight + VERTICAL_OFFSET;
+                newLegs.position.y = 0;
+            }
         }
+
+        if (oldLegs) {
+            viewer.scene.remove(oldLegs);
+            if (typeof oldLegs.dispose === 'function') oldLegs.dispose();
+        }
+        viewer.scene.add(newLegs);
+        currentLegModel = newLegs;
+        selectedLeg = variant;
+
+        // Odśwież listę nóg, żeby podświetlić wybrany wariant
+        const legs = allData.filter(d => d.Grupa.toLowerCase() === 'nogi');
+        renderOptions('legs-thumbnails', legs, item => {
+            setLegModel(item);
+        });
+
+        updateSummary();
+        
+        // Wymuszenie odświeżenia sceny
+        if (viewer.render) viewer.render();
+    } catch (e) {
+        console.error(`BŁĄD ładowania nóg: ${e.message}`, e);
+    }
+}
+
+
 
 let forceRenderInterval;
 
@@ -705,110 +999,248 @@ function startForceRender(duration = 2000) {
 
 
 
-        const textureLoader = new TextureLoader();
+const textureLoader = new TextureLoader();
+
+if (
+  selectedChair?.Grupa?.toLowerCase() === 'kubełek' &&
+  variant.TargetMeshOrModel?.toLowerCase().includes('legs') &&
+  variant.WariantModelu
+) {
+  // 👉 dla kubełków z podmianą nóg — zmień model nóg
+  setLegModel(variant);
+} else if (
+  selectedChair && 
+  (selectedChair.Grupa.toLowerCase() !== 'kubełek' || !variant.WariantModelu)
+) {
+  // 👉 dla pozostałych krzeseł bez wariantów nóg — wyświetl materiały nóg do wyboru
+  showLegMaterialsForSimpleChairs(selectedChair);
+}
+
+function applyMaterialToMesh(variant, forcedMeshName) {
+  const clone = { ...variant };
+  clone.TargetMeshOrModel = forcedMeshName;
+  console.log(`🎯 Przypisano '${clone.Nazwa}' tylko do mesh '${forcedMeshName}'`);
+  applyMaterial(clone);
+}
+
+// Funkcja, która wyświetla kafelki materiałów nóg dla prostych krzeseł
+function showLegMaterialsForSimpleChairs(chair) {
+  const legsMaterialsContainer = document.getElementById('legs-thumbnails');
+  legsMaterialsContainer.innerHTML = ''; // wyczyść kontener
+
+  // Pobierz materiały nóg dla danego krzesła (przykład, wymaga dostosowania)
+  const materials = getMaterialsForLegs(chair.defaultLegsId || 'default');
+
+  materials.forEach(mat => {
+    const tile = document.createElement('div');
+    tile.className = 'material-tile';
+    tile.textContent = mat.Nazwa;
+    tile.style.backgroundImage = `url(${mat.Obrazek || 'fallback.png'})`;
+    tile.onclick = () => applyLegMaterial(mat);
+    legsMaterialsContainer.appendChild(tile);
+  });
+}
+
+
+// DOBRE ŁADOWANIE MATERIAŁÓW!!!
 
 async function applyMaterial(variant) {
+  console.log('applyMaterial wywołane z:', variant);
+  
+  if (!currentModelContainer) {
+    console.warn('currentModelContainer jest null lub undefined');
+    return;
+  }
+  
+  if (!variant.TargetMeshOrModel) {
+    console.warn('Brak TargetMeshOrModel w wariancie');
+    return;
+  }
+    
   if (!currentModelContainer || !variant.TargetMeshOrModel) return;
 
   const targetNames = variant.TargetMeshOrModel.split(',').map(name => name.trim());
-
-  // DEBUG: pokaż dostępne meshe
-  console.log('📦 Lista dostępnych meshów w modelu:');
-  currentModelContainer.traverse(obj => {
-    if (obj.isMesh) console.log('🔹', obj.name);
-  });
+  const folderPath = variant.Wartość.startsWith('textures/') ? variant.Wartość : `textures/${variant.Wartość}`;
 
   for (const targetName of targetNames) {
-    const container = targetName.toLowerCase() === 'legs' ? currentLegModel : currentModelContainer;
+    let container;
+    if (targetName.toLowerCase() === 'legs') {
+      if (selectedChair?.Grupa?.toLowerCase() === 'krzesło' || !currentLegModel) {
+        container = currentModelContainer;
+      } else {
+        container = currentLegModel;
+      }
+    } else {
+      container = currentModelContainer;
+    }
 
-    if (targetName.toLowerCase() === 'legs' && !currentLegModel) {
-      console.warn(`🛑 Brak modelu nóg — nie można nałożyć materiału: ${variant.Wartość}`);
+    let targetObject = null;
+
+    container?.traverse(obj => {
+      if (
+        obj.isMesh &&
+        obj.name &&
+        obj.name.toLowerCase().trim() === targetName.toLowerCase().trim()
+      ) {
+        targetObject = obj;
+      }
+    });
+
+    if (!targetObject) {
+      console.warn(`❌ Mesh '${targetName}' nie znaleziony w modelu`);
       continue;
     }
 
-    const targetObject = container?.getObjectByName(targetName);
+    if (!targetObject.material) {
+      console.warn(`⚠️ Mesh '${targetName}' nie ma materiału.`);
+      continue;
+    }
 
-    if (targetObject && targetObject.material) {
+    const material = targetObject.material.clone();
+
+    // Funkcja do bezpiecznego ładowania tekstury (zwraca null, jeśli nie uda się załadować)
+    async function loadTextureSafe(url) {
+      try {
+        const tex = await textureLoader.loadAsync(url);
+        tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+        tex.encoding = THREE.sRGBEncoding;
+        return tex;
+      } catch {
+        return null;
+      }
+    }
+
+    if (folderPath && !/\.(jpg|jpeg|png|gif)$/i.test(folderPath)) {
+      const baseColorTex = await loadTextureSafe(`${folderPath}/baseColor.jpg`);
+      const normalTex = await loadTextureSafe(`${folderPath}/normal.jpg`);
+      const roughnessTex = await loadTextureSafe(`${folderPath}/roughness.jpg`);
+      const metallicTex = await loadTextureSafe(`${folderPath}/metallic.jpg`);
+
+      material.map = baseColorTex || null;
+      material.normalMap = normalTex || null;
+      material.roughnessMap = roughnessTex || null;
+      material.metalnessMap = metallicTex || null;
+
+      material.color.set(0xffffff);
+
+      if (baseColorTex) baseColorTex.needsUpdate = true;
+      if (normalTex) normalTex.needsUpdate = true;
+      if (roughnessTex) roughnessTex.needsUpdate = true;
+      if (metallicTex) metallicTex.needsUpdate = true;
+
+      material.needsUpdate = true;
+
+      targetObject.material = material;
+
+      triggerSceneRefresh();
+      startForceRender();
+
+      console.log(`✅ Załadowano mapy na mesh '${targetName}':`, {
+        baseColorMap: !!material.map,
+        normalMap: !!material.normalMap,
+        roughnessMap: !!material.roughnessMap,
+        metallicMap: !!material.metalnessMap
+      });
+
+    } else if (variant.Wartość && /\.(jpg|jpeg|png)$/i.test(variant.Wartość)) {
+      // obsługa gdy podano pojedynczy plik (np. baseColor)
+      try {
+        const texture = await textureLoader.loadAsync(variant.Wartość);
+        texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+        texture.encoding = THREE.sRGBEncoding;
+
+        material.map = texture;
+        material.color.set(0xffffff);
+        material.map.needsUpdate = true;
+        material.needsUpdate = true;
+
+        targetObject.material = material;
+
+        triggerSceneRefresh();
+        startForceRender();
+
+        console.log(`✅ Tekstura '${variant.Wartość}' załadowana na mesh '${targetName}'`);
+      } catch (e) {
+        console.warn(`❌ Nie udało się załadować tekstury: ${variant.Wartość}`, e);
+      }
+    } else if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(variant.Wartość)) {
+        
+      if (!(targetObject.material instanceof THREE.MeshStandardMaterial)) {
+        console.log(`🛠️ Zamiana materiału na MeshStandardMaterial dla '${targetName}'`);
+        const newMat = new THREE.MeshStandardMaterial();
+        targetObject.material.dispose();
+        targetObject.material = newMat;
+      }
       const material = targetObject.material;
 
-      // Obsługa tekstury
-      if (variant.Wartość && /\.(jpg|jpeg|png)$/i.test(variant.Wartość)) {
-        try {
-          const texture = await textureLoader.loadAsync(variant.Wartość);
-          console.log(`🎯 Tekstura '${variant.Wartość}' wczytana w całości`);
+      try {
+        material.map = null;
+        material.color = new THREE.Color(variant.Wartość);
 
-          texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-          texture.repeat.set(1, 1);
-          texture.anisotropy =
-            viewer?.renderer?.capabilities?.getMaxAnisotropy?.() || 1;
-          texture.encoding = THREE.sRGBEncoding;
+        // Logowanie surowych wartości
+        console.log(`Metalness raw: '${variant.Metalness}', Roughness raw: '${variant.Roughness}'`);
 
-          material.map = texture;
-          material.color.set(0xffffff);
-          material.map.needsUpdate = true;
-          material.needsUpdate = true;
+        // Obcinamy spacje i konwertujemy na float
+        const metalRaw = (variant.Metalness || '').toString().trim();
+        const roughRaw = (variant.Roughness || '').toString().trim();
 
-          triggerSceneRefresh();
-          startForceRender();
+        const metalVal = metalRaw !== '' ? parseFloat(metalRaw) : 0.35;
+        const roughVal = roughRaw !== '' ? parseFloat(roughRaw) : 0.4;
 
-          console.log(`✅ Tekstura nałożona na '${targetName}':`, variant.Wartość);
-        } catch (e) {
-          console.warn(`❌ Nie udało się załadować tekstury: ${variant.Wartość}`, e);
-        }
-      }
+        console.log(`Metalness parsed: ${metalVal}, Roughness parsed: ${roughVal}`);
 
-      // Obsługa koloru HEX
-      else if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(variant.Wartość)) {
-        try {
-          material.map = null;
-          material.color = new THREE.Color(variant.Wartość);
-          material.needsUpdate = true;
+        material.metalness = !isNaN(metalVal) ? metalVal : 0.35;
+        material.roughness = !isNaN(roughVal) ? roughVal : 0.4;
 
-          triggerSceneRefresh();
-          startForceRender();
+        targetObject.material = material;
+targetObject.geometry.computeVertexNormals(); // ⬅️ to dodaj
+material.needsUpdate = true;
 
-          console.log(`🎨 Kolor ustawiony na '${targetName}':`, variant.Wartość);
-        } catch (e) {
-          console.warn(`❌ Nie udało się ustawić koloru: ${variant.Wartość}`, e);
-        }
-      } else {
-        console.warn(`⚠️ Niepoprawna wartość materiału:`, variant.Wartość);
+
+        triggerSceneRefresh();
+        startForceRender();
+
+        console.log(`🎨 Kolor i właściwości materiału ustawione na '${targetName}': kolor ${variant.Wartość}, metalness ${material.metalness}, roughness ${material.roughness}`);
+      } catch (e) {
+        console.warn(`❌ Nie udało się ustawić koloru lub właściwości: ${variant.Wartość}`, e);
       }
     } else {
-      console.warn(`⚠️ Mesh '${targetName}' nie znaleziony lub nie ma materiału.`);
+      console.warn(`⚠️ Niepoprawna wartość materiału: ${variant.Wartość}`);
     }
   }
 
+  // Zapamiętanie wyboru i odświeżenie sceny - możesz tu zostawić swój oryginalny kod
+  targetNames.forEach(targetName => {
+    selectedMaterials[targetName] = variant;
+    if (targetName === 'legs' || targetName === 'legs_material') {
+      selectedMaterials['legs_material'] = variant;
+    }
+  });
 
-  // 📘 Zapamiętaj wybór
-targetNames.forEach(targetName => {
-  selectedMaterials[targetName] = variant;
-  if (targetName === 'legs' || targetName === 'legs_material') {
-    selectedMaterials['legs_material'] = variant;
+  viewer.scene.traverse(obj => {
+    if (obj.isMesh && obj.material) {
+      obj.material.needsUpdate = true;
+    }
+  });
+
+  if (viewer?.camera) {
+    viewer.camera.position.x += 0.00001;
+    viewer.camera.updateProjectionMatrix();
   }
-});
 
-viewer.scene.traverse(obj => {
-  if (obj.isMesh && obj.material) {
-    obj.material.needsUpdate = true;
-  }
-});
+  if (viewer?.render) viewer.render();
 
-
-// ✅ Odświeżenie widoku 3D
-if (viewer?.camera) {
-  viewer.camera.position.x += 0.00001;
-  viewer.camera.updateProjectionMatrix();
+  updateSummary();
 }
 
-if (viewer?.render) viewer.render();
-
-
-updateSummary();
-
+function applyMaterialToSpecificMesh(variant, meshKey) {
+  const clone = { ...variant };
+  clone.TargetMeshOrModel = meshKey;
+  console.log(`🎯 Przypisano '${variant.Nazwa}' tylko do mesh '${meshKey}'`);
+  applyMaterial(clone);
 }
 
-
+// DOBRE ŁADOWANIE MATERIAŁÓW!!!
 
 
 
@@ -859,34 +1291,74 @@ updateSummary();
                 });
             }
 
-            function renderFilteredMaterialOptions(targetMesh) {
-                // Filtrowanie materiałów nóg po typie nóg (np. metal/drewno)
-                if (
-                    (targetMesh === 'legs' || targetMesh === 'legs_material') &&
-                    selectedChair &&
-                    selectedChair.Grupa &&
-                    selectedChair.Grupa.toLowerCase() === 'kubełek'
-                ) {
-                    let materialOptions = allData.filter(d =>
-                        d.Grupa && d.Grupa.toLowerCase() === 'materiały_nóg'
-                    );
-                    // Filtrowanie po typie nóg jeśli jest wybrany wariant nóg i materiał ma pole Typ
-                    if (selectedLeg && selectedLeg.Typ) {
-                        materialOptions = materialOptions.filter(mat =>
-                            !mat.Typ || mat.Typ.toLowerCase().trim() === selectedLeg.Typ.toLowerCase().trim()
-                        );
-                    }
-                    renderOptions('material-options', materialOptions, (item) => applyMaterial(item));
-                    return;
-                }
-                // Dla wszystkich innych przypadków pokazuj tylko materiały NIE będące materiałami nóg
-                const materialOptions = allData.filter(d =>
-                    d.TargetMeshOrModel &&
-                    d.TargetMeshOrModel.split(',').map(t => t.trim()).includes(targetMesh) &&
-                    d.Grupa.toLowerCase() !== 'materiały_nóg'
-                );
-                renderOptions('material-options', materialOptions, (item) => applyMaterial(item));
-            }
+            
+
+
+
+function renderFilteredMaterialOptions(targetMesh) {
+  let materialOptions = [];
+
+  if (!selectedChair || !selectedChair.Grupa) return;
+  const grupa = selectedChair.Grupa.toLowerCase();
+
+  // 🔧 FUNKCJA POMOCNICZA: sprawdza czy wpis pasuje do grupy docelowej
+  const isAllowedForGroup = (entryGroupDocelowa) => {
+    if (!entryGroupDocelowa) return false; // pusta = nie pokazuj
+    const values = entryGroupDocelowa.toLowerCase().split(',').map(s => s.trim());
+    return values.includes('wszystkie') || values.includes(grupa) || values.includes('kubełek, krzesło');
+  };
+
+  // 🦵 MATERIAŁY NÓG
+  if (targetMesh === 'legs' || targetMesh === 'legs_material') {
+    materialOptions = allData.filter(d =>
+      d.Grupa?.toLowerCase() === 'materiały_nóg' &&
+      isAllowedForGroup(d.GrupaDocelowa) &&
+      d.Visible?.toLowerCase() !== 'false'
+    );
+
+    // Filtrowanie po typie nóg, jeśli istnieje
+    if (selectedLeg && selectedLeg.Typ) {
+      materialOptions = materialOptions.filter(mat =>
+        !mat.Typ || mat.Typ.toLowerCase().trim() === selectedLeg.Typ.toLowerCase().trim()
+      );
+    }
+
+    // Dodatkowo filtruj po DlaModeluNóg
+    if (selectedLeg && selectedLeg.Nazwa) {
+      const currentLegName = selectedLeg.Nazwa.toLowerCase().trim();
+      materialOptions = materialOptions.filter(mat => {
+        const allowedLegs = mat.DlaModeluNóg
+          ? mat.DlaModeluNóg.split(',').map(s => s.trim().toLowerCase())
+          : [];
+        return allowedLegs.length === 0 || allowedLegs.includes(currentLegName);
+      });
+    }
+
+    renderOptions('material-options', materialOptions, item =>
+      applyMaterialToSpecificMesh(item, 'legs')
+    );
+    return;
+  }
+
+  // ✳️ MATERIAŁY TKANINOWE (siedzisko, oparcia itd.)
+  materialOptions = allData.filter(d =>
+    d.Grupa?.toLowerCase() === 'tkanina' &&
+    d.TargetMeshOrModel &&
+    d.TargetMeshOrModel.split(',').map(s => s.trim()).includes(targetMesh) &&
+    isAllowedForGroup(d.GrupaDocelowa) &&
+    d.Visible?.toLowerCase() !== 'false'
+  );
+
+  renderOptions('material-options', materialOptions, item =>
+    applyMaterialToSpecificMesh(item, targetMesh)
+  );
+}
+
+
+
+
+
+
 
             function activateLegsTabAndShowMaterials() {
                 // Podświetl zakładkę "Nogi" po data-key
@@ -901,6 +1373,7 @@ updateSummary();
                 // Pokaż sekcję materiałów i wyświetl wszystkie materiały nóg
                 document.getElementById('materials-section').style.display = 'block';
                 renderFilteredMaterialOptions('legs');
+                
             }
 
             function renderPartTabs() {
@@ -950,55 +1423,77 @@ updateSummary();
             }
 
             function updateUI() {
-                const backContainer = document.getElementById('back-to-models-container');
-                backContainer.innerHTML = '';
-                if (selectedChair && (selectedChair.Obrazek || selectedChair.Image)) {
-                    // Stwórz ramkę z ikonką i X
-                    const btn = document.createElement('div');
-                    btn.className = 'back-to-model-btn';
-                    btn.title = 'Wróć do wyboru modelu';
+    const backContainer = document.getElementById('back-to-models-container');
+    backContainer.innerHTML = '';
+    if (selectedChair && (selectedChair.Obrazek || selectedChair.Image)) {
+        // Stwórz ramkę z ikonką i X
+        const btn = document.createElement('div');
+        btn.className = 'back-to-model-btn';
+        btn.title = 'Wróć do wyboru modelu';
 
-                    // Ikonka modelu
-                    const img = document.createElement('img');
-                    img.src = selectedChair.Obrazek || selectedChair.Image;
-                    img.alt = selectedChair.Nazwa;
-                    btn.appendChild(img);
+        // Ikonka modelu
+        const img = document.createElement('img');
+        img.src = selectedChair.Obrazek || selectedChair.Image;
+        img.alt = selectedChair.Nazwa;
+        btn.appendChild(img);
 
-                    // Przycisk X w rogu
-                    const xBtn = document.createElement('button');
-                    xBtn.className = 'close-x';
-                    xBtn.innerHTML = '&times;';
-                    xBtn.title = 'Wróć do wyboru modelu';
-                    xBtn.onclick = (e) => {
-                        e.stopPropagation();
-                        showScreen('models');
-                    };
-                    btn.appendChild(xBtn);
+        // Przycisk X w rogu
+        const xBtn = document.createElement('button');
+        xBtn.className = 'close-x';
+        xBtn.innerHTML = '&times;';
+        xBtn.title = 'Wróć do wyboru modelu';
+        xBtn.onclick = (e) => {
+            e.stopPropagation();
+            showScreen('models');
+        };
+        btn.appendChild(xBtn);
 
-                    // Kliknięcie w całą ramkę też wraca do wyboru modelu
-                    btn.onclick = () => showScreen('models');
+        // Kliknięcie w całą ramkę też wraca do wyboru modelu
+        btn.onclick = () => showScreen('models');
 
-                    backContainer.appendChild(btn);
-                }
+        backContainer.appendChild(btn);
+    }
 
-                const legs = allData.filter(d => d.Grupa.toLowerCase() === 'nogi');
-                renderPartTabs();
+    const legs = allData.filter(d => d.Grupa.toLowerCase() === 'nogi');
+    renderPartTabs();
 
-                // Sekcja nóg i materiały nóg tylko dla kubełków
-                if (selectedChair && selectedChair.Grupa && selectedChair.Grupa.toLowerCase() === 'kubełek') {
-                    document.getElementById('legs-section').style.display = 'block'; // <-- poprawka!
-                    renderOptions('legs-thumbnails', legs, item => {
-                        setLegModel(item);
-                    });
-                } else {
-                    document.getElementById('legs-section').style.display = 'none';
-                }
+    // Sekcja nóg i materiały nóg – nogi tylko dla kubełków, materiały dla kubełków i krzeseł
+    if (selectedChair && selectedChair.Grupa) {
+        const grupa = selectedChair.Grupa.toLowerCase();
 
-                // Sekcja materiałów zawsze widoczna (będzie pusta jeśli nie wybrano elementu)
-                document.getElementById('materials-section').style.display = 'none';
+        if (grupa === 'kubełek') {
+            console.log("Pokazuję nogi i materiały nóg dla kubełka");
+            document.getElementById('legs-section').style.display = 'block';
+            renderOptions('legs-thumbnails', legs, item => {
+                setLegModel(item);
+            });
 
-                updateSummary();
-            }
+            // Ukryj sekcję materiałów, pokaże się po kliknięciu w zakładkę
+            document.getElementById('materials-section').style.display = 'none';
+        } else if (grupa === 'krzesło') {
+            console.log("Ukrywam sekcję nóg dla krzesła");
+            document.getElementById('legs-section').style.display = 'none';
+
+            // Ukryj sekcję materiałów, pokaże się po kliknięciu w zakładkę
+            document.getElementById('materials-section').style.display = 'none';
+        } else {
+            console.log("Ukrywam sekcje nóg i materiałów");
+            document.getElementById('legs-section').style.display = 'none';
+            document.getElementById('materials-section').style.display = 'none';
+        }
+    } else {
+        console.log("Brak wybranego elementu lub grupy");
+        document.getElementById('legs-section').style.display = 'none';
+        document.getElementById('materials-section').style.display = 'none';
+    }
+
+    updateSummary();
+}
+
+const visibleData = allData.filter(d =>
+  d.Visible?.toString().trim().length > 0
+);
+
 
             async function loadDataFromSheet() {
                 const sheetId = '1vCs6YeHgKqlYwg8rvJOqVzNRnXeATJCBuK-zh3NNj78';
@@ -1009,11 +1504,11 @@ updateSummary();
                     const rows = csvText.trim().split('\n');
                     const headers = rows.shift().split(',').map(h => h.trim().replace(/"/g, ''));
                     allData = rows.map(row => {
-                        const values = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
-                        const obj = {};
-                        headers.forEach((header, index) => obj[header] = values[index]?.trim().replace(/"/g, '') || '');
-                        return obj;
-                    }).filter(item => item.Visible?.toLowerCase() !== 'false');
+    const values = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
+    const obj = {};
+    headers.forEach((header, index) => obj[header] = values[index]?.trim().replace(/"/g, '') || '');
+    return obj;
+  }).filter(item => item.Visible?.toLowerCase() !== 'false');
 
                     const mainModels = allData.filter(d => ['krzesło', 'kubełek'].includes(d.Grupa.toLowerCase()));
                     renderOptions('model-thumbnails', mainModels, item => loadModel(item));
@@ -1034,28 +1529,7 @@ updateSummary();
                 } catch (e) { console.error("Błąd ładowania danych:", e); document.body.innerHTML = `Błąd ładowania danych: ${e.message}`; }
             }
 
-            function generateSummaryText() {
-                let text = ""; let totalPrice = 0;
-                if (selectedChair) {
-                    const price = parseFloat(selectedChair.Cena) || 0;
-                    text += `Model: ${selectedChair.Nazwa} (${price.toFixed(2)} PLN)\n`;
-                    totalPrice += price;
-                }
-                const partOrder = ['seat', 'backseat_inside', 'backseat_outside', 'legs_material'];
-                const iconPlaceholders = [selectedChair];
-                const detailPlaceholders = { 'Model': selectedChair };
-
-                partOrder.forEach(partKey => {
-                    if (selectedMaterials[partKey]) {
-                        iconPlaceholders.push(selectedMaterials[partKey]);
-                        detailPlaceholders[partKey.replace(/_/g, ' ')] = selectedMaterials[partKey];
-                    } else {
-                        iconPlaceholders.push(null);
-                    }
-                });
-
-                return { text, totalPrice };
-            }
+            
 
             function updateSummary() {
                 const overviewPanel = document.getElementById('config-overview');
@@ -1210,6 +1684,60 @@ updateSummary();
 
 
             init();
+
+            // Pokaż/ukryj popup
+const emailModal = document.getElementById('emailModal');
+const closeBtn = emailModal.querySelector('.close-button');
+const buyButton = document.getElementById('buy-button');
+const emailForm = document.getElementById('emailForm');
+const successMessage = document.getElementById('success-message');
+
+buyButton.addEventListener('click', () => {
+  emailModal.classList.remove('hidden');
+  emailModal.classList.add('visible');
+  successMessage.classList.remove('visible'); // ukryj komunikat na otwarciu
+  successMessage.classList.add('hidden');
+});
+
+closeBtn.addEventListener('click', () => {
+  emailModal.classList.remove('visible');
+  emailModal.classList.add('hidden');
+});
+
+emailModal.addEventListener('click', (e) => {
+  if (e.target === emailModal) {
+    emailModal.classList.remove('visible');
+    emailModal.classList.add('hidden');
+  }
+});
+
+emailForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+
+  // Tutaj wysyłka danych formularza (jeśli masz backend)
+  // Można dodać fetch lub EmailJS
+
+  // Po wysłaniu:
+  emailModal.classList.remove('visible');
+  emailModal.classList.add('hidden');
+
+  successMessage.classList.remove('hidden');
+  successMessage.classList.add('visible');
+
+  setTimeout(() => {
+    successMessage.classList.remove('visible');
+    successMessage.classList.add('hidden');
+  }, 3000);
+
+  emailForm.reset(); // wyczyść formularz
+});
+
+
+
+
+
+
+
     </script>
 </body>
 

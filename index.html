@@ -560,32 +560,81 @@
 <!-- KOMUNIKAT SUKCESU -->
 <div id="success-message" class="hidden">✅ Dziękujemy! Formularz został wysłany.</div>
 
+
+
 <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
 <script>
   emailjs.init('y6_uovUeRS8M7gZ1H');
 
-  // Przykładowe dane - podmień na dynamiczne wartości z konfiguratora!
-  const currentModel = "Amy-2";      // np. pobierz z konfiguratora
-  const currentPrice = "560.00";     // cena modelu
-  const totalPrice = "560.00";       // suma całej konfiguracji
+  function generateSummaryText() {
+    let text = "";
+    let totalPrice = 0;
 
-  const form = document.getElementById('emailForm');
+    if (window.selectedChair) {
+      const price = parseFloat(window.selectedChair.Cena) || 0;
+      totalPrice += price;
+      text += `Model: ${window.selectedChair.Nazwa} (${price.toFixed(2)} PLN)\n`;
+    }
 
-  form.addEventListener('submit', function(event) {
-    event.preventDefault();
+    if (window.selectedLeg) {
+      const price = parseFloat(window.selectedLeg.Cena) || 0;
+      totalPrice += price;
+      text += `Wariant nóg: ${window.selectedLeg.Nazwa} (${price.toFixed(2)} PLN)\n`;
+    }
 
-    // Ustaw wartości ukrytych inputów PRZED wysłaniem
-    document.getElementById('model').value = currentModel;
-    document.getElementById('price').value = currentPrice;
-    document.getElementById('total').value = totalPrice;
+    const partOrder = ['seat', 'backseat_inside', 'backseat_outside', 'legs_material'];
+    partOrder.forEach(part => {
+      const mat = window.selectedMaterials?.[part];
+      if (mat) {
+        const price = parseFloat(mat.Cena) || 0;
+        totalPrice += price;
+        text += `${part.replace(/_/g, ' ')}: ${mat.Nazwa} (${price.toFixed(2)} PLN)\n`;
+      }
+    });
 
-    emailjs.sendForm('service_h3otax9', 'template_aykvcls', this)
+    text += `\nSuma konfiguracji: ${totalPrice.toFixed(2)} PLN`;
+    return { text, totalPrice };
+  }
+
+  
+
+  emailForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    const summary = generateSummaryText();
+
+    document.getElementById('model').value = window.selectedChair?.Nazwa || 'Brak modelu';
+    document.getElementById('price').value = parseFloat(window.selectedChair?.Cena || 0).toFixed(2);
+    document.getElementById('total').value = summary.totalPrice.toFixed(2);
+
+    let configTextInput = document.getElementById('configText');
+    if (!configTextInput) {
+      configTextInput = document.createElement('textarea');
+      configTextInput.name = 'configText';
+      configTextInput.id = 'configText';
+      configTextInput.hidden = true;
+      emailForm.appendChild(configTextInput);
+    }
+    configTextInput.value = summary.text;
+
+    emailjs.sendForm('service_h3otax9', 'template_aykvcls', emailForm)
       .then(() => {
-        alert('Wysłano wiadomość! Dziękujemy.');
-        form.reset();
-      }, (error) => {
-        alert('Coś poszło nie tak. Spróbuj ponownie.');
-        console.error(error);
+        document.getElementById('emailModal')?.classList.add('hidden');
+
+        const successMessage = document.getElementById('success-message');
+        successMessage.classList.remove('hidden');
+        successMessage.classList.add('visible');
+
+        setTimeout(() => {
+          successMessage.classList.remove('visible');
+          successMessage.classList.add('hidden');
+        }, 3500);
+
+        emailForm.reset();
+      })
+      .catch((error) => {
+        alert('❌ Coś poszło nie tak. Spróbuj ponownie.');
+        console.error('EmailJS error:', error);
       });
   });
 </script>
@@ -671,6 +720,7 @@ import {
             }
         }
 
+        
         async function init() {
             const canvas = document.getElementById("canvas");
             
@@ -699,7 +749,7 @@ import {
 
             document.getElementById('buy-button').onclick = () => {
   const summary = generateSummaryText();
-  const emailAddress = 'ociepa-piotr@wp.pl'; // adres docelowy
+  const emailAddress = 'mrpeter@o2.pl'; // adres docelowy
 
   const subject = `Zapytanie o wycenę: ${selectedChair.Nazwa}`;
   const body = `Dzień dobry,\n\nProszę o wycenę poniższej konfiguracji:\n\n${summary.text}\n-------------------\nSuma: ${summary.totalPrice.toFixed(2)} PLN\n\nPozdrawiam,\n[Imię i nazwisko]`;
@@ -1495,28 +1545,7 @@ const visibleData = allData.filter(d =>
                 } catch (e) { console.error("Błąd ładowania danych:", e); document.body.innerHTML = `Błąd ładowania danych: ${e.message}`; }
             }
 
-            function generateSummaryText() {
-                let text = ""; let totalPrice = 0;
-                if (selectedChair) {
-                    const price = parseFloat(selectedChair.Cena) || 0;
-                    text += `Model: ${selectedChair.Nazwa} (${price.toFixed(2)} PLN)\n`;
-                    totalPrice += price;
-                }
-                const partOrder = ['seat', 'backseat_inside', 'backseat_outside', 'legs_material'];
-                const iconPlaceholders = [selectedChair];
-                const detailPlaceholders = { 'Model': selectedChair };
-
-                partOrder.forEach(partKey => {
-                    if (selectedMaterials[partKey]) {
-                        iconPlaceholders.push(selectedMaterials[partKey]);
-                        detailPlaceholders[partKey.replace(/_/g, ' ')] = selectedMaterials[partKey];
-                    } else {
-                        iconPlaceholders.push(null);
-                    }
-                });
-
-                return { text, totalPrice };
-            }
+            
 
             function updateSummary() {
                 const overviewPanel = document.getElementById('config-overview');
@@ -1597,12 +1626,22 @@ const visibleData = allData.filter(d =>
                     detailLine.innerHTML = `<span>Wariant nóg: ${selectedLeg.Nazwa}</span><strong>: ${price.toFixed(2)} PLN</strong>`;
                     overviewDetailsDiv.appendChild(detailLine);
                 }
+                if (selectedLeg) {
+  const price = parseFloat(selectedLeg.Cena) || 0;
+  totalPrice += price;
+}
+
                 const hr = document.createElement('hr');
                 overviewDetailsDiv.appendChild(hr);
 
                 overviewTotalPriceSpan.textContent = `${totalPrice.toFixed(2)} PLN`;
                 document.getElementById("selected-chair-name").textContent = `Wybrany model: ${selectedChair ? selectedChair.Nazwa : "Brak"}`;
                 overviewPanel.style.display = selectedChair ? 'block' : 'none';
+
+                window.selectedChair = selectedChair;
+window.selectedLeg = selectedLeg;
+window.selectedMaterials = selectedMaterials;
+
             }
 
             function enforceZoomLimits() {
