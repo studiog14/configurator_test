@@ -70,6 +70,12 @@
             overflow-y: auto;
             /* NIE dodawaj background! */
         }
+#sidebar-content {
+  flex-grow: 1;
+  overflow-y: auto;
+}
+
+
 
         #config-overview {
             position: absolute;
@@ -483,10 +489,10 @@
 
 
 #bottom-toolbar {
-  position: fixed;
+  position: fixed; /* <- zmień z absolute */
   bottom: 14px;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-100%);
   background: #fff;
   border: 1.5px solid #ccc;
   border-radius: 12px;
@@ -497,7 +503,9 @@
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   opacity: 0;
   transition: opacity 0.4s ease;
+  justify-content: center;
 }
+
 
 #bottom-toolbar button {
   background: #f0f0f0;
@@ -590,6 +598,24 @@
 .dimension-label:nth-child(6) { bottom: 20px; }
 
 
+#qr-close-btn {
+  background-color: #000;
+  color: #fff;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-top: 12px;
+  transition: background 0.3s;
+}
+
+#qr-close-btn:hover {
+  background-color: #222;
+}
+
+
+
 
     </style>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -630,8 +656,9 @@
                 </div>
                 <div id="materials-section" class="selection-section">
                     <h3>Wybierz materiał:</h3>
-                    <div id="material-options" class="options-grid"></div>
+                    <div id="material-options" class="options-grid"></div>                    
                 </div>
+                
             </div>
             <div id="summary"></div>
         </div>
@@ -662,9 +689,13 @@
 </div>
 
 
+
+
+
 <!-- KOMUNIKAT SUKCESU -->
 <div id="success-message" class="hidden">✅ Dziękujemy! Formularz został wysłany.</div>
 
+<!-- Dolny panel UI -->
 <div id="bottom-toolbar" style="display: none;">
 
   <button id="hdr-toggle" title="Zmień tło HDR">
@@ -682,6 +713,9 @@
 <button id="export-config" title="Pobierz konfigurację">
   <img src="icons/export_icon.png" alt="Eksport" style="width: 20px; height: 20px;">
 </button>
+<button id="qr-button" title="Zobacz na telefonie">
+    <img src="icons/qr_icon.png" alt="QR" style="width: 20px; height: 20px;">
+  </button>
 </div>
 
 <div id="dimension-overlay">
@@ -695,6 +729,36 @@
   </div>
 </div>
 
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ffffff">
+
+
+
+<div id="qr-popup" style="display:none; position:fixed; top:20%; left:50%; transform:translateX(-50%); background:white; padding:20px; border-radius:12px; box-shadow:0 0 20px rgba(0,0,0,0.2); z-index:3000;">
+  <p style="margin-bottom:10px;">Zeskanuj kod QR telefonem:</p>
+  <div id="qrcode"></div>
+ <button id="qr-close-btn">Zamknij</button>
+
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+<script>
+function showQR() {
+  const url = window.location.href;
+  document.getElementById('qr-popup').style.display = 'block';
+  document.getElementById('qrcode').innerHTML = ''; // czyść stare
+  document.getElementById('qr-close-btn').addEventListener('click', () => {
+  document.getElementById('qr-popup').style.display = 'none';
+});
+
+  new QRCode(document.getElementById("qrcode"), {
+    text: url,
+    width: 200,
+    height: 200,
+  });
+}
+</script>
 
 
 <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
@@ -2018,10 +2082,40 @@ document.getElementById('dimensions-show')?.addEventListener('click', () => {
 });
 
 
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js')
+    .then(reg => console.log('Service Worker registered', reg))
+    .catch(err => console.error('SW registration failed:', err));
+}
 
 
 
 
+window.addEventListener('load', () => {
+  const showQRBtn = document.getElementById('qr-button').addEventListener('click', showQR);
+
+
+  if (!showQRBtn) return;
+
+  // Pokaż przycisk po załadowaniu strony i UI
+  showQRBtn.style.display = 'flex';
+
+  // Podłącz event do wyświetlenia kodu QR
+  showQRBtn.addEventListener('click', () => {
+    const qrPopup = document.getElementById('qr-popup');
+    const qrContainer = document.getElementById('qrcode');
+    if (!qrPopup || !qrContainer) return;
+
+    qrPopup.style.display = 'block';
+    qrContainer.innerHTML = '';
+
+    new QRCode(qrContainer, {
+      text: window.location.href,
+      width: 200,
+      height: 200,
+    });
+  });
+});
 
 
 
@@ -2037,6 +2131,12 @@ document.getElementById('dimensions-show')?.addEventListener('click', () => {
 
 
             init();
+
+            if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js')
+    .then(reg => console.log('Service Worker registered', reg))
+    .catch(err => console.error('SW registration failed:', err));
+}
 
             // Pokaż/ukryj popup
 const emailModal = document.getElementById('emailModal');
