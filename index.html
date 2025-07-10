@@ -822,8 +822,10 @@
   </div>
 </div>
 
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#ffffff">
+<link rel="manifest" href="manifest.json" />
+<link rel="apple-touch-icon" href="favicon.jpg">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
 
 
@@ -2231,10 +2233,10 @@ function showConfigOverview() {
             init();
 
             // Rejestracja Service Workera
-  if ('serviceWorker' in navigator) {
+   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('service-worker.js')
-      .then(() => console.log('Service Worker zarejestrowany!'))
-      .catch(err => console.error('SW błąd:', err));
+      .then(() => console.log('Service Worker registered'))
+      .catch(err => console.error('SW registration failed:', err));
   }
 
             // Pokaż/ukryj popup
