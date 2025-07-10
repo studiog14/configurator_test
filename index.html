@@ -2230,13 +2230,12 @@ function showConfigOverview() {
 
             init();
 
-            if ('serviceWorker' in navigator) {
-  window.addEventListener('load', function () {
-    navigator.serviceWorker.register('/sw.js')
-      .then(() => console.log('Service Worker zarejestrowany'))
-      .catch(err => console.error('Błąd rejestracji SW:', err));
-  });
-}
+            // Rejestracja Service Workera
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js')
+      .then(() => console.log('Service Worker zarejestrowany!'))
+      .catch(err => console.error('SW błąd:', err));
+  }
 
             // Pokaż/ukryj popup
 const emailModal = document.getElementById('emailModal');
