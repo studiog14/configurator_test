@@ -991,6 +991,7 @@ import {
         let userInteracted = false;
         let dimensionHelpers = [];
         let currentModel = null;
+        
 
         
 
@@ -2028,7 +2029,7 @@ if (toolbar) {
 
                 overviewTotalPriceSpan.textContent = `${totalPrice.toFixed(2)} PLN`;
                 document.getElementById("selected-chair-name").textContent = `Wybrany model: ${selectedChair ? selectedChair.Nazwa : "Brak"}`;
-                overviewPanel.style.display = overviewPanel.classList.contains('collapsed') ? 'none' : 'block';
+                
 
 
                 window.selectedChair = selectedChair;

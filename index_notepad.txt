@@ -82,12 +82,13 @@
   top: 20px;
   left: 20px;
   width: 300px;
-  padding: 24px 20px 20px 20px;
+  padding: 12px 16px; /* Zmniejszone padding */
   z-index: 20;
   font-size: 15px;
-  display: block; /* DOMyślnie widoczny, ale z klasą będzie niewidoczny */
+  max-height: 1000px;
   opacity: 1;
-  transition: opacity 0.3s ease, box-shadow 0.3s ease;
+  transition: max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease;
+  overflow: hidden;
   box-shadow: 0 4px 32px rgba(0, 0, 0, 0.10);
   border-radius: 16px;
   border: 1px solid rgba(0, 0, 0, 0.08);
@@ -96,12 +97,30 @@
 }
 
 #config-overview.collapsed {
-  display: none; /* Ukryj gdy ma klasę collapsed */
+  max-height: 40px; /* Zmniejszone z 60px */
+  opacity: 0.8;
+  padding: 8px 16px; /* Zmniejszone padding w stanie zwiniętym */
 }
+
+
 
 #config-overview:hover {
   opacity: 1;
 }
+
+.overview-content {
+  max-height: 1000px;
+  opacity: 1;
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+  overflow: hidden;
+}
+
+#config-overview.collapsed .overview-content {
+  max-height: 0;
+  opacity: 0;
+}
+
+
 
 
 
@@ -647,7 +666,43 @@
   justify-content: center;
 }
 
+#collapse-btn {
+  font-size: 18px; /* Zmniejszona z 22px */
+  font-weight: bold;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #111;
+  margin-right: 8px;
+  padding: 0;
+  width: 24px; /* Zmniejszona z 30px */
+  height: 24px; /* Zmniejszona z 30px */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1; /* Dodane dla lepszego wycentrowania */
+}
 
+.overview-header h6 {
+  font-size: 18; /* Dodane, aby zmniejszyć rozmiar nagłówka */
+  margin: 0; /* Usunięcie domyślnych marginesów */
+}
+
+.overview-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px; /* Zmniejszone z 12px */
+}
+
+#config-overview.hidden {
+  display: none;
+}
+
+.overview-title {
+  font-size: 16px; /* lub inna preferowana wielkość */
+  font-weight: bold;
+  margin: 0;
+}
 
     </style>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -656,16 +711,22 @@
 <body>
     <div id="app">
         <canvas id="canvas"></canvas>
-        <div id="config-overview">
-            <button id="collapse-btn">−</button>
-            <h4>Twoja Konfiguracja</h4>
-            <div id="overview-icons"></div>
-            <div id="overview-details"></div>
-            <div id="overview-total">
-                <p>Suma: <strong id="overview-total-price">0.00 PLN</strong></p>
-                <button id="buy-button">Kupuję</button>
-            </div>
-        </div>
+        <div id="config-overview" class="collapsed hidden">
+  <div class="overview-header">
+    <button id="collapse-btn">+</button>
+     <span class="overview-title">Twoja Konfiguracja</span>
+  </div>
+  <div class="overview-content">
+    <!-- tu cała zawartość, która ma się zwijać -->
+    <div id="overview-icons"></div>
+    <div id="overview-details"></div>
+    <div id="overview-total">
+      <p>Suma: <strong id="overview-total-price">0.00 PLN</strong></p>
+      <button id="buy-button">Kupuję</button>
+    </div>
+  </div>
+</div>
+
         <div id="sidebar">
             <div id="selected-chair-name">Wybrany model: Brak</div>
             <div id="model-image-container"></div> <!-- DODAJ TO TUTAJ -->
@@ -930,6 +991,7 @@ import {
         let userInteracted = false;
         let dimensionHelpers = [];
         let currentModel = null;
+        
 
         
 
@@ -990,11 +1052,13 @@ import {
             }
 
             const collapseBtn = document.getElementById('collapse-btn');
-            const overviewPanel = document.getElementById('config-overview');
-            collapseBtn.onclick = () => {
-                overviewPanel.classList.toggle('collapsed');
-                collapseBtn.textContent = overviewPanel.classList.contains('collapsed') ? '+' : '−';
-            };
+const overviewPanel = document.getElementById('config-overview');
+
+collapseBtn.onclick = () => {
+  overviewPanel.classList.toggle('collapsed');
+  collapseBtn.textContent = overviewPanel.classList.contains('collapsed') ? '+' : '−';
+};
+
 
             document.getElementById('buy-button').innerHTML = '<span class="cart-icon">🛒</span>Zapytaj o produkt';
 
@@ -1965,7 +2029,8 @@ if (toolbar) {
 
                 overviewTotalPriceSpan.textContent = `${totalPrice.toFixed(2)} PLN`;
                 document.getElementById("selected-chair-name").textContent = `Wybrany model: ${selectedChair ? selectedChair.Nazwa : "Brak"}`;
-                overviewPanel.style.display = selectedChair ? 'block' : 'none';
+                overviewPanel.style.display = overviewPanel.classList.contains('collapsed') ? 'none' : 'block';
+
 
                 window.selectedChair = selectedChair;
 window.selectedLeg = selectedLeg;
@@ -2145,7 +2210,12 @@ window.addEventListener('load', () => {
   });
 });
 
+function showConfigOverview() {
+  const overviewPanel = document.getElementById('config-overview');
+  overviewPanel.classList.remove('hidden');
+}
 
+// Wywołaj tę funkcję w odpowiednim momencie, np. po załadowaniu modelu
 
 
 
