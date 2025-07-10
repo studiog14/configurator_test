@@ -70,30 +70,40 @@
             overflow-y: auto;
             /* NIE dodawaj background! */
         }
+#sidebar-content {
+  flex-grow: 1;
+  overflow-y: auto;
+}
+
+
 
         #config-overview {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            width: 300px;
-            padding: 24px 20px 20px 20px;
-            z-index: 20;
-            font-size: 15px;
-            display: none;
-            /* pokazywany przez JS */
-            opacity: 1;
-            transition: opacity 0.3s, box-shadow 0.3s;
-            box-sizing: border-box;
-        }
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 300px;
+  padding: 24px 20px 20px 20px;
+  z-index: 20;
+  font-size: 15px;
+  display: block; /* DOMyślnie widoczny, ale z klasą będzie niewidoczny */
+  opacity: 1;
+  transition: opacity 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.10);
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: #fff;
+  box-sizing: border-box;
+}
 
-        #config-overview:hover {
-            opacity: 1;
-        }
+#config-overview.collapsed {
+  display: none; /* Ukryj gdy ma klasę collapsed */
+}
 
-        #config-overview.collapsed {
-            height: auto;
-            padding-bottom: 15px;
-        }
+#config-overview:hover {
+  opacity: 1;
+}
+
+
 
         hr {
             border: none;
@@ -483,10 +493,10 @@
 
 
 #bottom-toolbar {
-  position: fixed;
+  position: fixed; /* <- zmień z absolute */
   bottom: 14px;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-100%);
   background: #fff;
   border: 1.5px solid #ccc;
   border-radius: 12px;
@@ -497,7 +507,9 @@
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   opacity: 0;
   transition: opacity 0.4s ease;
+  justify-content: center;
 }
+
 
 #bottom-toolbar button {
   background: #f0f0f0;
@@ -517,6 +529,123 @@
   background: #e0e0e0;
 }
 
+#dimension-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 999;
+  display: none;
+}
+
+#dimension-box {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 260px;
+  height: 260px;
+  background-color: rgba(255, 255, 255, 0.7);
+  transform: translate(-50%, -50%);
+  border-radius: 12px;
+  box-shadow: 0 0 30px rgba(0,0,0,0.15);
+}
+
+.axis-line {
+  position: absolute;
+  height: 2px;
+  background-color: #222;
+  opacity: 0.6;
+}
+
+.axis-line.x {
+  top: 50%;
+  left: 0;
+  width: 100%;
+  transform: translateY(-50%);
+}
+
+.axis-line.y {
+  left: 50%;
+  top: 0;
+  width: 2px;
+  height: 100%;
+  transform: translateX(-50%);
+}
+
+.axis-line.z {
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 2px dashed #888;
+  box-sizing: border-box;
+  border-radius: 10px;
+}
+
+.dimension-label {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: Poppins, sans-serif;
+  font-size: 16px;
+  font-weight: bold;
+  color: #000;
+  background: rgba(255,255,255,0.85);
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+
+.dimension-label:nth-child(4) { top: 20px; }
+.dimension-label:nth-child(5) { top: 50%; transform: translate(-50%, -50%); }
+.dimension-label:nth-child(6) { bottom: 20px; }
+
+
+#qr-close-btn {
+ background-color: #000;
+  color: #fff;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s ease;
+}
+
+#qr-close-btn:hover {
+  background-color: #333;
+}
+
+#qr-popup {
+  display: center;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-100%, -100%);
+  background: #fff;
+  padding: 24px;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  z-index: 999;
+  text-align: center;
+  max-width: 90vw;
+  width: 320px;
+  box-sizing: border-box;
+  border: 2px solid #000;
+}
+
+#qr-popup p {
+  font-size: 16px;
+  margin-bottom: 12px;
+  color: #000;
+}
+
+#qrcode {
+  margin: 0 auto 16px auto;
+  display: flex;
+  justify-content: center;
+}
 
 
 
@@ -559,8 +688,9 @@
                 </div>
                 <div id="materials-section" class="selection-section">
                     <h3>Wybierz materiał:</h3>
-                    <div id="material-options" class="options-grid"></div>
+                    <div id="material-options" class="options-grid"></div>                    
                 </div>
+                
             </div>
             <div id="summary"></div>
         </div>
@@ -591,16 +721,76 @@
 </div>
 
 
+
+
+
 <!-- KOMUNIKAT SUKCESU -->
 <div id="success-message" class="hidden">✅ Dziękujemy! Formularz został wysłany.</div>
 
+<!-- Dolny panel UI -->
 <div id="bottom-toolbar" style="display: none;">
 
-  <button id="hdr-toggle" title="Zmień tło HDR">🌅 HDR</button>
-  <button id="autorotate-toggle" title="Auto obrót">🔁 Obrót</button>
-  <button id="dimensions-show" title="Wymiary modelu">📐 Wymiary</button>
-  <button id="export-config" title="Pobierz konfigurację">💾 Eksport</button>
+  <button id="hdr-toggle" title="Zmień tło HDR">
+  <img src="icons/bulb_icon.png" alt="HDR" style="width: 20px; height: 20px;">
+</button>
+
+<button id="autorotate-toggle" title="Auto obrót">
+  <img src="icons/rotate_icon.png" alt="Obrót" style="width: 20px; height: 20px;">
+</button>
+
+<button id="dimensions-show" title="Wymiary modelu">
+  <img src="icons/dimmension_icon.png" alt="Wymiary" style="width: 20px; height: 20px;">
+</button>
+
+<button id="export-config" title="Pobierz konfigurację">
+  <img src="icons/export_icon.png" alt="Eksport" style="width: 20px; height: 20px;">
+</button>
+<button id="qr-button" title="Zobacz na telefonie">
+    <img src="icons/qr_icon.png" alt="QR" style="width: 20px; height: 20px;">
+  </button>
 </div>
+
+<div id="dimension-overlay">
+  <div id="dimension-box">
+    <div class="axis-line x"></div>
+    <div class="axis-line y"></div>
+    <div class="axis-line z"></div>
+    <div class="dimension-label">x = 58.5 cm</div>
+    <div class="dimension-label">y = 47.6 cm</div>
+    <div class="dimension-label">z = 56.5 cm</div>
+  </div>
+</div>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ffffff">
+
+
+
+<div id="qr-popup" style="display:none; position:fixed; top:20%; left:50%; transform:translateX(-50%); background:white; padding:20px; border-radius:12px; box-shadow:0 0 20px rgba(0,0,0,0.2); z-index:3000;">
+  <p style="margin-bottom:10px;">Zeskanuj kod QR telefonem:</p>
+  <div id="qrcode"></div>
+ <button id="qr-close-btn">Zamknij</button>
+
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+<script>
+function showQR() {
+  const url = window.location.href;
+  document.getElementById('qr-popup').style.display = 'block';
+  document.getElementById('qrcode').innerHTML = ''; // czyść stare
+  document.getElementById('qr-close-btn').addEventListener('click', () => {
+  document.getElementById('qr-popup').style.display = 'none';
+});
+
+  new QRCode(document.getElementById("qrcode"), {
+    text: url,
+    width: 200,
+    height: 200,
+  });
+}
+</script>
 
 
 <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
@@ -686,25 +876,36 @@
 
 
     <script type="module">
-        import * as THREE from 'three'; // ⬅️ korzysta z importmap
+        // Główna biblioteka Three.js (z importmap)
+import * as THREE from 'three'; // opcjonalne, jeśli używasz tylko konkretnych importów
 
+// Konkretnie z Three.js (potrzebne do wymiarów i geometrii)
+import {
+  Group,
+  Box3,
+  Vector3,
+  ArrowHelper,
+  Sprite,
+  SpriteMaterial,
+  CanvasTexture,
+  Color,
+  TextureLoader
+} from 'three';
+
+// ThreePipe core – viewer i pluginy
 import {
   ThreeViewer,
   LoadingScreenPlugin,
   GBufferPlugin,
   SSAAPlugin,
-  Box3,
-  Vector3,
-  Color,
-  TextureLoader
 } from 'threepipe';
 
+// Pluginy z WebGI (ThreePipe)
+import {
+  SSReflectionPlugin,
+  BloomPlugin
+} from '@threepipe/webgi-plugins';
 
-        import {
-            SSReflectionPlugin,
-            BloomPlugin
-        } from '@threepipe/webgi-plugins';
-import { ArrowHelper, Sprite, SpriteMaterial, CanvasTexture } from 'three';
 
        
 
@@ -727,7 +928,13 @@ import { ArrowHelper, Sprite, SpriteMaterial, CanvasTexture } from 'three';
         let selectedChair, selectedLeg, selectedMaterials = {};
         let globalCameraTargetPosition;
         let userInteracted = false;
+        let dimensionHelpers = [];
+        let currentModel = null;
+
         
+
+
+
 
 
         const ELEMENT_ICONS = {
@@ -742,6 +949,7 @@ import { ArrowHelper, Sprite, SpriteMaterial, CanvasTexture } from 'three';
             document.getElementById('config-section').style.display = screenName === 'config' ? 'block' : 'none';
         }
 
+        
         async function loadCameraTarget() {
             try {
                 const targetsContainer = await viewer.load('camera_target.glb');
@@ -761,6 +969,7 @@ import { ArrowHelper, Sprite, SpriteMaterial, CanvasTexture } from 'three';
                 globalCameraTargetPosition = new Vector3(0, 0, 0);
             }
         }
+            
 
         
         async function init() {
@@ -854,11 +1063,11 @@ import { ArrowHelper, Sprite, SpriteMaterial, CanvasTexture } from 'three';
             // Całkowicie wyłącz kontrolki pozycjonowania
             if (viewer.controls) {
                 viewer.controls.target.copy(center);
-                viewer.controls.enableRotate = false;
+                viewer.controls.enableRotate = true;
                 viewer.controls.enablePan = false;
                 viewer.controls.screenSpacePanning = false;
                 viewer.controls.enableZoom = false;
-                viewer.controls.enabled = false; // to blokuje WSZYSTKIE interakcje
+                viewer.controls.enabled = true; // to blokuje WSZYSTKIE interakcje
                 viewer.controls.update();
             }
         }
@@ -1828,6 +2037,10 @@ window.selectedMaterials = selectedMaterials;
             }
             animateBubbleZoomLimit();
 
+
+
+            //Dolne UI
+
             document.getElementById('hdr-toggle')?.addEventListener('click', () => {
   viewer.setEnvironmentMap("hdr/blocky_photo_studio_1k.hdr", { isHDR: true });
 });
@@ -1853,9 +2066,19 @@ document.getElementById('autorotate-toggle')?.addEventListener('click', () => {
   if (viewer?.controls) viewer.controls.autoRotate = autorotationEnabled;
 });
 
-document.getElementById('dimensions-show')?.addEventListener('click', () => {
+document.getElementById('dimensions-show')?.addEventListener('click', (e) => {
+  e.stopPropagation();
   console.log("📐 Kliknięto przycisk wymiarów");
-  showModelDimensions();
+  toggleDimensions();
+
+
+
+
+
+
+
+  console.log("📐 Kliknięto przycisk wymiarów");
+  toggleDimensions();
 });
 
 document.getElementById('export-config')?.addEventListener('click', () => {
@@ -1863,121 +2086,87 @@ document.getElementById('export-config')?.addEventListener('click', () => {
 });
 
 
-// 📐 Strzałki i etykiety wymiarowe
-let dimensionHelpers = [];
 
-function showModelDimensions() {
-    // ✅ Odblokuj kamerę — pozwól obracać i zoomować
-  if (viewer?.controls) {
-    viewer.controls.enabled = true;
-    viewer.controls.enableRotate = true;
-    viewer.controls.enablePan = true;
-    viewer.controls.enableZoom = true;
-    viewer.controls.autoRotate = false;
-    viewer.controls.update(); // ⬅️ ważne: odświeża kontrolki!
+
+// 🔧 Ukrywanie panelu
+document.getElementById('dimensions-show')?.addEventListener('click', () => {
+  const overlay = document.getElementById('dimension-overlay');
+  const labels = overlay.querySelectorAll('.dimension-label');
+
+  // 🧾 Pobierz z arkusza
+  const item = allData.find(i => {
+    const g = (i.Grupa || '').toLowerCase();
+    return (g === 'krzesło' || g === 'kubełek') && i.Wymiary;
+  });
+
+  const dims = item?.Wymiary?.match(/x\s*=\s*(\d+[\.,]?\d*)\s*cm.*?y\s*=\s*(\d+[\.,]?\d*)\s*cm.*?z\s*=\s*(\d+[\.,]?\d*)\s*cm/i);
+
+  if (dims) {
+    labels[0].textContent = `x = ${dims[1]} cm`;
+    labels[1].textContent = `y = ${dims[2]} cm`;
+    labels[2].textContent = `z = ${dims[3]} cm`;
   }
 
-  console.log('🔍 Wywołano funkcję wymiarów');
+  overlay.style.display = 'block';
 
-  if (!currentModelContainer || !viewer || !viewer.scene) {
-    console.warn('⛔ currentModelContainer lub scena nie gotowa!');
-    return;
-  }
+  // ⏱ Opcjonalnie ukryj po 6 sek.
+  setTimeout(() => overlay.style.display = 'none', 6000);
+});
 
-  // ✅ Odblokuj obrót kamery
-  if (viewer.controls) {
-    viewer.controls.enabled = true;
-    viewer.controls.enableRotate = true;
-    viewer.controls.enablePan = true;
-    viewer.controls.enableZoom = true;
-    viewer.controls.autoRotate = false;
-  }
 
-  // 🔄 Wyczyść stare
-  dimensionHelpers.forEach(h => viewer.scene.remove(h));
-  dimensionHelpers = [];
 
-  const box = new Box3().setFromObject(currentModelContainer);
-  const size = box.getSize(new Vector3());
-  const center = box.getCenter(new Vector3());
 
-  console.log('📦 Rozmiar modelu:', size);
-  console.log('🎯 Środek modelu:', center);
 
-  // Jeśli model ma zerowy rozmiar — testowa strzałka
-  if (size.x === 0 && size.y === 0 && size.z === 0) {
-    console.warn('❌ Model ma zerowe rozmiary — pokazuję strzałkę testową');
 
-    const start = new Vector3(0, 0, 0);
-    const end = new Vector3(1, 0, 0);
-    const dir = new Vector3().subVectors(end, start).normalize();
-    const length = start.distanceTo(end);
 
-    const arrow = new ArrowHelper(dir, start, length, 0x00ff00, 0.4, 0.2);
-    viewer.scene.add(arrow);
-    return;
-  }
+window.addEventListener('load', () => {
+  const showQRBtn = document.getElementById('qr-button').addEventListener('click', showQR);
 
-  // 🔧 Funkcja tworząca strzałkę + tekst
-  const createDimensionLine = (start, end, labelText) => {
-    const dir = new Vector3().subVectors(end, start).normalize();
-    const length = start.distanceTo(end);
 
-    const arrow = new ArrowHelper(dir, start, length, 0xff0000, 0.2, 0.1);
-    viewer.scene.add(arrow);
+  if (!showQRBtn) return;
 
-    // ✅ Widoczność
-    if (arrow.line?.material) {
-      arrow.line.material.depthTest = false;
-      arrow.line.material.transparent = true;
-      arrow.line.material.opacity = 1;
-    }
+  // Pokaż przycisk po załadowaniu strony i UI
+  showQRBtn.style.display = 'flex';
 
-    dimensionHelpers.push(arrow);
+  // Podłącz event do wyświetlenia kodu QR
+  showQRBtn.addEventListener('click', () => {
+    const qrPopup = document.getElementById('qr-popup');
+    const qrContainer = document.getElementById('qrcode');
+    if (!qrPopup || !qrContainer) return;
 
-    const canvas = document.createElement('canvas');
-    canvas.width = 512;
-    canvas.height = 128;
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#000000';
-    ctx.font = 'bold 36px Arial';
-    ctx.fillText(labelText, 20, 80);
+    qrPopup.style.display = 'block';
+    qrContainer.innerHTML = '';
 
-    const tex = new CanvasTexture(canvas);
-    const mat = new SpriteMaterial({ map: tex });
-    mat.depthTest = false;
+    new QRCode(qrContainer, {
+      text: window.location.href,
+      width: 200,
+      height: 200,
+    });
+  });
+});
 
-    const sprite = new Sprite(mat);
-    sprite.position.copy(start.clone().add(dir.multiplyScalar(length / 2)));
-    sprite.scale.set(2, 0.5, 1);
-    viewer.scene.add(sprite);
-    dimensionHelpers.push(sprite);
-  };
 
-  createDimensionLine(
-    new Vector3(box.min.x, center.y, center.z),
-    new Vector3(box.max.x, center.y, center.z),
-    `Szerokość: ${size.x.toFixed(2)}`
-  );
-  createDimensionLine(
-    new Vector3(center.x, box.min.y, center.z),
-    new Vector3(center.x, box.max.y, center.z),
-    `Wysokość: ${size.y.toFixed(2)}`
-  );
-  createDimensionLine(
-    new Vector3(center.x, center.y, box.min.z),
-    new Vector3(center.x, center.y, box.max.z),
-    `Głębokość: ${size.z.toFixed(2)}`
-  );
-}
+
+
+
+
+
+
+
 
 
 
 
 
             init();
+
+            if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('/sw.js')
+      .then(() => console.log('Service Worker zarejestrowany'))
+      .catch(err => console.error('Błąd rejestracji SW:', err));
+  });
+}
 
             // Pokaż/ukryj popup
 const emailModal = document.getElementById('emailModal');
@@ -2027,6 +2216,15 @@ emailForm.addEventListener('submit', (e) => {
 });
 
 
+const btn = document.getElementById('dimensions-show');
+if (btn) {
+  btn.onclick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log("📐 Kliknięto przycisk wymiarów");
+    toggleDimensions();
+  };
+}
 
 
 
