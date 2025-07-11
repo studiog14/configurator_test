@@ -555,20 +555,13 @@
   width: 100%;
   height: 100%;
   pointer-events: none;
-  z-index: 999;
-  display: none;
+  z-index: 1000;
 }
 
-#dimension-box {
+.dimension-line {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 260px;
-  height: 260px;
-  background-color: rgba(255, 255, 255, 0.7);
-  transform: translate(-50%, -50%);
-  border-radius: 12px;
-  box-shadow: 0 0 30px rgba(0,0,0,0.15);
+  background-color: #000;
+  height: 2px;
 }
 
 .axis-line {
@@ -605,15 +598,11 @@
 
 .dimension-label {
   position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  font-family: Poppins, sans-serif;
-  font-size: 16px;
+  background-color: rgba(255, 255, 255, 0.7);
+  padding: 5px;
+  border-radius: 3px;
+  font-size: 14px;
   font-weight: bold;
-  color: #000;
-  background: rgba(255,255,255,0.85);
-  padding: 4px 10px;
-  border-radius: 8px;
 }
 
 .dimension-label:nth-child(4) { top: 20px; }
@@ -809,6 +798,17 @@
   }
 }
 
+
+.dimension-panel {
+    background-color: white;
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 14px;
+    z-index: 1001;
+}
+
 #hdr-toggle {
   position: relative;
 }
@@ -825,19 +825,31 @@
   z-index: 9999;
   min-width: 240px;
   display: none;
-  
+  padding-top: 30px;
 }
 
 #hdr-panel.hidden {
   display: none;
 }
 
+#hdr-close {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #111111;
+    z-index: 1000;
+}
 
 #hdr-options {
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
   justify-content: center;
+  padding-top: 10px;
 }
 
 #hdr-options .thumbnail {
@@ -992,16 +1004,8 @@
   </button>
 </div>
 
-<div id="dimension-overlay">
-  <div id="dimension-box">
-    <div class="axis-line x"></div>
-    <div class="axis-line y"></div>
-    <div class="axis-line z"></div>
-    <div class="dimension-label">x = 58.5 cm</div>
-    <div class="dimension-label">y = 47.6 cm</div>
-    <div class="dimension-label">z = 56.5 cm</div>
-  </div>
-</div>
+
+<div id="dimension-overlay" style="display: none;"></div>
 
 <link rel="manifest" href="manifest.json" />
 <link rel="apple-touch-icon" href="favicon.jpg">
@@ -1226,10 +1230,15 @@ import {
             const canvas = document.getElementById("canvas");
             
             viewer = new ThreeViewer({
-                canvas: canvas,
-                plugins: [LoadingScreenPlugin, GBufferPlugin, SSAAPlugin, SSReflectionPlugin, BloomPlugin],
-                rendererSettings: { antialias: true }
-            });
+  canvas: canvas,
+  plugins: [LoadingScreenPlugin, GBufferPlugin, SSAAPlugin, SSReflectionPlugin, BloomPlugin],
+  rendererSettings: { antialias: true }
+});
+
+viewer.onUpdate = () => {
+  viewer.controls?.update();
+};
+
             if (viewer.controls) {
                 viewer.controls.minDistance = MIN_ZOOM_DISTANCE;
                 viewer.controls.maxDistance = MAX_ZOOM_DISTANCE;
@@ -1381,6 +1390,7 @@ toolbar.style.display = 'flex';
 
         selectedChair = variant;
         userInteracted = true;
+         hideDimensions();
 
         if (selectedChair.Grupa && selectedChair.Grupa.toLowerCase() === 'kubełek') {
             const chairBounds = new Box3().setFromObject(currentModelContainer);
@@ -2359,14 +2369,21 @@ function renderHDROptions(entries) {
 
 
 // Sterowanie widocznością panelu
+
+// Sterowanie widocznością panelu
 window.addEventListener('DOMContentLoaded', () => {
   const hdrToggle = document.getElementById('hdr-toggle');
   const hdrPanel = document.getElementById('hdr-panel');
   const hdrClose = document.getElementById('hdr-close');
 
+  function toggleHDRPanel() {
+    hdrPanel.classList.toggle('hidden');
+    hdrPanel.style.display = hdrPanel.classList.contains('hidden') ? 'none' : 'block';
+  }
+
   hdrToggle?.addEventListener('click', (e) => {
     e.stopPropagation();
-    hdrPanel?.classList.toggle('hidden');
+    toggleHDRPanel();
   });
 
   hdrPanel?.addEventListener('click', (e) => {
@@ -2375,12 +2392,22 @@ window.addEventListener('DOMContentLoaded', () => {
 
   document.addEventListener('click', () => {
     hdrPanel?.classList.add('hidden');
+    hdrPanel.style.display = 'none';
   });
 
   hdrClose?.addEventListener('click', (e) => {
     e.stopPropagation();
     hdrPanel?.classList.add('hidden');
+    hdrPanel.style.display = 'none';
   });
+});
+
+// Modyfikacja istniejącego kodu obsługi przycisku HDR
+document.getElementById('hdr-toggle')?.addEventListener('click', (e) => {
+  e.stopPropagation();
+  const panel = document.getElementById('hdr-panel');
+  panel.classList.toggle('hidden');
+  panel.style.display = panel.classList.contains('hidden') ? 'none' : 'block';
 });
 
 
@@ -2396,25 +2423,31 @@ window.addEventListener('DOMContentLoaded', () => {
 
 
 let autorotationEnabled = false;
+
 document.getElementById('autorotate-toggle')?.addEventListener('click', () => {
   autorotationEnabled = !autorotationEnabled;
-  if (viewer?.controls) viewer.controls.autoRotate = autorotationEnabled;
+
+  if (viewer?.controls) {
+    viewer.controls.autoRotate = autorotationEnabled;
+    viewer.controls.autoRotateSpeed = 2.0;  // możesz zmienić szybkość
+    viewer.controls.enabled = true;
+  }
 });
+
 
 document.getElementById('dimensions-show')?.addEventListener('click', (e) => {
   e.stopPropagation();
   console.log("📐 Kliknięto przycisk wymiarów");
-  toggleDimensions();
-
-
-
-
-
-
-
-  console.log("📐 Kliknięto przycisk wymiarów");
-  toggleDimensions();
+  showDimensions();
 });
+
+
+
+
+
+
+
+  
 
 document.getElementById('export-config')?.addEventListener('click', () => {
   alert('🛠️ Eksport konfiguracji zostanie dodany w wersji PRO.\nDla testu: eksport do .fbx, .obj, .glb.');
@@ -2493,6 +2526,62 @@ document.addEventListener('click', () => {
 });
 
 
+
+function showDimensions() {
+    const dimensionOverlay = document.getElementById('dimension-overlay');
+    dimensionOverlay.style.display = 'block';
+    dimensionOverlay.innerHTML = ''; // Wyczyść poprzednie wymiary
+
+    if (!selectedChair) return;
+
+    // Parsowanie wymiarów z kolumny Wymiary
+    const dimensionsString = selectedChair.Wymiary || '';
+    const dimensionsParsed = {};
+    dimensionsString.split(',').forEach(dim => {
+        const [key, value] = dim.split('=').map(s => s.trim());
+        if (key && value) {
+            dimensionsParsed[key.toLowerCase()] = parseFloat(value);
+        }
+    });
+
+    const dimensions = [
+        { label: 'Szerokość', value: dimensionsParsed.x },
+        { label: 'Głębokość', value: dimensionsParsed.y },
+        { label: 'Wysokość', value: dimensionsParsed.z }
+    ];
+
+    const panel = document.createElement('div');
+    panel.className = 'dimension-panel';
+    panel.style.cssText = `
+  position: fixed;
+  top: 85%;
+  transform: translate(-150%, -50%);
+  left: 50%;
+  background-color: rgba(255, 255, 255, 0.8);
+  padding: 10px;
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: bold;
+  z-index: 1001;
+`;
+
+
+    dimensions.forEach(dim => {
+        if (dim.value !== undefined) {
+            const dimElement = document.createElement('div');
+            dimElement.textContent = `${dim.label}: ${dim.value} cm`;
+            dimElement.style.marginBottom = '5px';
+            panel.appendChild(dimElement);
+        }
+    });
+
+    dimensionOverlay.appendChild(panel);
+}
+
+function hideDimensions() {
+    const dimensionOverlay = document.getElementById('dimension-overlay');
+    dimensionOverlay.style.display = 'none';
+}
 
 
 

@@ -11,6 +11,7 @@
     "threepipe": "https://unpkg.com/threepipe@latest/dist/index.mjs",
     "@threepipe/webgi-plugins": "https://unpkg.com/@threepipe/webgi-plugins@latest/dist/index.mjs",
     "three": "https://unpkg.com/three@0.157.0/build/three.module.js"
+    
 
     
   }
@@ -481,7 +482,7 @@
   position: fixed;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate(-100%, -50%);
   
   background: #ffffff; /* jasne zielone tło */
   border: 1.5px solid #1f1f1f; /* zielona ramka, spójna z tłem */
@@ -492,7 +493,7 @@
   
   padding: 20px 28px;
   border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(21, 87, 36, 0.15);
+  box-shadow: 0 8px 32px rgba(3, 3, 3, 0.15);
   
   max-width: 320px;
   width: 90%;
@@ -878,6 +879,53 @@
   color: #000;
 }
 
+#export-panel {
+  position: absolute;
+  bottom: 60px; /* nad przyciskiem */
+  right: 62px;  /* <- tu zwiększ wartość, żeby przesunąć panel bardziej w lewo */
+  background: #ffffff;
+  border: 1px solid #eeeeee;
+  border-radius: 8px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+#export-panel.hidden {
+  display: none;
+}
+
+.export-btn {
+  background-color: #444;
+  color: #222222;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.export-btn:hover {
+  background-color: #555;
+}
+
+
+
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
 
 
@@ -988,7 +1036,7 @@
 
 
 
-<button id="autorotate-toggle" title="Auto obrót">
+ <button id="autorotate-toggle" title="Auto obrót">
   <img src="icons/rotate_icon.png" alt="Obrót" style="width: 20px; height: 20px;">
 </button>
 
@@ -996,9 +1044,18 @@
   <img src="icons/dimmension_icon.png" alt="Wymiary" style="width: 20px; height: 20px;">
 </button>
 
+
 <button id="export-config" title="Pobierz konfigurację">
   <img src="icons/export_icon.png" alt="Eksport" style="width: 20px; height: 20px;">
 </button>
+
+<!-- Panel eksportu -->
+<div id="export-panel" class="hidden">
+  <button class="export-btn" data-format="fbx">FBX</button>
+  <button class="export-btn" data-format="dae">DAE</button>
+  <button class="export-btn" data-format="obj">OBJ</button>
+</div>
+
 <button id="qr-button" title="Zobacz na telefonie">
     <img src="icons/qr_icon.png" alt="QR" style="width: 20px; height: 20px;">
   </button>
@@ -1373,6 +1430,8 @@ collapseBtn.onclick = () => {
     currentLegModel = null;
     selectedLeg = null;
     selectedMaterials = {};
+
+    
 
     try {
         const modelPath = `chairs/${variant.Nazwa}.glb`;
@@ -2318,10 +2377,30 @@ window.selectedMaterials = selectedMaterials;
 
 
 
-document.getElementById('export-config')?.addEventListener('click', () => {
-  // Placeholder — tutaj można podłączyć WebGi exporter albo wygenerować scenę do pliku
-  alert('🛠️ Eksport konfiguracji zostanie dodany w wersji PRO.\nDla testu: eksport do .fbx, .obj, .glb.');
+const exportButton = document.getElementById("export-config");
+const exportPanel = document.getElementById("export-panel");
+
+exportButton.addEventListener("click", () => {
+  exportPanel.classList.toggle("hidden");
 });
+
+// Opcjonalnie – ukrywanie po kliknięciu poza panelem
+document.addEventListener("click", (e) => {
+  if (!exportPanel.contains(e.target) && !exportButton.contains(e.target)) {
+    exportPanel.classList.add("hidden");
+  }
+});
+
+// Obsługa kliknięć eksportu (przykładowo)
+document.querySelectorAll(".export-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const format = btn.dataset.format;
+    alert(`Eksport jako: ${format.toUpperCase()}`);
+    exportPanel.classList.add("hidden");
+  });
+});
+
+
 
 
 // — Obsługa dolnego paska narzędziowego HDR
@@ -2417,12 +2496,11 @@ document.getElementById('hdr-toggle')?.addEventListener('click', (e) => {
 
 
 
-let autorotationEnabled = false;
-document.getElementById('autorotate-toggle')?.addEventListener('click', () => {
-  autorotationEnabled = !autorotationEnabled;
-  if (viewer?.controls) viewer.controls.autoRotate = autorotationEnabled;
-});
 
+
+
+
+// Panel wymiarów
 document.getElementById('dimensions-show')?.addEventListener('click', (e) => {
   e.stopPropagation();
   console.log("📐 Kliknięto przycisk wymiarów");
@@ -2437,9 +2515,6 @@ document.getElementById('dimensions-show')?.addEventListener('click', (e) => {
 
   
 
-document.getElementById('export-config')?.addEventListener('click', () => {
-  alert('🛠️ Eksport konfiguracji zostanie dodany w wersji PRO.\nDla testu: eksport do .fbx, .obj, .glb.');
-});
 
 
 
@@ -2573,6 +2648,100 @@ function hideDimensions() {
 
 
 
+// ZIP I EXPORT, DOWNLOAD!!!
+  async function loadJSZip() {
+    if (!window.JSZip) {
+      await import('https://cdn.jsdelivr.net/npm/jszip@3.10.0/dist/jszip.min.js');
+    }
+  }
+
+  // Dane globalne
+  let selectedCollection = 'Brooklyn';        // ← ustaw to dynamicznie
+  let selectedTextureFolder = 'Beige';        // ← ustaw to dynamicznie
+  let selectedModelName = 'Fargo';       
+  let texturesFilesByFolder = {};             // ← ładowane z files.json
+  const modelFormats = ['fbx', 'obj', 'dae']; // ← wspierane rozszerzenia
+
+  // Wczytaj files.json
+  async function loadTexturesFilesList() {
+    try {
+      const response = await fetch('textures/files.json');
+      if (!response.ok) throw new Error('Nie udało się pobrać pliku textures/files.json.');
+      texturesFilesByFolder = await response.json();
+    } catch (e) {
+      console.error(e.message);
+      texturesFilesByFolder = {};
+    }
+  }
+
+  // Funkcja eksportu ZIP
+  async function handleExport(format) {
+    if (!window.JSZip) {
+      alert('JSZip nie jest załadowany!');
+      return;
+    }
+
+    if (!modelFormats.includes(format)) {
+      alert('Nieobsługiwany format!');
+      return;
+    }
+
+    const zip = new JSZip();
+
+    // Ścieżka do modelu: export/model.fbx
+    const modelPath = `export/${selectedModelName}.${format}`;
+    try {
+      const response = await fetch(modelPath);
+      if (!response.ok) throw new Error(`Nie znaleziono modelu: ${modelPath}`);
+      const blob = await response.blob();
+      zip.file(`${selectedCollection}.${format}`, blob);
+    } catch (e) {
+      alert(e.message);
+      return;
+    }
+
+    // Tekstury: textures/Kolekcja/Materiał/...
+    const texturesList = texturesFilesByFolder[selectedTextureFolder] || [];
+    const texturePathPrefix = `textures/${selectedCollection}/${selectedTextureFolder}/`;
+    const textureFolderInZip = zip.folder('textures');
+
+    for (const texFileName of texturesList) {
+      const textureUrl = `${texturePathPrefix}${texFileName}`;
+      try {
+        const response = await fetch(textureUrl);
+        if (!response.ok) throw new Error(`Nie udało się pobrać tekstury: ${textureUrl}`);
+        const blob = await response.blob();
+        textureFolderInZip.file(texFileName, blob);
+      } catch (e) {
+        console.warn(e.message);
+      }
+    }
+
+    // Wygeneruj ZIP
+    const content = await zip.generateAsync({ type: 'blob' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(content);
+    a.download = `krzeslo_export_${format}.zip`;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(a.href);
+  }
+
+  // Inicjalizacja
+  await loadTexturesFilesList();
+
+  // Obsługa kliknięcia eksportu
+  document.querySelectorAll('.export-btn').forEach(button => {
+    button.addEventListener('click', async () => {
+      await loadJSZip();
+      const format = button.getAttribute('data-format');
+      handleExport(format);
+    });
+  });
+
+
 
 
 
@@ -2650,6 +2819,13 @@ if (btn) {
 }
 
 
+// Po inicjalizacji (czyli gdy masz już modele i przyciski):
+document.querySelectorAll(".export-btn").forEach(button => {
+  button.addEventListener("click", () => {
+    const format = button.getAttribute("data-format");
+    handleExport(format);
+  });
+});
 
 
 

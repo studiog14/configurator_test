@@ -1,0 +1,5 @@
+{
+  "Beige": ["baseColor.jpg", "roughness.jpg", "normal.jpg", "metallic.jpg"],
+  "Mud": ["baseColor.jpg", "roughness.jpg", "normal.jpg", "metallic.jpg"],
+  "Ocean": ["baseColor.jpg", "roughness.jpg", "normal.jpg", "metallic.jpg"]
+}
