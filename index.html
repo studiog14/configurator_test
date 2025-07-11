@@ -1713,6 +1713,9 @@ async function applyMaterial(variant) {
       const roughnessTex = await loadTextureSafe(`${folderPath}/roughness.jpg`);
       const metallicTex = await loadTextureSafe(`${folderPath}/metallic.jpg`);
 
+     
+
+
       // ⬇️ BASE COLOR
 if (baseColorTex) {
   baseColorTex.wrapS = THREE.RepeatWrapping;
@@ -1871,6 +1874,18 @@ material.needsUpdate = true;
       selectedMaterials['legs_material'] = variant;
     }
   });
+
+  // 🗂️ Automatycznie przypisz Folder do eksportu
+Object.entries(selectedMaterials).forEach(([key, mat]) => {
+  if (!mat.Folder && typeof mat.Wartość === 'string') {
+    const parts = mat.Wartość.split('/');
+    const last = parts[parts.length - 1];
+    if (last && texturesFilesByFolder?.[last]) {
+      mat.Folder = last;
+      console.log(`📁 Dodano Folder='${last}' do '${key}'`);
+    }
+  }
+});
 
   viewer.scene.traverse(obj => {
     if (obj.isMesh && obj.material) {
@@ -2648,98 +2663,136 @@ function hideDimensions() {
 
 
 
-// ZIP I EXPORT, DOWNLOAD!!!
-  async function loadJSZip() {
-    if (!window.JSZip) {
-      await import('https://cdn.jsdelivr.net/npm/jszip@3.10.0/dist/jszip.min.js');
+// 📦 Ładowanie JSZip
+async function loadJSZip() {
+  if (!window.JSZip) {
+    await import('https://cdn.jsdelivr.net/npm/jszip@3.10.0/dist/jszip.min.js');
+  }
+}
+
+// 📁 Załaduj listę plików tekstur z files.json
+let texturesFilesByFolder = {};
+async function loadTexturesFilesList() {
+  try {
+    const res = await fetch('textures/files.json');
+    texturesFilesByFolder = await res.json();
+  } catch (e) {
+    console.error('Błąd ładowania files.json:', e);
+    texturesFilesByFolder = {};
+  }
+}
+
+// 📐 Obsługiwane formaty eksportu
+const modelFormats = ['fbx', 'obj', 'dae'];
+
+// 🗜️ Główna funkcja eksportu ZIP
+async function handleExport(format) {
+  if (!window.JSZip) {
+    alert('JSZip niezaładowany!');
+    return;
+  }
+
+  if (!modelFormats.includes(format)) {
+    alert(`Nieobsługiwany format eksportu: ${format}`);
+    return;
+  }
+
+  const zip = new JSZip();
+
+  // 🪑 Eksport głównego modelu krzesła
+  const chairModel = window.selectedChair?.Nazwa || 'BrakModelu';
+  const chairPath = `export/${chairModel}.${format}`;
+
+  try {
+    const res = await fetch(chairPath);
+    if (!res.ok) throw new Error(`Nie znaleziono modelu krzesła: ${chairPath}`);
+    const blob = await res.blob();
+    zip.file(`${chairModel}.${format}`, blob);
+  } catch (e) {
+    alert(e.message);
+    return;
+  }
+
+  // 🦵 Eksport nóg (jeśli wybrano)
+  const legModel = window.selectedLeg?.Nazwa;
+  if (legModel) {
+    const legPath = `export/${legModel}.${format}`;
+    try {
+      const res = await fetch(legPath);
+      if (res.ok) {
+        const blob = await res.blob();
+        zip.file(`${legModel}.${format}`, blob);
+      } else {
+        console.warn(`Nie znaleziono modelu nóg: ${legPath}`);
+      }
+    } catch (e) {
+      console.warn(`Błąd pobierania nóg: ${e.message}`);
     }
   }
 
-  // Dane globalne
-  let selectedCollection = 'Brooklyn';        // ← ustaw to dynamicznie
-  let selectedTextureFolder = 'Beige';        // ← ustaw to dynamicznie
-  let selectedModelName = 'Fargo';       
-  let texturesFilesByFolder = {};             // ← ładowane z files.json
-  const modelFormats = ['fbx', 'obj', 'dae']; // ← wspierane rozszerzenia
+  // 🎨 Eksport materiałów / tekstur z kolekcją i bez
+  const textureFolderInZip = zip.folder('textures');
+  const materials = Object.values(window.selectedMaterials || {});
+  const collection = window.selectedChair?.Kolekcja?.trim() || '';
 
-  // Wczytaj files.json
-  async function loadTexturesFilesList() {
-    try {
-      const response = await fetch('textures/files.json');
-      if (!response.ok) throw new Error('Nie udało się pobrać pliku textures/files.json.');
-      texturesFilesByFolder = await response.json();
-    } catch (e) {
-      console.error(e.message);
-      texturesFilesByFolder = {};
-    }
-  }
+  for (const mat of materials) {
+    const folder = mat.Folder || mat.Wartość;
+    const textureFiles = texturesFilesByFolder[folder] || [];
 
-  // Funkcja eksportu ZIP
-  async function handleExport(format) {
-    if (!window.JSZip) {
-      alert('JSZip nie jest załadowany!');
-      return;
-    }
+    for (const texFile of textureFiles) {
+      const candidatePaths = [
+        collection ? `textures/${collection}/${folder}/${texFile}` : null,
+        `textures/${folder}/${texFile}`
+      ].filter(Boolean);
 
-    if (!modelFormats.includes(format)) {
-      alert('Nieobsługiwany format!');
-      return;
-    }
+      let found = false;
 
-    const zip = new JSZip();
+      for (const path of candidatePaths) {
+        try {
+          const res = await fetch(path);
+          if (res.ok) {
+            const blob = await res.blob();
+            textureFolderInZip.file(`${folder}/${texFile}`, blob);
+            found = true;
+            break;
+          }
+        } catch (e) {
+          console.warn(`❌ Błąd pobierania: ${path}`, e);
+        }
+      }
 
-    // Ścieżka do modelu: export/model.fbx
-    const modelPath = `export/${selectedModelName}.${format}`;
-    try {
-      const response = await fetch(modelPath);
-      if (!response.ok) throw new Error(`Nie znaleziono modelu: ${modelPath}`);
-      const blob = await response.blob();
-      zip.file(`${selectedCollection}.${format}`, blob);
-    } catch (e) {
-      alert(e.message);
-      return;
-    }
-
-    // Tekstury: textures/Kolekcja/Materiał/...
-    const texturesList = texturesFilesByFolder[selectedTextureFolder] || [];
-    const texturePathPrefix = `textures/${selectedCollection}/${selectedTextureFolder}/`;
-    const textureFolderInZip = zip.folder('textures');
-
-    for (const texFileName of texturesList) {
-      const textureUrl = `${texturePathPrefix}${texFileName}`;
-      try {
-        const response = await fetch(textureUrl);
-        if (!response.ok) throw new Error(`Nie udało się pobrać tekstury: ${textureUrl}`);
-        const blob = await response.blob();
-        textureFolderInZip.file(texFileName, blob);
-      } catch (e) {
-        console.warn(e.message);
+      if (!found) {
+        console.warn(`⚠️ Nie znaleziono tekstury: ${folder}/${texFile}`);
       }
     }
-
-    // Wygeneruj ZIP
-    const content = await zip.generateAsync({ type: 'blob' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(content);
-    a.download = `krzeslo_export_${format}.zip`;
-    a.style.display = 'none';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(a.href);
   }
 
-  // Inicjalizacja
-  await loadTexturesFilesList();
+  // 📦 Finalny zapis ZIP
+  const blob = await zip.generateAsync({ type: 'blob' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `export_${chairModel}_${format}.zip`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(a.href);
+}
 
-  // Obsługa kliknięcia eksportu
-  document.querySelectorAll('.export-btn').forEach(button => {
-    button.addEventListener('click', async () => {
-      await loadJSZip();
-      const format = button.getAttribute('data-format');
-      handleExport(format);
-    });
+// 🚀 Inicjalizacja tekstur na starcie
+await loadTexturesFilesList();
+
+// 🖱️ Obsługa kliknięcia eksportu
+document.querySelectorAll('.export-btn').forEach(button => {
+  button.addEventListener('click', async () => {
+    await loadJSZip();
+    const format = button.getAttribute('data-format');
+    await handleExport(format);
   });
+});
+
+
+
+
 
 
 
