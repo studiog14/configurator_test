@@ -704,6 +704,171 @@
   margin: 0;
 }
 
+@media (max-width: 768px) {
+  #app {
+    flex-direction: column;
+  }
+
+  #canvas {
+    height: 50vh;
+  }
+
+  #sidebar {
+    width: 100%;
+    height: auto;
+    max-width: none;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+
+  #config-overview {
+    position: static;
+    width: 100%;
+    margin-top: 16px;
+    padding: 14px 16px;
+    max-height: 800px;
+    box-sizing: border-box;
+  }
+
+  .thumbnail {
+    width: 64px;
+    height: 64px;
+  }
+
+  .thumbnail img {
+    max-width: 90%;
+    max-height: 90%;
+  }
+
+  #overview-icons img {
+    width: 64px;
+    height: 64px;
+  }
+
+  .back-to-model-btn {
+    width: 64px;
+    height: 64px;
+  }
+
+  .back-to-model-btn img {
+    width: 48px;
+    height: 48px;
+  }
+
+  #sidebar .model-image {
+    height: 100px;
+  }
+
+  #model-image-container img {
+    height: 180px;
+  }
+
+  #buy-button {
+    font-size: 16px;
+    padding: 12px 0;
+  }
+
+  .modal-content {
+    width: 95%;
+    padding: 20px;
+  }
+
+  #qr-popup {
+    width: 90%;
+    max-width: 320px;
+  }
+
+  #collapse-btn {
+    font-size: 16px;
+    width: 20px;
+    height: 20px;
+  }
+
+  #camera-debug-panel {
+    max-width: 340px;
+    left: 5%;
+    right: 5%;
+  }
+
+  #bottom-toolbar {
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 12px;
+    padding: 10px 16px;
+    flex-wrap: wrap;
+  }
+
+  #bottom-toolbar button {
+    font-size: 13px;
+    padding: 6px 10px;
+  }
+
+  .dimension-label {
+    font-size: 14px;
+    padding: 4px 8px;
+  }
+}
+
+#hdr-toggle {
+  position: relative;
+}
+
+#hdr-panel {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-8px);
+  background: #fff;
+  border-radius: 12px;
+  padding: 12px 16px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.15);
+  z-index: 9999;
+  min-width: 240px;
+  display: none;
+  
+}
+
+#hdr-panel.hidden {
+  display: none;
+}
+
+
+#hdr-options {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+#hdr-options .thumbnail {
+  width: 72px;
+  height: 72px;
+}
+
+#hdr-options .thumbnail img {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.hdr-close-btn {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 22px;
+  font-weight: bold;
+  cursor: pointer;
+  color: #555;
+  z-index: 10000;
+}
+.hdr-close-btn:hover {
+  color: #000;
+}
+
+
+
+
     </style>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
@@ -788,12 +953,28 @@
 <!-- KOMUNIKAT SUKCESU -->
 <div id="success-message" class="hidden">✅ Dziękujemy! Formularz został wysłany.</div>
 
+
+
 <!-- Dolny panel UI -->
 <div id="bottom-toolbar" style="display: none;">
 
-  <button id="hdr-toggle" title="Zmień tło HDR">
+ <!-- Przycisk HDR -->
+<button id="hdr-toggle" title="Zmień HDR">
   <img src="icons/bulb_icon.png" alt="HDR" style="width: 20px; height: 20px;">
 </button>
+
+<div id="hdr-panel" class="hidden">
+  <button id="hdr-close" class="hdr-close-btn">×</button>
+  <div id="hdr-options" class="options-grid"></div>
+</div>
+
+
+
+
+
+
+
+
 
 <button id="autorotate-toggle" title="Auto obrót">
   <img src="icons/rotate_icon.png" alt="Obrót" style="width: 20px; height: 20px;">
@@ -822,8 +1003,15 @@
   </div>
 </div>
 
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#ffffff">
+<link rel="manifest" href="manifest.json" />
+<link rel="apple-touch-icon" href="favicon.jpg">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+
+
+
+
 
 
 
@@ -1689,7 +1877,7 @@ function applyMaterialToSpecificMesh(variant, meshKey) {
                     caption.className = 'thumbnail-caption';
                     caption.textContent = item.Nazwa;
                     wrapper.appendChild(button);
-                    wrapper.appendChild(caption);
+                    //wrapper.appendChild(caption);
                     container.appendChild(wrapper);
                 });
             }
@@ -1917,6 +2105,13 @@ const visibleData = allData.filter(d =>
                     renderOptions('model-thumbnails', mainModels, item => loadModel(item));
                     showScreen('models');
 
+                    const hdrEntries = allData.filter(d => d.HDR && d.HDRIcon);
+renderHDROptions(hdrEntries);
+
+
+
+
+
                     // ZAWSZE na starcie ładuj Default.glb (nie ustawiaj selectedChair!)
                     if (currentModelContainer) {
                         viewer.scene.remove(currentModelContainer);
@@ -1938,6 +2133,14 @@ if (toolbar) {
                 } catch (e) { console.error("Błąd ładowania danych:", e); document.body.innerHTML = `Błąd ładowania danych: ${e.message}`; }
             }
 
+           document.getElementById('hdr-toggle')?.addEventListener('click', (e) => {
+  e.stopPropagation();
+  const panel = document.getElementById('hdr-panel');
+  panel.classList.toggle('hidden');
+  document.getElementById('hdr-panel').style.display = 'block';
+
+});
+ 
             
 
             function updateSummary() {
@@ -2029,7 +2232,7 @@ if (toolbar) {
 
                 overviewTotalPriceSpan.textContent = `${totalPrice.toFixed(2)} PLN`;
                 document.getElementById("selected-chair-name").textContent = `Wybrany model: ${selectedChair ? selectedChair.Nazwa : "Brak"}`;
-                overviewPanel.style.display = overviewPanel.classList.contains('collapsed') ? 'none' : 'block';
+                
 
 
                 window.selectedChair = selectedChair;
@@ -2104,11 +2307,7 @@ window.selectedMaterials = selectedMaterials;
 
 
 
-            //Dolne UI
-
-            document.getElementById('hdr-toggle')?.addEventListener('click', () => {
-  viewer.setEnvironmentMap("hdr/blocky_photo_studio_1k.hdr", { isHDR: true });
-});
+            
 
 
 
@@ -2120,10 +2319,81 @@ document.getElementById('export-config')?.addEventListener('click', () => {
 });
 
 
-// — Obsługa dolnego paska narzędziowego
-document.getElementById('hdr-toggle')?.addEventListener('click', () => {
-  viewer.setEnvironmentMap("hdr/blocky_photo_studio_1k.hdr", { isHDR: true });
+// — Obsługa dolnego paska narzędziowego HDR
+
+function renderHDROptions(entries) {
+  const container = document.getElementById('hdr-options');
+  if (!container) return;
+  container.innerHTML = '';
+
+  entries.forEach(entry => {
+    const img = document.createElement('img');
+    img.src = entry.HDRIcon;
+    img.alt = entry.Nazwa || entry.HDR;
+    img.onerror = () => {
+      img.src = 'icons/placeholder.svg';
+    };
+
+    const thumb = document.createElement('div');
+    thumb.className = 'thumbnail';
+    thumb.title = entry.Nazwa || entry.HDR;
+    thumb.appendChild(img);
+    thumb.onclick = () => {
+      viewer.setEnvironmentMap(entry.HDR, { isHDR: true });
+      document.getElementById('hdr-panel')?.classList.add('hidden');
+    };
+
+    const caption = document.createElement('div');
+    caption.className = 'thumbnail-caption';
+    caption.textContent = entry.Nazwa || entry.HDR;
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'thumbnail-wrapper';
+    wrapper.appendChild(thumb);
+    //wrapper.appendChild(caption);
+
+    container.appendChild(wrapper);
+  });
+}
+
+
+
+// Sterowanie widocznością panelu
+window.addEventListener('DOMContentLoaded', () => {
+  const hdrToggle = document.getElementById('hdr-toggle');
+  const hdrPanel = document.getElementById('hdr-panel');
+  const hdrClose = document.getElementById('hdr-close');
+
+  hdrToggle?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    hdrPanel?.classList.toggle('hidden');
+  });
+
+  hdrPanel?.addEventListener('click', (e) => {
+    e.stopPropagation();
+  });
+
+  document.addEventListener('click', () => {
+    hdrPanel?.classList.add('hidden');
+  });
+
+  hdrClose?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    hdrPanel?.classList.add('hidden');
+  });
 });
+
+
+
+
+
+
+
+
+
+
+
+
 
 let autorotationEnabled = false;
 document.getElementById('autorotate-toggle')?.addEventListener('click', () => {
@@ -2218,6 +2488,13 @@ function showConfigOverview() {
 // Wywołaj tę funkcję w odpowiednim momencie, np. po załadowaniu modelu
 
 
+document.addEventListener('click', () => {
+  hdrPanel.classList.add('hidden');
+});
+
+
+
+
 
 
 
@@ -2230,13 +2507,12 @@ function showConfigOverview() {
 
             init();
 
-            if ('serviceWorker' in navigator) {
-  window.addEventListener('load', function () {
-    navigator.serviceWorker.register('/sw.js')
-      .then(() => console.log('Service Worker zarejestrowany'))
-      .catch(err => console.error('Błąd rejestracji SW:', err));
-  });
-}
+            // Rejestracja Service Workera
+   if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js')
+      .then(() => console.log('Service Worker registered'))
+      .catch(err => console.error('SW registration failed:', err));
+  }
 
             // Pokaż/ukryj popup
 const emailModal = document.getElementById('emailModal');
