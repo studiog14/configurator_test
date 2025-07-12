@@ -694,40 +694,78 @@
   margin: 0;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 768px) and (orientation: landscape) {
   #app {
-    flex-direction: column;
+    display: flex;
+    flex-direction: row;
   }
 
-  #canvas {
-    height: 50vh;
+  #rotate-message {
+    display: block;
+    text-align: center;
+    padding: 40px;
+    font-size: 18px;
+    background: #000;
+    color: #fff;
+  }
+
+ #canvas {
+    width: 40vw;
+    height: 100vh;
   }
 
   #sidebar {
-    width: 100%;
-    height: auto;
-    max-width: none;
-    padding: 20px;
+    width: 25vw;
+    max-width: 100px;
+    padding: 10px;
     box-sizing: border-box;
+    overflow-y: auto;
   }
 
   #config-overview {
-    position: static;
-    width: 100%;
-    margin-top: 16px;
-    padding: 14px 16px;
-    max-height: 800px;
-    box-sizing: border-box;
+  font-size: 8px;          /* Mniejsze czcionki w całym panelu */
+  padding: 8px 10px;        /* Mniejsze odstępy wewnętrzne */
+  margin-top: 5px;         /* Mniejszy margines od góry */
+  max-height: 240px;        /* Ograniczona wysokość – nie zalewa UI */
+  overflow-y: auto;         /* Scroll jeśli treści za dużo */
+  border-radius: 6px;       /* Opcjonalnie zaokrąglenie rogów */
+}
+
+#config-overview h2 {
+    font-size: 0; /* ukrywa tekst */
+    position: relative;
+    height: 0;
+    margin: 0;
   }
 
-  .thumbnail {
-    width: 64px;
-    height: 64px;
+  #config-overview h2::after {
+    content: "+";
+    font-size: 20px;
+    color: #333;
+    position: absolute;
+    top: 0;
+    left: 0;
+    visibility: visible;
+  }
+
+
+
+  .thumbnail,
+  #overview-icons img,
+  .back-to-model-btn {
+    width: 56px;
+    height: 56px;
   }
 
   .thumbnail img {
     max-width: 90%;
     max-height: 90%;
+  }
+
+  .thumbnail-caption {
+    font-size: 13px;
+    margin-top: 4px;
+    text-align: center;
   }
 
   #overview-icons img {
@@ -753,9 +791,11 @@
     height: 180px;
   }
 
-  #buy-button {
-    font-size: 16px;
-    padding: 12px 0;
+   #buy-button {
+    font-size: 15px;
+    padding: 10px;
+    width: 100%;
+    margin-top: 12px;
   }
 
   .modal-content {
@@ -766,6 +806,7 @@
   #qr-popup {
     width: 90%;
     max-width: 320px;
+    display: none;
   }
 
   #collapse-btn {
@@ -1007,6 +1048,10 @@
 </div>
 
 
+<!-- KOMUNIKAT obrotu -->
+<div id="rotate-message" style="display:none;">
+  🔄 Proszę obróć telefon poziomo, by uruchomić konfigurator 🪑
+</div>
 
 
 
