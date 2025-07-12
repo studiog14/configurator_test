@@ -694,22 +694,40 @@
   margin: 0;
 }
 
-@media (max-width: 768px) and (orientation: landscape) {
-  #app {
-    display: flex;
-    flex-direction: row;
+@media (max-width: 768px) and (orientation: portrait) {
+  /* Ukrywamy całe UI i QR w pionie */
+  #app,
+  #bottom-toolbar,
+  #sidebar,
+  .dimension-panel,
+  .dimension-label,
+  #qr-button {
+    display: none !important;
   }
 
   #rotate-message {
-    display: block;
+    display: block !important;
     text-align: center;
     padding: 40px;
     font-size: 18px;
     background: #000;
     color: #fff;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2000;
+  }
+}
+
+@media (max-width: 768px) and (orientation: landscape) {
+  /* Pokazujemy UI w poziomie */
+  #rotate-message {
+    display: none;
   }
 
- #canvas {
+  #canvas {
     width: 40vw;
     height: 100vh;
   }
@@ -723,32 +741,45 @@
   }
 
   #config-overview {
-  font-size: 8px;          /* Mniejsze czcionki w całym panelu */
-  padding: 8px 10px;        /* Mniejsze odstępy wewnętrzne */
-  margin-top: 5px;         /* Mniejszy margines od góry */
-  max-height: 240px;        /* Ograniczona wysokość – nie zalewa UI */
-  overflow-y: auto;         /* Scroll jeśli treści za dużo */
-  border-radius: 6px;       /* Opcjonalnie zaokrąglenie rogów */
+  position: fixed;          /* Przypięty w jedno miejsce */
+  bottom: 64px;             /* Odległość od dołu — nad przyciskiem "+" */
+  right: 16px;              /* Przyklejony do prawej krawędzi */
+  width: 220px;             /* Mniejsza szerokość panelu */
+  max-height: 160px;        /* Mniejsza wysokość, z przewijaniem */
+  font-size: 12px;
+  padding: 8px;
+  background: rgba(245, 245, 245, 0.5); /* ostatnia wartość to przezroczystość */
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  border-radius: 6px;
+  overflow-y: auto;
+  z-index: 998;
+  display: none;            /* Pokazywane dopiero po kliknięciu "+" */
 }
 
+
+/* Ukrycie tekstu w h2 */
 #config-overview h2 {
-    font-size: 0; /* ukrywa tekst */
-    position: relative;
-    height: 0;
-    margin: 0;
-  }
+  content: "Podsumowanie";
+  font-size: 6px !important;
+  line-height: 1 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
 
-  #config-overview h2::after {
-    content: "+";
-    font-size: 20px;
-    color: #333;
+/* Jeśli chcesz pozostawić tylko znak "+" w nagłówku */
+#config-overview h2::after {
+    content: "+  Twoja konfiguracja";
+    font-size: 14px;
     position: absolute;
-    top: 0;
-    left: 0;
-    visibility: visible;
-  }
+    right: 10px; /* opcjonalnie, aby + nie był na środku */
+    top: 50%;
+    transform: translateY(-50%);
+    color: #000; /* lub inny kolor */
+}
 
-
+#config-overview .overview-title {
+  display: none;
+}
 
   .thumbnail,
   #overview-icons img,
@@ -769,8 +800,8 @@
   }
 
   #overview-icons img {
-    width: 64px;
-    height: 64px;
+    width: 42px;
+    height: 42px;
   }
 
   .back-to-model-btn {
@@ -791,8 +822,8 @@
     height: 180px;
   }
 
-   #buy-button {
-    font-size: 15px;
+  #buy-button {
+    font-size: 14px;
     padding: 10px;
     width: 100%;
     margin-top: 12px;
@@ -810,7 +841,7 @@
   }
 
   #collapse-btn {
-    font-size: 16px;
+    font-size: 10px;
     width: 20px;
     height: 20px;
   }
@@ -823,7 +854,7 @@
 
   #bottom-toolbar {
     left: 50%;
-    transform: translateX(-50%);
+    transform: translateX(-125%);
     bottom: 12px;
     padding: 10px 16px;
     flex-wrap: wrap;
@@ -835,10 +866,44 @@
   }
 
   .dimension-label {
-    font-size: 14px;
+    position: absolute;
+    bottom: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    background: rgba(255,255,255,0.9);
     padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 14px;
+  }
+
+  .dimension-panel {
+  position: fixed !important;
+  top: 50% !important;
+  left: 42% !important;
+  transform: translate(-100%, -100%) !important;
+  font-size: 12px !important;
+  padding: 6px 8px !important;
+  width: auto !important;
+  max-width: 90% !important;
+  z-index: 2147483647 !important; /* max z-index */
+  background: white !important;
+  border: 1px solid #ccc !important;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
+  border-radius: 6px !important;
+}
+
+
+
+
+
+
+  /* Ukryj QR na mobilkach (ogólnie) */
+  #qr-button {
+    display: none !important;
   }
 }
+
 
 
 .dimension-panel {
@@ -1049,8 +1114,8 @@
 
 
 <!-- KOMUNIKAT obrotu -->
-<div id="rotate-message" style="display:none;">
-  🔄 Proszę obróć telefon poziomo, by uruchomić konfigurator 🪑
+<div id="rotate-message">
+  🔄 Obróć urządzenie poziomo
 </div>
 
 
