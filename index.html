@@ -2279,7 +2279,8 @@ const visibleData = allData.filter(d =>
                 const sheetId = '1vCs6YeHgKqlYwg8rvJOqVzNRnXeATJCBuK-zh3NNj78';
                 const sheetURL = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=Dane&v=${new Date().getTime()}`;
                 try {
-                    const response = await fetch(sheetURL);
+                    const response = await fetch(sheetURL + '?nocache=' + Date.now(), { cache: 'no-store' });
+
                     const csvText = await response.text();
                     const rows = csvText.trim().split('\n');
                     const headers = rows.shift().split(',').map(h => h.trim().replace(/"/g, ''));
