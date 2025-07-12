@@ -175,10 +175,10 @@
         }
 
         .thumbnail.selected {
-            outline: 2px solid #007bff;
+            outline: 2px solid #050505;
             border: 2px solid transparent;
             outline-offset: -2px;
-            box-shadow: 0 0 8px rgba(0, 123, 255, 0.5);
+            box-shadow: 0 0 8px rgba(49, 49, 49, 0.5);
         }
 
         .thumbnail img {
@@ -1956,7 +1956,7 @@ function applyMaterialToSpecificMesh(variant, meshKey) {
                     caption.className = 'thumbnail-caption';
                     caption.textContent = item.Nazwa;
                     wrapper.appendChild(button);
-                    //wrapper.appendChild(caption);
+                    wrapper.appendChild(caption);
                     container.appendChild(wrapper);
                 });
             }
