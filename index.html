@@ -1545,6 +1545,15 @@ collapseBtn.onclick = () => {
 
     try {
         const modelPath = `chairs/${variant.Nazwa}.glb`;
+        async function glbExists(path) {
+  try {
+    const res = await fetch(path, { method: 'HEAD' });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
         currentModelContainer = await viewer.load(modelPath, { autoCenter: true });
         // 🔓 Pokaż dolny panel UI po załadowaniu modelu
 const toolbar = document.getElementById('bottom-toolbar');
