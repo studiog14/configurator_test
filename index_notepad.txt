@@ -11,6 +11,7 @@
     "threepipe": "https://unpkg.com/threepipe@latest/dist/index.mjs",
     "@threepipe/webgi-plugins": "https://unpkg.com/@threepipe/webgi-plugins@latest/dist/index.mjs",
     "three": "https://unpkg.com/three@0.157.0/build/three.module.js"
+    
 
     
   }
@@ -174,10 +175,10 @@
         }
 
         .thumbnail.selected {
-            outline: 2px solid #007bff;
+            outline: 2px solid #050505;
             border: 2px solid transparent;
             outline-offset: -2px;
-            box-shadow: 0 0 8px rgba(0, 123, 255, 0.5);
+            box-shadow: 0 0 8px rgba(49, 49, 49, 0.5);
         }
 
         .thumbnail img {
@@ -481,7 +482,7 @@
   position: fixed;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate(-100%, -50%);
   
   background: #ffffff; /* jasne zielone tło */
   border: 1.5px solid #1f1f1f; /* zielona ramka, spójna z tłem */
@@ -492,7 +493,7 @@
   
   padding: 20px 28px;
   border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(21, 87, 36, 0.15);
+  box-shadow: 0 8px 32px rgba(3, 3, 3, 0.15);
   
   max-width: 320px;
   width: 90%;
@@ -626,21 +627,18 @@
 }
 
 #qr-popup {
-  display: center;
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-100%, -100%);
+  right: auto !important;
+  left: 20px !important;
+  transform: translate(175%, 0%) !important;
+  width: 320px;
   background: #fff;
+  border: 2px solid rgb(0, 0, 0); /* łatwiej zobaczyć granice */
+  z-index: 999;
   padding: 24px;
   border-radius: 16px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-  z-index: 999;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
   text-align: center;
-  max-width: 90vw;
-  width: 320px;
   box-sizing: border-box;
-  border: 2px solid #000;
 }
 
 #qr-popup p {
@@ -693,35 +691,98 @@
   margin: 0;
 }
 
-@media (max-width: 768px) {
-  #app {
-    flex-direction: column;
+@media (max-width: 768px) and (orientation: portrait) {
+  /* Ukrywamy całe UI i QR w pionie */
+  #app,
+  #bottom-toolbar,
+  #sidebar,
+  .dimension-panel,
+  .dimension-label,
+  #qr-button {
+    display: none !important;
+  }
+
+  #rotate-message {
+    display: block !important;
+    text-align: center;
+    padding: 40px;
+    font-size: 18px;
+    background: #000;
+    color: #fff;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2000;
+  }
+}
+
+@media (max-width: 768px) and (orientation: landscape) {
+  /* Pokazujemy UI w poziomie */
+  #rotate-message {
+    display: none;
   }
 
   #canvas {
-    height: 50vh;
+    width: 40vw;
+    height: 100vh;
   }
 
   #sidebar {
-    width: 100%;
-    height: auto;
-    max-width: none;
-    padding: 20px;
+    width: 25vw;
+    max-width: 100px;
+    padding: 10px;
     box-sizing: border-box;
+    overflow-y: auto;
   }
 
   #config-overview {
-    position: static;
-    width: 100%;
-    margin-top: 16px;
-    padding: 14px 16px;
-    max-height: 800px;
-    box-sizing: border-box;
-  }
+  position: fixed;          /* Przypięty w jedno miejsce */
+  bottom: 64px;             /* Odległość od dołu — nad przyciskiem "+" */
+  right: 16px;              /* Przyklejony do prawej krawędzi */
+  width: 220px;             /* Mniejsza szerokość panelu */
+  max-height: 160px;        /* Mniejsza wysokość, z przewijaniem */
+  font-size: 12px;
+  padding: 8px;
+  background: rgba(245, 245, 245, 0.5); /* ostatnia wartość to przezroczystość */
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  border-radius: 6px;
+  overflow-y: auto;
+  z-index: 998;
+  display: none;            /* Pokazywane dopiero po kliknięciu "+" */
+}
 
-  .thumbnail {
-    width: 64px;
-    height: 64px;
+
+/* Ukrycie tekstu w h2 */
+#config-overview h2 {
+  content: "Podsumowanie";
+  font-size: 6px !important;
+  line-height: 1 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Jeśli chcesz pozostawić tylko znak "+" w nagłówku */
+#config-overview h2::after {
+    content: "+  Twoja konfiguracja";
+    font-size: 14px;
+    position: absolute;
+    right: 10px; /* opcjonalnie, aby + nie był na środku */
+    top: 50%;
+    transform: translateY(-50%);
+    color: #000; /* lub inny kolor */
+}
+
+#config-overview .overview-title {
+  display: none;
+}
+
+  .thumbnail,
+  #overview-icons img,
+  .back-to-model-btn {
+    width: 56px;
+    height: 56px;
   }
 
   .thumbnail img {
@@ -729,9 +790,15 @@
     max-height: 90%;
   }
 
+  .thumbnail-caption {
+    font-size: 13px;
+    margin-top: 4px;
+    text-align: center;
+  }
+
   #overview-icons img {
-    width: 64px;
-    height: 64px;
+    width: 42px;
+    height: 42px;
   }
 
   .back-to-model-btn {
@@ -753,8 +820,10 @@
   }
 
   #buy-button {
-    font-size: 16px;
-    padding: 12px 0;
+    font-size: 14px;
+    padding: 10px;
+    width: 100%;
+    margin-top: 12px;
   }
 
   .modal-content {
@@ -765,10 +834,11 @@
   #qr-popup {
     width: 90%;
     max-width: 320px;
+    display: none;
   }
 
   #collapse-btn {
-    font-size: 16px;
+    font-size: 10px;
     width: 20px;
     height: 20px;
   }
@@ -781,7 +851,7 @@
 
   #bottom-toolbar {
     left: 50%;
-    transform: translateX(-50%);
+    transform: translateX(-125%);
     bottom: 12px;
     padding: 10px 16px;
     flex-wrap: wrap;
@@ -793,10 +863,44 @@
   }
 
   .dimension-label {
-    font-size: 14px;
+    position: absolute;
+    bottom: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    background: rgba(255,255,255,0.9);
     padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 14px;
+  }
+
+  .dimension-panel {
+  position: fixed !important;
+  top: 50% !important;
+  left: 42% !important;
+  transform: translate(-100%, -100%) !important;
+  font-size: 12px !important;
+  padding: 6px 8px !important;
+  width: auto !important;
+  max-width: 90% !important;
+  z-index: 2147483647 !important; /* max z-index */
+  background: white !important;
+  border: 1px solid #ccc !important;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
+  border-radius: 6px !important;
+}
+
+
+
+
+
+
+  /* Ukryj QR na mobilkach (ogólnie) */
+  #qr-button {
+    display: none !important;
   }
 }
+
 
 
 .dimension-panel {
@@ -878,6 +982,53 @@
   color: #000;
 }
 
+#export-panel {
+  position: absolute;
+  bottom: 60px; /* nad przyciskiem */
+  right: 62px;  /* <- tu zwiększ wartość, żeby przesunąć panel bardziej w lewo */
+  background: #ffffff;
+  border: 1px solid #eeeeee;
+  border-radius: 8px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+#export-panel.hidden {
+  display: none;
+}
+
+.export-btn {
+  background-color: #444;
+  color: #222222;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.export-btn:hover {
+  background-color: #555;
+}
+
+
+
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
 
 
@@ -959,6 +1110,10 @@
 </div>
 
 
+<!-- KOMUNIKAT obrotu -->
+<div id="rotate-message">
+  🔄 Obróć urządzenie poziomo
+</div>
 
 
 
@@ -988,7 +1143,7 @@
 
 
 
-<button id="autorotate-toggle" title="Auto obrót">
+ <button id="autorotate-toggle" title="Auto obrót">
   <img src="icons/rotate_icon.png" alt="Obrót" style="width: 20px; height: 20px;">
 </button>
 
@@ -996,9 +1151,18 @@
   <img src="icons/dimmension_icon.png" alt="Wymiary" style="width: 20px; height: 20px;">
 </button>
 
+
 <button id="export-config" title="Pobierz konfigurację">
   <img src="icons/export_icon.png" alt="Eksport" style="width: 20px; height: 20px;">
 </button>
+
+<!-- Panel eksportu -->
+<div id="export-panel" class="hidden">
+  <button class="export-btn" data-format="fbx">FBX</button>
+  <button class="export-btn" data-format="dae">DAE</button>
+  <button class="export-btn" data-format="obj">OBJ</button>
+</div>
+
 <button id="qr-button" title="Zobacz na telefonie">
     <img src="icons/qr_icon.png" alt="QR" style="width: 20px; height: 20px;">
   </button>
@@ -1183,7 +1347,8 @@ import {
         let userInteracted = false;
         let dimensionHelpers = [];
         let currentModel = null;
-        
+        let selectedLegVariant = null;
+
 
         
 
@@ -1230,15 +1395,10 @@ import {
             const canvas = document.getElementById("canvas");
             
             viewer = new ThreeViewer({
-  canvas: canvas,
-  plugins: [LoadingScreenPlugin, GBufferPlugin, SSAAPlugin, SSReflectionPlugin, BloomPlugin],
-  rendererSettings: { antialias: true }
-});
-
-viewer.onUpdate = () => {
-  viewer.controls?.update();
-};
-
+                canvas: canvas,
+                plugins: [LoadingScreenPlugin, GBufferPlugin, SSAAPlugin, SSReflectionPlugin, BloomPlugin],
+                rendererSettings: { antialias: true }
+            });
             if (viewer.controls) {
                 viewer.controls.minDistance = MIN_ZOOM_DISTANCE;
                 viewer.controls.maxDistance = MAX_ZOOM_DISTANCE;
@@ -1378,6 +1538,8 @@ collapseBtn.onclick = () => {
     currentLegModel = null;
     selectedLeg = null;
     selectedMaterials = {};
+
+    
 
     try {
         const modelPath = `chairs/${variant.Nazwa}.glb`;
@@ -1572,7 +1734,11 @@ function showLegMaterialsForSimpleChairs(chair) {
     tile.className = 'material-tile';
     tile.textContent = mat.Nazwa;
     tile.style.backgroundImage = `url(${mat.Obrazek || 'fallback.png'})`;
-    tile.onclick = () => applyLegMaterial(mat);
+    tile.onclick = () => {
+  onLegVariantClick(mat.DlaModeliNóg || mat.Nazwa);
+  applyLegMaterial(mat);
+};
+
     legsMaterialsContainer.appendChild(tile);
   });
 }
@@ -1658,6 +1824,9 @@ async function applyMaterial(variant) {
       const normalTex = await loadTextureSafe(`${folderPath}/normal.jpg`);
       const roughnessTex = await loadTextureSafe(`${folderPath}/roughness.jpg`);
       const metallicTex = await loadTextureSafe(`${folderPath}/metallic.jpg`);
+
+     
+
 
       // ⬇️ BASE COLOR
 if (baseColorTex) {
@@ -1818,6 +1987,18 @@ material.needsUpdate = true;
     }
   });
 
+  // 🗂️ Automatycznie przypisz Folder do eksportu
+Object.entries(selectedMaterials).forEach(([key, mat]) => {
+  if (!mat.Folder && typeof mat.Wartość === 'string') {
+    const parts = mat.Wartość.split('/');
+    const last = parts[parts.length - 1];
+    if (last && texturesFilesByFolder?.[last]) {
+      mat.Folder = last;
+      console.log(`📁 Dodano Folder='${last}' do '${key}'`);
+    }
+  }
+});
+
   viewer.scene.traverse(obj => {
     if (obj.isMesh && obj.material) {
       obj.material.needsUpdate = true;
@@ -1887,7 +2068,7 @@ function applyMaterialToSpecificMesh(variant, meshKey) {
                     caption.className = 'thumbnail-caption';
                     caption.textContent = item.Nazwa;
                     wrapper.appendChild(button);
-                    //wrapper.appendChild(caption);
+                    wrapper.appendChild(caption);
                     container.appendChild(wrapper);
                 });
             }
@@ -2100,7 +2281,8 @@ const visibleData = allData.filter(d =>
                 const sheetId = '1vCs6YeHgKqlYwg8rvJOqVzNRnXeATJCBuK-zh3NNj78';
                 const sheetURL = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=Dane&v=${new Date().getTime()}`;
                 try {
-                    const response = await fetch(sheetURL);
+                    const response = await fetch(sheetURL + '?nocache=' + Date.now(), { cache: 'no-store' });
+
                     const csvText = await response.text();
                     const rows = csvText.trim().split('\n');
                     const headers = rows.shift().split(',').map(h => h.trim().replace(/"/g, ''));
@@ -2323,10 +2505,30 @@ window.selectedMaterials = selectedMaterials;
 
 
 
-document.getElementById('export-config')?.addEventListener('click', () => {
-  // Placeholder — tutaj można podłączyć WebGi exporter albo wygenerować scenę do pliku
-  alert('🛠️ Eksport konfiguracji zostanie dodany w wersji PRO.\nDla testu: eksport do .fbx, .obj, .glb.');
+const exportButton = document.getElementById("export-config");
+const exportPanel = document.getElementById("export-panel");
+
+exportButton.addEventListener("click", () => {
+  exportPanel.classList.toggle("hidden");
 });
+
+// Opcjonalnie – ukrywanie po kliknięciu poza panelem
+document.addEventListener("click", (e) => {
+  if (!exportPanel.contains(e.target) && !exportButton.contains(e.target)) {
+    exportPanel.classList.add("hidden");
+  }
+});
+
+// Obsługa kliknięć eksportu (przykładowo)
+document.querySelectorAll(".export-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const format = btn.dataset.format;
+    alert(`Eksport jako: ${format.toUpperCase()}`);
+    exportPanel.classList.add("hidden");
+  });
+});
+
+
 
 
 // — Obsługa dolnego paska narzędziowego HDR
@@ -2422,19 +2624,11 @@ document.getElementById('hdr-toggle')?.addEventListener('click', (e) => {
 
 
 
-let autorotationEnabled = false;
-
-document.getElementById('autorotate-toggle')?.addEventListener('click', () => {
-  autorotationEnabled = !autorotationEnabled;
-
-  if (viewer?.controls) {
-    viewer.controls.autoRotate = autorotationEnabled;
-    viewer.controls.autoRotateSpeed = 2.0;  // możesz zmienić szybkość
-    viewer.controls.enabled = true;
-  }
-});
 
 
+
+
+// Panel wymiarów
 document.getElementById('dimensions-show')?.addEventListener('click', (e) => {
   e.stopPropagation();
   console.log("📐 Kliknięto przycisk wymiarów");
@@ -2449,9 +2643,6 @@ document.getElementById('dimensions-show')?.addEventListener('click', (e) => {
 
   
 
-document.getElementById('export-config')?.addEventListener('click', () => {
-  alert('🛠️ Eksport konfiguracji zostanie dodany w wersji PRO.\nDla testu: eksport do .fbx, .obj, .glb.');
-});
 
 
 
@@ -2585,6 +2776,173 @@ function hideDimensions() {
 
 
 
+// 📦 Ładowanie JSZip
+async function loadJSZip() {
+  if (!window.JSZip) {
+    await import('https://cdn.jsdelivr.net/npm/jszip@3.10.0/dist/jszip.min.js');
+  }
+}
+
+// 📁 Załaduj listę plików tekstur z files.json
+let texturesFilesByFolder = {};
+async function loadTexturesFilesList() {
+  try {
+    const res = await fetch('textures/files.json');
+    texturesFilesByFolder = await res.json();
+  } catch (e) {
+    console.error('Błąd ładowania files.json:', e);
+    texturesFilesByFolder = {};
+  }
+}
+
+// 📐 Obsługiwane formaty eksportu
+const modelFormats = ['fbx', 'obj', 'dae'];
+
+// 🗜️ Główna funkcja eksportu ZIP
+async function handleExport(format) {
+  if (!window.JSZip) {
+    alert('JSZip niezaładowany!');
+    return;
+  }
+
+  if (!modelFormats.includes(format)) {
+    alert(`Nieobsługiwany format eksportu: ${format}`);
+    return;
+  }
+
+  const zip = new JSZip();
+
+  // 🪑 Eksport głównego modelu krzesła
+  const chairModel = window.selectedChair?.Nazwa || 'BrakModelu';
+  const chairPath = `export/${chairModel}.${format}`;
+
+  try {
+    const res = await fetch(chairPath);
+    if (!res.ok) throw new Error(`Nie znaleziono modelu krzesła: ${chairPath}`);
+    const blob = await res.blob();
+    zip.file(`${chairModel}.${format}`, blob);
+  } catch (e) {
+    alert(e.message);
+    return;
+  }
+
+  // 🦵 Eksport nóg (jeśli wybrano)
+  const legModel = window.selectedLeg?.Nazwa;
+  if (legModel) {
+    const legPath = `export/${legModel}.${format}`;
+    try {
+      const res = await fetch(legPath);
+      if (res.ok) {
+        const blob = await res.blob();
+        zip.file(`${legModel}.${format}`, blob);
+      } else {
+        console.warn(`Nie znaleziono modelu nóg: ${legPath}`);
+      }
+    } catch (e) {
+      console.warn(`Błąd pobierania nóg: ${e.message}`);
+    }
+  }
+
+  // 🎨 Eksport materiałów / tekstur z kolekcją i bez
+  const textureFolderInZip = zip.folder('textures');
+  const materials = Object.values(window.selectedMaterials || {});
+  const collection = window.selectedChair?.Kolekcja?.trim() || '';
+
+  for (const mat of materials) {
+    const folder = mat.Folder || mat.Wartość;
+    const textureFiles = texturesFilesByFolder[folder] || [];
+
+    for (const texFile of textureFiles) {
+      const candidatePaths = [
+        collection ? `textures/${collection}/${folder}/${texFile}` : null,
+        `textures/${folder}/${texFile}`
+      ].filter(Boolean);
+
+      let found = false;
+
+      for (const path of candidatePaths) {
+        try {
+          const res = await fetch(path);
+          if (res.ok) {
+            const blob = await res.blob();
+            textureFolderInZip.file(`${folder}/${texFile}`, blob);
+            found = true;
+            break;
+          }
+        } catch (e) {
+          console.warn(`❌ Błąd pobierania: ${path}`, e);
+        }
+      }
+
+      if (!found) {
+        console.warn(`⚠️ Nie znaleziono tekstury: ${folder}/${texFile}`);
+      }
+    }
+  }
+
+  // 📦 Finalny zapis ZIP
+  const blob = await zip.generateAsync({ type: 'blob' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `export_${chairModel}_${format}.zip`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(a.href);
+}
+
+// 🚀 Inicjalizacja tekstur na starcie
+await loadTexturesFilesList();
+
+// 🖱️ Obsługa kliknięcia eksportu
+document.querySelectorAll('.export-btn').forEach(button => {
+  button.addEventListener('click', async () => {
+    await loadJSZip();
+    const format = button.getAttribute('data-format');
+    await handleExport(format);
+  });
+});
+
+function onLegVariantClick(variantName) {
+  selectedLegVariant = variantName;
+  updateMaterialTiles();
+}
+
+function updateMaterialTiles() {
+  const legsMaterialsContainer = document.getElementById('legs-thumbnails');
+  legsMaterialsContainer.innerHTML = ''; // wyczyść kontener
+
+  // Pobierz wszystkie materiały
+  const materials = getMaterialsFromSheet();
+
+  // Filtruj materiały: tylko dla grupy "nogi" i zgodne z wybranym wariantem
+  const filteredMaterials = materials.filter(mat => {
+    if (mat.GrupaDocelowa?.toLowerCase() !== 'nogi') return false;
+
+    const pole = mat.DlaModeluNóg;
+    if (!pole) return false;
+
+    const warianty = pole.split(',').map(w => w.trim());
+    return warianty.includes(selectedLegVariant);
+  });
+
+  // Renderuj kafelki
+  filteredMaterials.forEach(mat => {
+    const tile = document.createElement('div');
+    tile.className = 'material-tile';
+    tile.textContent = mat.Nazwa;
+    tile.style.backgroundImage = `url(${mat.Obrazek || 'fallback.png'})`;
+    tile.onclick = () => applyLegMaterial(mat);
+    legsMaterialsContainer.appendChild(tile);
+  });
+}
+
+
+
+
+
+
+
 
 
 
@@ -2662,6 +3020,13 @@ if (btn) {
 }
 
 
+// Po inicjalizacji (czyli gdy masz już modele i przyciski):
+document.querySelectorAll(".export-btn").forEach(button => {
+  button.addEventListener("click", () => {
+    const format = button.getAttribute("data-format");
+    handleExport(format);
+  });
+});
 
 
 
