@@ -1230,7 +1230,7 @@ function showQR() {
       text += `Wariant nóg: ${window.selectedLeg.Nazwa} (${price.toFixed(2)} PLN)\n`;
     }
 
-    const partOrder = ['seat', 'backseat_inside', 'backseat_outside', 'legs_material'];
+    const partOrder = ['seat', 'backseat_inside', 'backseat_outside', 'legs_material', 'backseat'];
     partOrder.forEach(part => {
       const mat = window.selectedMaterials?.[part];
       if (mat) {
@@ -1360,6 +1360,7 @@ import {
             seat: 'icons/m_seat_icon.png',
             backseat_inside: 'icons/m_backseat_in_icon.png',
             backseat_outside: 'icons/m_backseat_out_icon.png',
+            backseat: 'icons/m_backseat_icon.png',
             legs: 'icons/m_legs_icon.png'
         };
 
@@ -1523,6 +1524,7 @@ collapseBtn.onclick = () => {
             setCameraView(center);
             currentModelContainer.position.sub(center);
             updateSummary();
+            renderPartButtons();
         }
 
        async function loadModel(variant) {
@@ -1551,8 +1553,9 @@ toolbar.style.display = 'flex';
 
 
         selectedChair = variant;
+        renderPartButtons();
         userInteracted = true;
-         hideDimensions();
+        hideDimensions();
 
         if (selectedChair.Grupa && selectedChair.Grupa.toLowerCase() === 'kubełek') {
             const chairBounds = new Box3().setFromObject(currentModelContainer);
@@ -2181,6 +2184,7 @@ function renderFilteredMaterialOptions(targetMesh) {
                     seat: 'Siedzisko',
                     backseat_inside: 'Oparcie wew.',
                     backseat_outside: 'Oparcie zew.',
+                    backseat: 'Oparcie',
                     legs: 'Nogi'
                 };
 
@@ -2242,7 +2246,7 @@ function renderFilteredMaterialOptions(targetMesh) {
     }
 
     const legs = allData.filter(d => d.Grupa.toLowerCase() === 'nogi');
-    renderPartTabs();
+    renderPartButtons();
 
     // Sekcja nóg i materiały nóg – nogi tylko dla kubełków, materiały dla kubełków i krzeseł
     if (selectedChair && selectedChair.Grupa) {
@@ -2358,8 +2362,8 @@ if (toolbar) {
                 }
 
                 // Kolejność elementów do podsumowania
-                const partOrder = ['seat', 'backseat_inside', 'backseat_outside', 'legs_material'];
-                const partLabels = ['Siedzisko', 'Oparcie wew.', 'Oparcie zew.', 'Nogi'];
+                const partOrder = ['seat', 'backseat_inside', 'backseat_outside', 'legs_material', 'backseat'];
+                const partLabels = ['Siedzisko', 'Oparcie wew.', 'Oparcie zew.', 'Nogi', 'Oparcie'];
 
                 // Ikonka modelu
                 if (userInteracted && selectedChair && (selectedChair.Obrazek || selectedChair.Image)) {
@@ -2553,6 +2557,8 @@ function renderHDROptions(entries) {
 
     const thumb = document.createElement('div');
     thumb.className = 'thumbnail';
+    
+    
     thumb.title = entry.Nazwa || entry.HDR;
     thumb.appendChild(img);
     thumb.onclick = () => {
@@ -2957,6 +2963,83 @@ function updateMaterialTiles() {
 
 
 
+//UKRYWANIE PRZYCISKÓW ELEMENTÓW KRZESŁA
+
+// kolejność części i ich powiązane nazwy meshów/obiektów
+const partOrder = ['seat', 'backseat_inside', 'backseat_outside', 'backseat', 'legs_material'];
+
+// funkcja tworząca i wyświetlająca przyciski części krzesła na podstawie danych wybranego krzesła
+function renderPartButtons() {
+  const partTabs = document.getElementById('part-tabs');
+  partTabs.innerHTML = ''; // czyścimy zawartość
+
+  if (!selectedChair) {
+    console.warn('renderPartButtons: brak wybranego krzesła');
+    return;
+  }
+
+  const availableElementsRaw = selectedChair['DostępneElementy'] || '';
+  if (!availableElementsRaw.trim()) {
+    console.log('renderPartButtons: brak dostępnych elementów — nie pokazuję nic.');
+    return;
+  }
+
+  const availableParts = availableElementsRaw
+    .split(',')
+    .map(el => el.trim().toLowerCase())
+    .filter(Boolean);
+
+  const partNames = {
+    seat: 'Siedzisko',
+    backseat_inside: 'Oparcie wew.',
+    backseat_outside: 'Oparcie zew.',
+    backseat: 'Oparcie',
+    
+    legs: 'Nogi'
+  };
+
+  Object.keys(ELEMENT_ICONS).forEach(part => {
+    if (availableParts.includes(part)) {
+      
+      const wrapper = document.createElement('div');
+      wrapper.className = 'thumbnail-wrapper';
+
+      const thumb = document.createElement('div');
+      thumb.className = 'thumbnail';
+      thumb.title = part;
+      thumb.dataset.key = part; // ✅ TO jest potrzebne dla dalszego UI
+
+      thumb.onclick = () => {
+  document.querySelectorAll('#part-tabs .thumbnail').forEach(tab => tab.classList.remove('selected'));
+  thumb.classList.add('selected');
+  document.getElementById('materials-section').style.display = 'block';
+
+  // Pokazuje odpowiednie materiały do klikniętej części
+  renderFilteredMaterialOptions(part);
+};
+
+      const img = document.createElement('img');
+      img.src = ELEMENT_ICONS[part];
+      img.alt = part;
+
+      thumb.appendChild(img);
+      wrapper.appendChild(thumb);
+
+      const caption = document.createElement('div');
+      caption.className = 'thumbnail-caption';
+      caption.textContent = partNames[part] || part;
+      wrapper.appendChild(caption);
+
+      partTabs.appendChild(wrapper);
+    }
+  });
+}
+
+
+
+
+// Przykładowo: gdy zmieniasz krzesło, wywołujesz:
+renderPartButtons();
 
 
 

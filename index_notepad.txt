@@ -59,9 +59,9 @@
         }
 
         #sidebar {
-            flex: 0 0 440px;
-            min-width: 340px;
-            max-width: 510px;
+            flex: 0 0 460px;
+            min-width: 460px;
+            max-width: 540px;
             padding: 32px 24px 24px 24px;
             z-index: 20;
             display: flex;
@@ -1230,7 +1230,7 @@ function showQR() {
       text += `Wariant nóg: ${window.selectedLeg.Nazwa} (${price.toFixed(2)} PLN)\n`;
     }
 
-    const partOrder = ['seat', 'backseat_inside', 'backseat_outside', 'legs_material'];
+    const partOrder = ['seat', 'backseat_inside', 'backseat_outside', 'legs_material', 'backseat'];
     partOrder.forEach(part => {
       const mat = window.selectedMaterials?.[part];
       if (mat) {
@@ -1360,6 +1360,7 @@ import {
             seat: 'icons/m_seat_icon.png',
             backseat_inside: 'icons/m_backseat_in_icon.png',
             backseat_outside: 'icons/m_backseat_out_icon.png',
+            backseat: 'icons/m_backseat_icon.png',
             legs: 'icons/m_legs_icon.png'
         };
 
@@ -1650,6 +1651,9 @@ async function setLegModel(variant) {
         viewer.scene.add(newLegs);
         currentLegModel = newLegs;
         selectedLeg = variant;
+        renderFilteredMaterialOptions('legs'); // ⬅️ to odświeża widok kafelków materiałów nóg
+        updateMaterialTiles(); // ⬅️ MUSI być tutaj!
+
 
         // Odśwież listę nóg, żeby podświetlić wybrany wariant
         const legs = allData.filter(d => d.Grupa.toLowerCase() === 'nogi');
@@ -1724,7 +1728,9 @@ function applyMaterialToMesh(variant, forcedMeshName) {
 // Funkcja, która wyświetla kafelki materiałów nóg dla prostych krzeseł
 function showLegMaterialsForSimpleChairs(chair) {
   const legsMaterialsContainer = document.getElementById('legs-thumbnails');
-  legsMaterialsContainer.innerHTML = ''; // wyczyść kontener
+   // Usuń tylko kafelki materiałów (pozostaw warianty nóg)
+legsMaterialsContainer.querySelectorAll('.material-tile').forEach(tile => tile.remove());
+
 
   // Pobierz materiały nóg dla danego krzesła (przykład, wymaga dostosowania)
   const materials = getMaterialsForLegs(chair.defaultLegsId || 'default');
@@ -2176,6 +2182,7 @@ function renderFilteredMaterialOptions(targetMesh) {
                     seat: 'Siedzisko',
                     backseat_inside: 'Oparcie wew.',
                     backseat_outside: 'Oparcie zew.',
+                    backseat: 'Oparcie',
                     legs: 'Nogi'
                 };
 
@@ -2353,8 +2360,8 @@ if (toolbar) {
                 }
 
                 // Kolejność elementów do podsumowania
-                const partOrder = ['seat', 'backseat_inside', 'backseat_outside', 'legs_material'];
-                const partLabels = ['Siedzisko', 'Oparcie wew.', 'Oparcie zew.', 'Nogi'];
+                const partOrder = ['seat', 'backseat_inside', 'backseat_outside', 'legs_material', 'backseat'];
+                const partLabels = ['Siedzisko', 'Oparcie wew.', 'Oparcie zew.', 'Nogi', 'Oparcie'];
 
                 // Ikonka modelu
                 if (userInteracted && selectedChair && (selectedChair.Obrazek || selectedChair.Image)) {
@@ -2903,30 +2910,39 @@ document.querySelectorAll('.export-btn').forEach(button => {
   });
 });
 
-function onLegVariantClick(variantName) {
-  selectedLegVariant = variantName;
-  updateMaterialTiles();
-}
+
 
 function updateMaterialTiles() {
   const legsMaterialsContainer = document.getElementById('legs-thumbnails');
-  legsMaterialsContainer.innerHTML = ''; // wyczyść kontener
+  if (!legsMaterialsContainer || !selectedChair || !selectedLeg) return;
 
-  // Pobierz wszystkie materiały
-  const materials = getMaterialsFromSheet();
+  // 🧼 Czyść tylko kafelki materiałów nóg
+  legsMaterialsContainer.querySelectorAll('.material-tile')?.forEach(tile => tile.remove());
 
-  // Filtruj materiały: tylko dla grupy "nogi" i zgodne z wybranym wariantem
-  const filteredMaterials = materials.filter(mat => {
-    if (mat.GrupaDocelowa?.toLowerCase() !== 'nogi') return false;
+  const allEntries = getMaterialsFromSheet();
+  const chairType = selectedChair.Grupa?.trim().toLowerCase();       // 'krzesło' lub 'kubełek'
+  const legVariant = selectedLeg.Nazwa?.trim().toLowerCase();       // np. 'regularne'
 
-    const pole = mat.DlaModeluNóg;
-    if (!pole) return false;
+  const filteredMaterials = allEntries.filter(mat => {
+    // ✅ tylko materiały nóg
+    if (mat.Grupa?.trim().toLowerCase() !== 'materiały_nóg') return false;
 
-    const warianty = pole.split(',').map(w => w.trim());
-    return warianty.includes(selectedLegVariant);
+    // ✅ czy materiał pasuje do typu krzesła (GrupaDocelowa)
+    const grupaDocelowa = mat.GrupaDocelowa?.toLowerCase() || '';
+    const grupy = grupaDocelowa.split(',').map(g => g.trim());
+    if (!grupy.includes(chairType)) return false;
+
+    // ✅ jeśli krzesło → ignorujemy DlaModeluNóg
+    if (chairType === 'krzesło') return true;
+
+    // ✅ jeśli kubełek → DlaModeluNóg musi zawierać aktualny wariant nóg
+    const dlaModelu = mat.DlaModeluNóg?.toLowerCase().trim();
+    if (!dlaModelu || dlaModelu.length === 0) return false;
+
+    const allowedVariants = dlaModelu.split(',').map(v => v.trim());
+    return allowedVariants.includes(legVariant);
   });
 
-  // Renderuj kafelki
   filteredMaterials.forEach(mat => {
     const tile = document.createElement('div');
     tile.className = 'material-tile';
@@ -2935,7 +2951,90 @@ function updateMaterialTiles() {
     tile.onclick = () => applyLegMaterial(mat);
     legsMaterialsContainer.appendChild(tile);
   });
+
+  console.log(`✅ Pokazano ${filteredMaterials.length} materiałów nóg dla '${chairType}', wariant nóg '${selectedLeg.Nazwa}'`);
 }
+
+
+
+
+
+//UKRYWANIE PRZYCISKÓW ELEMENTÓW KRZESŁA
+
+// kolejność części i ich powiązane nazwy meshów/obiektów
+const partOrder = ['seat', 'backseat_inside', 'backseat_outside', 'backseat', 'legs_material'];
+
+// funkcja tworząca i wyświetlająca przyciski części krzesła na podstawie danych wybranego krzesła
+function renderPartButtons() {
+  const partTabs = document.getElementById('part-tabs');
+  partTabs.innerHTML = ''; // czyścimy zawartość
+
+  if (!selectedChair) {
+    console.warn('renderPartButtons: brak wybranego krzesła');
+    return;
+  }
+
+  // Spróbuj pobrać pole z różnymi wariantami nazwy, na wypadek literówek itp.
+  const availableElementsRaw = selectedChair['DostępneElementy'] || selectedChair['dostepneelementy'] || selectedChair['availableParts'] || '';
+
+  if (!availableElementsRaw.trim()) {
+    // Jeśli puste lub brak - ukryj wszystkie przyciski (nic nie dodajemy)
+    console.log('renderPartButtons: brak dostępnych elementów dla tego krzesła');
+    return;
+  }
+
+  // Parsujemy listę dostępnych elementów - zakładamy, że wpis jest w formacie: "seat, legs, backseat_inside" itd.
+  const availableParts = availableElementsRaw.split(',').map(el => el.trim().toLowerCase());
+  // Jeśli chcesz dopasować klucze do tych z ELEMENT_ICONS, musisz mieć spójność
+
+  // Pętla po wszystkich elementach w twoim zestawie ikon - tylko te, które są w dostępnych częściach wyświetlamy
+  Object.keys(ELEMENT_ICONS).forEach(part => {
+    if (availableParts.includes(part)) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'thumbnail-wrapper';
+
+      const thumb = document.createElement('div');
+      thumb.className = 'thumbnail';
+      thumb.title = part;
+
+      const img = document.createElement('img');
+      img.src = ELEMENT_ICONS[part];
+      img.alt = part;
+
+      thumb.appendChild(img);
+      wrapper.appendChild(thumb);
+
+      const caption = document.createElement('div');
+      caption.className = 'thumbnail-caption';
+
+      // Dla czytelności zrób ładną nazwę przycisku (możesz dopasować mapowanie)
+      const partNames = {
+        seat: 'Siedzisko',
+        backseat_inside: 'Oparcie wew.',
+        backseat_outside: 'Oparcie zew.',
+        backseat: 'Oparcie',
+        legs: 'Nogi'
+      };
+
+      caption.textContent = partNames[part] || part;
+      wrapper.appendChild(caption);
+
+      partTabs.appendChild(wrapper);
+    }
+  });
+}
+
+
+
+// Przykładowo: gdy zmieniasz krzesło, wywołujesz:
+renderPartButtons(selectedChair);
+
+
+
+
+
+
+
 
 
 
