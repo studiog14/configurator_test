@@ -2140,13 +2140,74 @@ function renderFilteredMaterialOptions(targetMesh) {
   }
 
   // ✳️ MATERIAŁY TKANINOWE (siedzisko, oparcia itd.)
-  materialOptions = allData.filter(d =>
-    d.Grupa?.toLowerCase() === 'tkanina' &&
-    d.TargetMeshOrModel &&
-    d.TargetMeshOrModel.split(',').map(s => s.trim()).includes(targetMesh) &&
-    isAllowedForGroup(d.GrupaDocelowa) &&
-    d.Visible?.toLowerCase() !== 'false'
-  );
+  // ✳️ Materiały tkaninowe (seat, backseat itd.)
+materialOptions = allData.filter(d =>
+  d.Grupa?.toLowerCase() === 'tkanina' &&
+  d.TargetMeshOrModel &&
+  d.TargetMeshOrModel.split(',').map(s => s.trim()).includes(targetMesh) &&
+  isAllowedForGroup(d.GrupaDocelowa) &&
+  d.Visible?.toLowerCase() !== 'false'
+);
+
+// 🔄 Grupa wg Kolekcji
+const groupedByCollection = {};
+materialOptions.forEach(mat => {
+  const key = mat.Kolekcja?.trim() || 'Inne';
+  if (!groupedByCollection[key]) groupedByCollection[key] = [];
+  groupedByCollection[key].push(mat);
+});
+
+// 🧱 Stwórz panele kolekcji
+const container = document.getElementById('material-options');
+container.innerHTML = '';
+
+Object.entries(groupedByCollection).forEach(([kolekcja, materiały]) => {
+  const panel = document.createElement('details');
+  panel.open = true; // domyślnie otwarte, możesz ustawić na false
+
+  const summary = document.createElement('summary');
+  summary.textContent = kolekcja;
+  summary.style.fontSize = '16px';
+  summary.style.fontWeight = 'bold';
+  summary.style.margin = '12px 0';
+  panel.appendChild(summary);
+
+  const grid = document.createElement('div');
+  grid.className = 'options-grid';
+
+  materiały.forEach(mat => {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'thumbnail-wrapper';
+
+    const button = document.createElement('div');
+    button.className = 'thumbnail';
+    button.title = mat.Nazwa;
+
+    const img = document.createElement('img');
+    img.src = mat.Obrazek || 'icons/placeholder.svg';
+    img.alt = mat.Nazwa;
+    button.appendChild(img);
+
+    const caption = document.createElement('div');
+    caption.className = 'thumbnail-caption';
+    caption.textContent = mat.Nazwa;
+
+    wrapper.appendChild(button);
+    wrapper.appendChild(caption);
+
+    button.onclick = () => {
+      applyMaterialToSpecificMesh(mat, targetMesh);
+      container.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('selected'));
+      button.classList.add('selected');
+    };
+
+    grid.appendChild(wrapper);
+  });
+
+  panel.appendChild(grid);
+  container.appendChild(panel);
+});
+
 
   renderOptions('material-options', materialOptions, item =>
     applyMaterialToSpecificMesh(item, targetMesh)
