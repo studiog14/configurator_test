@@ -2,10 +2,10 @@
 <html lang="pl">
 
 <head>
-    <meta charset="UTF-8" />
-    <title>Konfigurator krzeseł FK</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
-    <script type="importmap">
+  <meta charset="UTF-8" />
+  <title>Konfigurator krzeseł FK</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <script type="importmap">
 {
   "imports": {
     "threepipe": "https://unpkg.com/threepipe@latest/dist/index.mjs",
@@ -18,1175 +18,1218 @@
 }
 </script>
 
-    <style>
-        html,
-        body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            font-family: 'Poppins', sans-serif;
-        }
-
-        #app {
-            display: flex;
-            height: 100vh;
-            width: 100vw;
-            position: relative;
-        }
-
-        #canvas {
-            flex: 1 1 0;
-            width: 100%;
-            height: 100%;
-            display: block;
-            background: #ededed15;
-        }
-
-        body {
-            background: #ededed80;
-            /* przezroczyste tło, lepszy blur */
-        }
-
-        /* Panele UI: identyczna przezroczystość i blur obu paneli */
-        #sidebar,
-        #config-overview {
-            background: #fff;
-            border-radius: 16px;
-            box-shadow: 0 4px 32px rgba(0, 0, 0, 0.10);
-            border: 1px solid rgba(0, 0, 0, 0.08);
-        }
-
-        #sidebar {
-            flex: 0 0 460px;
-            min-width: 460px;
-            max-width: 540px;
-            padding: 32px 24px 24px 24px;
-            z-index: 20;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            box-sizing: border-box;
-            overflow-y: auto;
-            /* NIE dodawaj background! */
-        }
-#sidebar-content {
-  flex-grow: 1;
-  overflow-y: auto;
-}
-
-
-
-        #config-overview {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  width: 300px;
-  padding: 12px 16px; /* Zmniejszone padding */
-  z-index: 20;
-  font-size: 15px;
-  max-height: 1000px;
-  opacity: 1;
-  transition: max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease;
-  overflow: hidden;
-  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.10);
-  border-radius: 16px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  background: #fff;
-  box-sizing: border-box;
-}
-
-#config-overview.collapsed {
-  max-height: 40px; /* Zmniejszone z 60px */
-  opacity: 0.8;
-  padding: 8px 16px; /* Zmniejszone padding w stanie zwiniętym */
-}
-
-
-
-#config-overview:hover {
-  opacity: 1;
-}
-
-.overview-content {
-  max-height: 1000px;
-  opacity: 1;
-  transition: max-height 0.3s ease, opacity 0.3s ease;
-  overflow: hidden;
-}
-
-#config-overview.collapsed .overview-content {
-  max-height: 0;
-  opacity: 0;
-}
-
-
-
-
-
-        hr {
-            border: none;
-            border-top: 1px solid #eee;
-            margin: 16px 0 12px;
-        }
-
-        .selection-section h3 {
-            font-size: 16px;
-            margin-bottom: 10px;
-            color: #555;
-        }
-
-        .options-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .thumbnail-wrapper {
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .thumbnail {
-            width: 80px;
-            height: 80px;
-            object-fit: contain;
-            cursor: pointer;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            transition: all 0.2s;
-            background-color: transparent;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 4px;
-            box-sizing: border-box;
-            opacity: 1;
-            /* Ikonki w pełni widoczne */
-        }
-
-        .thumbnail:hover {
-            transform: scale(1.05);
-            border-color: #444;
-        }
-
-        .thumbnail.selected {
-            outline: 2px solid #050505;
-            border: 2px solid transparent;
-            outline-offset: -2px;
-            box-shadow: 0 0 8px rgba(49, 49, 49, 0.5);
-        }
-
-        .thumbnail img {
-            max-width: 90%;
-            max-height: 90%;
-            opacity: 1;
-        }
-
-        .thumbnail-caption {
-            font-size: 15px;
-            color: #555;
-            margin-top: 6px;
-            font-weight: 500;
-            opacity: 1;
-        }
-
-        #overview-icons img {
-            width: 80px;
-            height: 80px;
-            border-radius: 8px;
-            border: 1px solid #ddd;
-            object-fit: contain;
-            opacity: 1;
-        }
-
-        #config-overview h4 {
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 18px;
-        }
-
-        #overview-details .detail-item {
-            font-size: 16px;
-            margin: 8px 0;
-        }
-
-        #overview-total-price {
-            font-size: 22px;
-        }
-
-        #overview-icons {
-            gap: 16px;
-            margin-bottom: 20px;
-            padding-bottom: 20px;
-        }
-
-        #summary {
-            margin-top: auto;
-            padding-top: 15px;
-            border-top: 1px solid #ccc;
-        }
-
-        #back-to-models-container {
-            display: flex;
-            align-items: center;
-            margin-bottom: 18px;
-            justify-content: flex-start;
-        }
-
-        .back-to-model-btn {
-            position: relative;
-            width: 80px;
-            height: 80px;
-            border: 1.5px solid #bbb;
-            border-radius: 12px;
-            background: #fff;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            margin-right: 10px;
-            transition: box-shadow 0.2s;
-        }
-
-        .back-to-model-btn:hover {
-            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15);
-        }
-
-        .back-to-model-btn img {
-            width: 60px;
-            height: 60px;
-            object-fit: contain;
-            display: block;
-        }
-
-        .back-to-model-btn .close-x {
-            position: absolute;
-            top: 4px;
-            right: 6px;
-            background: #fff;
-            border: none;
-            font-size: 20px;
-            color: #333;
-            cursor: pointer;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            line-height: 20px;
-            padding: 0;
-            box-shadow: 0 1px 4px #0001;
-            transition: background 0.2s;
-        }
-
-        .back-to-model-btn .close-x:hover {
-            background: #eee;
-        }
-
-        #camera-debug-panel {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
-            background: #fff;
-            border: 1px solid #ccc;
-            padding: 16px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px #0002;
-        }
-
-        #camera-debug-panel label {
-            display: block;
-            margin: 8px 0 4px;
-            font-size: 14px;
-        }
-
-        #camera-debug-panel input {
-            width: 100%;
-            margin-bottom: 8px;
-        }
-
-        #camera-debug-panel button {
-            width: 100%;
-            padding: 8px;
-            background: #007bff;
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        #camera-debug-panel button:hover {
-            background: #0056b3;
-        }
-
-        body {
-            background: #ededed;
-            /* lub Twój kolor tła */
-        }
-
-        #buy-button {
-            width: 100%;
-            padding: 14px 0;
-            background: #111;
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            font-size: 18px;
-            font-weight: 600;
-            margin-top: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        #buy-button:hover {
-            background: #333;
-        }
-
-        #buy-button .cart-icon {
-            width: 22px;
-            height: 22px;
-            display: inline-block;
-        }
-
-        #sidebar .model-image {
-            width: 100%;
-            max-width: 100%;
-            height: 110px;
-            object-fit: contain;
-            display: block;
-            margin: 0 auto 10px auto;
-            background: #fff;
-            border-radius: 10px;
-            border: 1px solid #eee;
-        }
-
-        #model-image-container img {
-            width: 100%;
-            max-width: 100%;
-            height: 220px;
-            /* większa wysokość, dopasuj do UI */
-            object-fit: contain;
-            display: block;
-            margin: 0 auto 18px auto;
-            background: #fff;
-            border-radius: 16px;
-            border: 1.5px solid #ddd;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-            padding: 12px 0;
-            transition: box-shadow 0.2s;
-        }
-
-        .modal {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.modal.hidden {
-  display: none;
-}
-
-.modal-content {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 320px;
-  background: #fff;
-  padding: 24px 28px;
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-  font-family: "Poppins", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  color: #222;
-}
-
-
-.close-button {
-  position: absolute;
-  top: 12px; right: 16px;
-  cursor: pointer;
-  font-size: 26px;
-  font-weight: 700;
-  color: #888;
-  transition: color 0.2s ease;
-}
-
-.close-button:hover {
-  color: #444;
-}
-
-.modal-content h2 {
-  margin-top: 0;
-  margin-bottom: 16px;
-  font-weight: 700;
-  font-size: 20px;
-  text-align: center;
-}
-
-.modal-content label {
-  display: block;
-  margin-bottom: 6px;
-  font-weight: 600;
-  font-size: 14px;
-}
-
-.modal-content input {
-  width: 100%;
-  padding: 10px 12px;
-  margin-bottom: 18px;
-  border: 1.5px solid #ddd;
-  border-radius: 12px;
-  font-size: 15px;
-  box-sizing: border-box;
-  transition: border-color 0.2s ease;
-}
-
-.modal-content input:focus {
-  border-color: #888;
-  outline: none;
-}
-
-.modal-content button[type="submit"] {
-  width: 100%;
-  background: #000;
-  color: #fff;
-  font-weight: 700;
-  font-size: 16px;
-  padding: 12px 0;
-  border: none;
-  border-radius: 16px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.modal-content button[type="submit"]:hover {
-  background: #333;
-}
-
-/* Komunikat sukcesu */
-#success-message {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-100%, -50%);
-  
-  background: #ffffff; /* jasne zielone tło */
-  border: 1.5px solid #1f1f1f; /* zielona ramka, spójna z tłem */
-  color: #000000; /* ciemnozielony tekst */
-  
-  font-weight: 700;
-  font-family: "Poppins", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  
-  padding: 20px 28px;
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(3, 3, 3, 0.15);
-  
-  max-width: 320px;
-  width: 90%;
-  text-align: center;
-  z-index: 9999;
-}
-
-
-/* Ukrywanie i pokazywanie */
-.hidden {
-  display: none;
-}
-
-.visible {
-  display: block;
-}
-
-
-#bottom-toolbar {
-  position: fixed; /* <- zmień z absolute */
-  bottom: 14px;
-  left: 50%;
-  transform: translateX(-100%);
-  background: #fff;
-  border: 1.5px solid #ccc;
-  border-radius: 12px;
-  padding: 8px 14px;
-  display: flex;
-  gap: 16px;
-  z-index: 2000;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  opacity: 0;
-  transition: opacity 0.4s ease;
-  justify-content: center;
-}
-
-
-#bottom-toolbar button {
-  background: #f0f0f0;
-  border: none;
-  border-radius: 8px;
-  padding: 8px 12px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-
-#bottom-toolbar.visible {
-  opacity: 1;
-}
-
-#bottom-toolbar button:hover {
-  background: #e0e0e0;
-}
-
-#dimension-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 1000;
-}
-
-.dimension-line {
-  position: absolute;
-  background-color: #000;
-  height: 2px;
-}
-
-.axis-line {
-  position: absolute;
-  height: 2px;
-  background-color: #222;
-  opacity: 0.6;
-}
-
-.axis-line.x {
-  top: 50%;
-  left: 0;
-  width: 100%;
-  transform: translateY(-50%);
-}
-
-.axis-line.y {
-  left: 50%;
-  top: 0;
-  width: 2px;
-  height: 100%;
-  transform: translateX(-50%);
-}
-
-.axis-line.z {
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border: 2px dashed #888;
-  box-sizing: border-box;
-  border-radius: 10px;
-}
-
-.dimension-label {
-  position: absolute;
-  background-color: rgba(255, 255, 255, 0.7);
-  padding: 5px;
-  border-radius: 3px;
-  font-size: 14px;
-  font-weight: bold;
-}
-
-.dimension-label:nth-child(4) { top: 20px; }
-.dimension-label:nth-child(5) { top: 50%; transform: translate(-50%, -50%); }
-.dimension-label:nth-child(6) { bottom: 20px; }
-
-
-#qr-close-btn {
- background-color: #000;
-  color: #fff;
-  padding: 10px 16px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background 0.2s ease;
-}
-
-#qr-close-btn:hover {
-  background-color: #333;
-}
-
-#qr-popup {
-  right: auto !important;
-  left: 20px !important;
-  transform: translate(175%, 0%) !important;
-  width: 320px;
-  background: #fff;
-  border: 2px solid rgb(0, 0, 0); /* łatwiej zobaczyć granice */
-  z-index: 999;
-  padding: 24px;
-  border-radius: 16px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-  text-align: center;
-  box-sizing: border-box;
-}
-
-#qr-popup p {
-  font-size: 16px;
-  margin-bottom: 12px;
-  color: #000;
-}
-
-#qrcode {
-  margin: 0 auto 16px auto;
-  display: flex;
-  justify-content: center;
-}
-
-#collapse-btn {
-  font-size: 18px; /* Zmniejszona z 22px */
-  font-weight: bold;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #111;
-  margin-right: 8px;
-  padding: 0;
-  width: 24px; /* Zmniejszona z 30px */
-  height: 24px; /* Zmniejszona z 30px */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1; /* Dodane dla lepszego wycentrowania */
-}
-
-.overview-header h6 {
-  font-size: 18; /* Dodane, aby zmniejszyć rozmiar nagłówka */
-  margin: 0; /* Usunięcie domyślnych marginesów */
-}
-
-.overview-header {
-  display: flex;
-  align-items: center;
-  margin-bottom: 8px; /* Zmniejszone z 12px */
-}
-
-#config-overview.hidden {
-  display: none;
-}
-
-.overview-title {
-  font-size: 16px; /* lub inna preferowana wielkość */
-  font-weight: bold;
-  margin: 0;
-}
-
-@media (max-width: 768px) and (orientation: portrait) {
-  /* Ukrywamy całe UI i QR w pionie */
-  #app,
-  #bottom-toolbar,
-  #sidebar,
-  .dimension-panel,
-  .dimension-label,
-  #qr-button {
-    display: none !important;
-  }
-
-  #rotate-message {
-    display: block !important;
-    text-align: center;
-    padding: 40px;
-    font-size: 18px;
-    background: #000;
-    color: #fff;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 2000;
-  }
-}
-
-@media (max-width: 768px) and (orientation: landscape) {
-  /* Pokazujemy UI w poziomie */
-  #rotate-message {
-    display: none;
-  }
-
-  #canvas {
-    width: 40vw;
-    height: 100vh;
-  }
-
-  #sidebar {
-    width: 25vw;
-    max-width: 100px;
-    padding: 10px;
-    box-sizing: border-box;
-    overflow-y: auto;
-  }
-
-  #config-overview {
-  position: fixed;          /* Przypięty w jedno miejsce */
-  bottom: 64px;             /* Odległość od dołu — nad przyciskiem "+" */
-  right: 16px;              /* Przyklejony do prawej krawędzi */
-  width: 220px;             /* Mniejsza szerokość panelu */
-  max-height: 160px;        /* Mniejsza wysokość, z przewijaniem */
-  font-size: 12px;
-  padding: 8px;
-  background: rgba(245, 245, 245, 0.5); /* ostatnia wartość to przezroczystość */
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  border-radius: 6px;
-  overflow-y: auto;
-  z-index: 998;
-  display: none;            /* Pokazywane dopiero po kliknięciu "+" */
-}
-
-
-/* Ukrycie tekstu w h2 */
-#config-overview h2 {
-  content: "Podsumowanie";
-  font-size: 6px !important;
-  line-height: 1 !important;
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-/* Jeśli chcesz pozostawić tylko znak "+" w nagłówku */
-#config-overview h2::after {
-    content: "+  Twoja konfiguracja";
-    font-size: 14px;
-    position: absolute;
-    right: 10px; /* opcjonalnie, aby + nie był na środku */
-    top: 50%;
-    transform: translateY(-50%);
-    color: #000; /* lub inny kolor */
-}
-
-#config-overview .overview-title {
-  display: none;
-}
-
-  .thumbnail,
-  #overview-icons img,
-  .back-to-model-btn {
-    width: 56px;
-    height: 56px;
-  }
-
-  .thumbnail img {
-    max-width: 90%;
-    max-height: 90%;
-  }
-
-  .thumbnail-caption {
-    font-size: 13px;
-    margin-top: 4px;
-    text-align: center;
-  }
-
-  #overview-icons img {
-    width: 42px;
-    height: 42px;
-  }
-
-  .back-to-model-btn {
-    width: 64px;
-    height: 64px;
-  }
-
-  .back-to-model-btn img {
-    width: 48px;
-    height: 48px;
-  }
-
-  #sidebar .model-image {
-    height: 100px;
-  }
-
-  #model-image-container img {
-    height: 180px;
-  }
-
-  #buy-button {
-    font-size: 14px;
-    padding: 10px;
-    width: 100%;
-    margin-top: 12px;
-  }
-
-  .modal-content {
-    width: 95%;
-    padding: 20px;
-  }
-
-  #qr-popup {
-    width: 90%;
-    max-width: 320px;
-    display: none;
-  }
-
-  #collapse-btn {
-    font-size: 10px;
-    width: 20px;
-    height: 20px;
-  }
-
-  #camera-debug-panel {
-    max-width: 340px;
-    left: 5%;
-    right: 5%;
-  }
-
-  #bottom-toolbar {
-    left: 50%;
-    transform: translateX(-125%);
-    bottom: 12px;
-    padding: 10px 16px;
-    flex-wrap: wrap;
-  }
-
-  #bottom-toolbar button {
-    font-size: 13px;
-    padding: 6px 10px;
-  }
-
-  .dimension-label {
-    position: absolute;
-    bottom: 70px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 1000;
-    background: rgba(255,255,255,0.9);
-    padding: 4px 8px;
-    border-radius: 6px;
-    font-size: 14px;
-  }
-
-  .dimension-panel {
-  position: fixed !important;
-  top: 50% !important;
-  left: 42% !important;
-  transform: translate(-100%, -100%) !important;
-  font-size: 12px !important;
-  padding: 6px 8px !important;
-  width: auto !important;
-  max-width: 90% !important;
-  z-index: 2147483647 !important; /* max z-index */
-  background: white !important;
-  border: 1px solid #ccc !important;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
-  border-radius: 6px !important;
-}
-
-
-
-
-
-
-  /* Ukryj QR na mobilkach (ogólnie) */
-  #qr-button {
-    display: none !important;
-  }
-}
-
-
-
-.dimension-panel {
-    background-color: white;
-    border: 1px solid #ccc;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    padding: 10px;
-    border-radius: 5px;
-    font-size: 14px;
-    z-index: 1001;
-}
-
-#hdr-toggle {
-  position: relative;
-}
-
-#hdr-panel {
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%) translateY(-8px);
-  background: #fff;
-  border-radius: 12px;
-  padding: 12px 16px;
-  box-shadow: 0 6px 24px rgba(0,0,0,0.15);
-  z-index: 9999;
-  min-width: 240px;
-  display: none;
-  padding-top: 30px;
-}
-
-#hdr-panel.hidden {
-  display: none;
-}
-
-#hdr-close {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    background: none;
-    border: none;
-    font-size: 20px;
-    cursor: pointer;
-    color: #111111;
-    z-index: 1000;
-}
-
-#hdr-options {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  justify-content: center;
-  padding-top: 10px;
-}
-
-#hdr-options .thumbnail {
-  width: 72px;
-  height: 72px;
-}
-
-#hdr-options .thumbnail img {
-  max-width: 100%;
-  max-height: 100%;
-}
-
-.hdr-close-btn {
-  position: absolute;
-  top: 8px;
-  right: 10px;
-  background: none;
-  border: none;
-  font-size: 22px;
-  font-weight: bold;
-  cursor: pointer;
-  color: #555;
-  z-index: 10000;
-}
-.hdr-close-btn:hover {
-  color: #000;
-}
-
-#export-panel {
-  position: absolute;
-  bottom: 60px; /* nad przyciskiem */
-  right: 62px;  /* <- tu zwiększ wartość, żeby przesunąć panel bardziej w lewo */
-  background: #ffffff;
-  border: 1px solid #eeeeee;
-  border-radius: 8px;
-  padding: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  z-index: 100;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-#export-panel.hidden {
-  display: none;
-}
-
-.export-btn {
-  background-color: #444;
-  color: #222222;
-  padding: 6px 12px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  text-align: left;
-  white-space: nowrap;
-}
-
-.export-btn:hover {
-  background-color: #555;
-}
-
-
-
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-5px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-#material-options details summary {
-  cursor: pointer;
-  font-weight: bold;
-  background: #f7f7f7;
-  border-radius: 8px;
-  padding: 6px 10px;
-  margin-bottom: 6px;
-}
-
-
-
-    </style>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    #app {
+      display: flex;
+      height: 100vh;
+      width: 100vw;
+      position: relative;
+    }
+
+    #canvas {
+      flex: 1 1 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      background: #ededed15;
+    }
+
+    body {
+      background: #ededed80;
+      /* przezroczyste tło, lepszy blur */
+    }
+
+    /* Panele UI: identyczna przezroczystość i blur obu paneli */
+    #sidebar,
+    #config-overview {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 32px rgba(0, 0, 0, 0.10);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+    }
+
+    #sidebar {
+      flex: 0 0 460px;
+      min-width: 460px;
+      max-width: 540px;
+      padding: 32px 24px 24px 24px;
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      box-sizing: border-box;
+      overflow-y: auto;
+      /* NIE dodawaj background! */
+    }
+
+    #sidebar-content {
+      flex-grow: 1;
+      overflow-y: auto;
+    }
+
+
+
+    #config-overview {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      width: 300px;
+      padding: 12px 16px;
+      /* Zmniejszone padding */
+      z-index: 20;
+      font-size: 15px;
+      max-height: 1000px;
+      opacity: 1;
+      transition: max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease;
+      overflow: hidden;
+      box-shadow: 0 4px 32px rgba(0, 0, 0, 0.10);
+      border-radius: 16px;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      background: #fff;
+      box-sizing: border-box;
+    }
+
+    #config-overview.collapsed {
+      max-height: 40px;
+      /* Zmniejszone z 60px */
+      opacity: 0.8;
+      padding: 8px 16px;
+      /* Zmniejszone padding w stanie zwiniętym */
+    }
+
+
+
+    #config-overview:hover {
+      opacity: 1;
+    }
+
+    .overview-content {
+      max-height: 1000px;
+      opacity: 1;
+      transition: max-height 0.3s ease, opacity 0.3s ease;
+      overflow: hidden;
+    }
+
+    #config-overview.collapsed .overview-content {
+      max-height: 0;
+      opacity: 0;
+    }
+
+
+
+
+
+    hr {
+      border: none;
+      border-top: 1px solid #eee;
+      margin: 16px 0 12px;
+    }
+
+    .selection-section h3 {
+      font-size: 16px;
+      margin-bottom: 10px;
+      color: #555;
+    }
+
+    .options-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .thumbnail-wrapper {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .thumbnail {
+      width: 80px;
+      height: 80px;
+      object-fit: contain;
+      cursor: pointer;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      transition: all 0.2s;
+      background-color: transparent;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+      box-sizing: border-box;
+      opacity: 1;
+      /* Ikonki w pełni widoczne */
+    }
+
+    .thumbnail:hover {
+      transform: scale(1.05);
+      border-color: #444;
+    }
+
+    .thumbnail.selected {
+      outline: 2px solid #050505;
+      border: 2px solid transparent;
+      outline-offset: -2px;
+      box-shadow: 0 0 8px rgba(49, 49, 49, 0.5);
+    }
+
+    .thumbnail img {
+      max-width: 90%;
+      max-height: 90%;
+      opacity: 1;
+    }
+
+    .thumbnail-caption {
+      font-size: 15px;
+      color: #555;
+      margin-top: 6px;
+      font-weight: 500;
+      opacity: 1;
+    }
+
+    #overview-icons img {
+      width: 80px;
+      height: 80px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      object-fit: contain;
+      opacity: 1;
+    }
+
+    #config-overview h4 {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 18px;
+    }
+
+    #overview-details .detail-item {
+      font-size: 16px;
+      margin: 8px 0;
+    }
+
+    #overview-total-price {
+      font-size: 22px;
+    }
+
+    #overview-icons {
+      gap: 16px;
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+    }
+
+    #summary {
+      margin-top: auto;
+      padding-top: 15px;
+      border-top: 1px solid #ccc;
+    }
+
+    #back-to-models-container {
+      display: flex;
+      align-items: center;
+      margin-bottom: 18px;
+      justify-content: flex-start;
+    }
+
+    .back-to-model-btn {
+      position: relative;
+      width: 80px;
+      height: 80px;
+      border: 1.5px solid #bbb;
+      border-radius: 12px;
+      background: #fff;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      margin-right: 10px;
+      transition: box-shadow 0.2s;
+    }
+
+    .back-to-model-btn:hover {
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15);
+    }
+
+    .back-to-model-btn img {
+      width: 60px;
+      height: 60px;
+      object-fit: contain;
+      display: block;
+    }
+
+    .back-to-model-btn .close-x {
+      position: absolute;
+      top: 4px;
+      right: 6px;
+      background: #fff;
+      border: none;
+      font-size: 20px;
+      color: #333;
+      cursor: pointer;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      line-height: 20px;
+      padding: 0;
+      box-shadow: 0 1px 4px #0001;
+      transition: background 0.2s;
+    }
+
+    .back-to-model-btn .close-x:hover {
+      background: #eee;
+    }
+
+    #camera-debug-panel {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+      background: #fff;
+      border: 1px solid #ccc;
+      padding: 16px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px #0002;
+    }
+
+    #camera-debug-panel label {
+      display: block;
+      margin: 8px 0 4px;
+      font-size: 14px;
+    }
+
+    #camera-debug-panel input {
+      width: 100%;
+      margin-bottom: 8px;
+    }
+
+    #camera-debug-panel button {
+      width: 100%;
+      padding: 8px;
+      background: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    #camera-debug-panel button:hover {
+      background: #0056b3;
+    }
+
+    body {
+      background: #ededed;
+      /* lub Twój kolor tła */
+    }
+
+    #buy-button {
+      width: 100%;
+      padding: 14px 0;
+      background: #111;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 18px;
+      font-weight: 600;
+      margin-top: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    #buy-button:hover {
+      background: #333;
+    }
+
+    #buy-button .cart-icon {
+      width: 22px;
+      height: 22px;
+      display: inline-block;
+    }
+
+    #sidebar .model-image {
+      width: 100%;
+      max-width: 100%;
+      height: 110px;
+      object-fit: contain;
+      display: block;
+      margin: 0 auto 10px auto;
+      background: #fff;
+      border-radius: 10px;
+      border: 1px solid #eee;
+    }
+
+    #model-image-container img {
+      width: 100%;
+      max-width: 100%;
+      height: 220px;
+      /* większa wysokość, dopasuj do UI */
+      object-fit: contain;
+      display: block;
+      margin: 0 auto 18px auto;
+      background: #fff;
+      border-radius: 16px;
+      border: 1.5px solid #ddd;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+      padding: 12px 0;
+      transition: box-shadow 0.2s;
+    }
+
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .modal.hidden {
+      display: none;
+    }
+
+    .modal-content {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 320px;
+      background: #fff;
+      padding: 24px 28px;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+      font-family: "Poppins", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: #222;
+    }
+
+
+    .close-button {
+      position: absolute;
+      top: 12px;
+      right: 16px;
+      cursor: pointer;
+      font-size: 26px;
+      font-weight: 700;
+      color: #888;
+      transition: color 0.2s ease;
+    }
+
+    .close-button:hover {
+      color: #444;
+    }
+
+    .modal-content h2 {
+      margin-top: 0;
+      margin-bottom: 16px;
+      font-weight: 700;
+      font-size: 20px;
+      text-align: center;
+    }
+
+    .modal-content label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .modal-content input {
+      width: 100%;
+      padding: 10px 12px;
+      margin-bottom: 18px;
+      border: 1.5px solid #ddd;
+      border-radius: 12px;
+      font-size: 15px;
+      box-sizing: border-box;
+      transition: border-color 0.2s ease;
+    }
+
+    .modal-content input:focus {
+      border-color: #888;
+      outline: none;
+    }
+
+    .modal-content button[type="submit"] {
+      width: 100%;
+      background: #000;
+      color: #fff;
+      font-weight: 700;
+      font-size: 16px;
+      padding: 12px 0;
+      border: none;
+      border-radius: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .modal-content button[type="submit"]:hover {
+      background: #333;
+    }
+
+    /* Komunikat sukcesu */
+    #success-message {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-100%, -50%);
+
+      background: #ffffff;
+      /* jasne zielone tło */
+      border: 1.5px solid #1f1f1f;
+      /* zielona ramka, spójna z tłem */
+      color: #000000;
+      /* ciemnozielony tekst */
+
+      font-weight: 700;
+      font-family: "Poppins", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+
+      padding: 20px 28px;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(3, 3, 3, 0.15);
+
+      max-width: 320px;
+      width: 90%;
+      text-align: center;
+      z-index: 9999;
+    }
+
+
+    /* Ukrywanie i pokazywanie */
+    .hidden {
+      display: none;
+    }
+
+    .visible {
+      display: block;
+    }
+
+
+    #bottom-toolbar {
+      position: fixed;
+      /* <- zmień z absolute */
+      bottom: 14px;
+      left: 50%;
+      transform: translateX(-100%);
+      background: #fff;
+      border: 1.5px solid #ccc;
+      border-radius: 12px;
+      padding: 8px 14px;
+      display: flex;
+      gap: 16px;
+      z-index: 2000;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      justify-content: center;
+    }
+
+
+    #bottom-toolbar button {
+      background: #f0f0f0;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    #bottom-toolbar.visible {
+      opacity: 1;
+    }
+
+    #bottom-toolbar button:hover {
+      background: #e0e0e0;
+    }
+
+    #dimension-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    .dimension-line {
+      position: absolute;
+      background-color: #000;
+      height: 2px;
+    }
+
+    .axis-line {
+      position: absolute;
+      height: 2px;
+      background-color: #222;
+      opacity: 0.6;
+    }
+
+    .axis-line.x {
+      top: 50%;
+      left: 0;
+      width: 100%;
+      transform: translateY(-50%);
+    }
+
+    .axis-line.y {
+      left: 50%;
+      top: 0;
+      width: 2px;
+      height: 100%;
+      transform: translateX(-50%);
+    }
+
+    .axis-line.z {
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: 2px dashed #888;
+      box-sizing: border-box;
+      border-radius: 10px;
+    }
+
+    .dimension-label {
+      position: absolute;
+      background-color: rgba(255, 255, 255, 0.7);
+      padding: 5px;
+      border-radius: 3px;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .dimension-label:nth-child(4) {
+      top: 20px;
+    }
+
+    .dimension-label:nth-child(5) {
+      top: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .dimension-label:nth-child(6) {
+      bottom: 20px;
+    }
+
+
+    #qr-close-btn {
+      background-color: #000;
+      color: #fff;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.2s ease;
+    }
+
+    #qr-close-btn:hover {
+      background-color: #333;
+    }
+
+    #qr-popup {
+      right: auto !important;
+      left: 20px !important;
+      transform: translate(175%, 0%) !important;
+      width: 320px;
+      background: #fff;
+      border: 2px solid rgb(0, 0, 0);
+      /* łatwiej zobaczyć granice */
+      z-index: 999;
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      box-sizing: border-box;
+    }
+
+    #qr-popup p {
+      font-size: 16px;
+      margin-bottom: 12px;
+      color: #000;
+    }
+
+    #qrcode {
+      margin: 0 auto 16px auto;
+      display: flex;
+      justify-content: center;
+    }
+
+    #collapse-btn {
+      font-size: 18px;
+      /* Zmniejszona z 22px */
+      font-weight: bold;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #111;
+      margin-right: 8px;
+      padding: 0;
+      width: 24px;
+      /* Zmniejszona z 30px */
+      height: 24px;
+      /* Zmniejszona z 30px */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      /* Dodane dla lepszego wycentrowania */
+    }
+
+    .overview-header h6 {
+      font-size: 18;
+      /* Dodane, aby zmniejszyć rozmiar nagłówka */
+      margin: 0;
+      /* Usunięcie domyślnych marginesów */
+    }
+
+    .overview-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+      /* Zmniejszone z 12px */
+    }
+
+    #config-overview.hidden {
+      display: none;
+    }
+
+    .overview-title {
+      font-size: 16px;
+      /* lub inna preferowana wielkość */
+      font-weight: bold;
+      margin: 0;
+    }
+
+    @media (max-width: 768px) and (orientation: portrait) {
+
+      /* Ukrywamy całe UI i QR w pionie */
+      #app,
+      #bottom-toolbar,
+      #sidebar,
+      .dimension-panel,
+      .dimension-label,
+      #qr-button {
+        display: none !important;
+      }
+
+      #rotate-message {
+        display: block !important;
+        text-align: center;
+        padding: 40px;
+        font-size: 18px;
+        background: #000;
+        color: #fff;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 2000;
+      }
+    }
+
+    @media (max-width: 768px) and (orientation: landscape) {
+
+      /* Pokazujemy UI w poziomie */
+      #rotate-message {
+        display: none;
+      }
+
+      #canvas {
+        width: 40vw;
+        height: 100vh;
+      }
+
+      #sidebar {
+        width: 25vw;
+        max-width: 100px;
+        padding: 10px;
+        box-sizing: border-box;
+        overflow-y: auto;
+      }
+
+      #config-overview {
+        position: fixed;
+        /* Przypięty w jedno miejsce */
+        bottom: 64px;
+        /* Odległość od dołu — nad przyciskiem "+" */
+        right: 16px;
+        /* Przyklejony do prawej krawędzi */
+        width: 220px;
+        /* Mniejsza szerokość panelu */
+        max-height: 160px;
+        /* Mniejsza wysokość, z przewijaniem */
+        font-size: 12px;
+        padding: 8px;
+        background: rgba(245, 245, 245, 0.5);
+        /* ostatnia wartość to przezroczystość */
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        border-radius: 6px;
+        overflow-y: auto;
+        z-index: 998;
+        display: none;
+        /* Pokazywane dopiero po kliknięciu "+" */
+      }
+
+
+      /* Ukrycie tekstu w h2 */
+      #config-overview h2 {
+        content: "Podsumowanie";
+        font-size: 6px !important;
+        line-height: 1 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+
+      /* Jeśli chcesz pozostawić tylko znak "+" w nagłówku */
+      #config-overview h2::after {
+        content: "+  Twoja konfiguracja";
+        font-size: 14px;
+        position: absolute;
+        right: 10px;
+        /* opcjonalnie, aby + nie był na środku */
+        top: 50%;
+        transform: translateY(-50%);
+        color: #000;
+        /* lub inny kolor */
+      }
+
+      #config-overview .overview-title {
+        display: none;
+      }
+
+      .thumbnail,
+      #overview-icons img,
+      .back-to-model-btn {
+        width: 56px;
+        height: 56px;
+      }
+
+      .thumbnail img {
+        max-width: 90%;
+        max-height: 90%;
+      }
+
+      .thumbnail-caption {
+        font-size: 13px;
+        margin-top: 4px;
+        text-align: center;
+      }
+
+      #overview-icons img {
+        width: 42px;
+        height: 42px;
+      }
+
+      .back-to-model-btn {
+        width: 64px;
+        height: 64px;
+      }
+
+      .back-to-model-btn img {
+        width: 48px;
+        height: 48px;
+      }
+
+      #sidebar .model-image {
+        height: 100px;
+      }
+
+      #model-image-container img {
+        height: 180px;
+      }
+
+      #buy-button {
+        font-size: 14px;
+        padding: 10px;
+        width: 100%;
+        margin-top: 12px;
+      }
+
+      .modal-content {
+        width: 95%;
+        padding: 20px;
+      }
+
+      #qr-popup {
+        width: 90%;
+        max-width: 320px;
+        display: none;
+      }
+
+      #collapse-btn {
+        font-size: 10px;
+        width: 20px;
+        height: 20px;
+      }
+
+      #camera-debug-panel {
+        max-width: 340px;
+        left: 5%;
+        right: 5%;
+      }
+
+      #bottom-toolbar {
+        left: 50%;
+        transform: translateX(-125%);
+        bottom: 12px;
+        padding: 10px 16px;
+        flex-wrap: wrap;
+      }
+
+      #bottom-toolbar button {
+        font-size: 13px;
+        padding: 6px 10px;
+      }
+
+      .dimension-label {
+        position: absolute;
+        bottom: 70px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1000;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 14px;
+      }
+
+      .dimension-panel {
+        position: fixed !important;
+        top: 50% !important;
+        left: 42% !important;
+        transform: translate(-100%, -100%) !important;
+        font-size: 12px !important;
+        padding: 6px 8px !important;
+        width: auto !important;
+        max-width: 90% !important;
+        z-index: 2147483647 !important;
+        /* max z-index */
+        background: white !important;
+        border: 1px solid #ccc !important;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2) !important;
+        border-radius: 6px !important;
+      }
+
+
+
+
+
+
+      /* Ukryj QR na mobilkach (ogólnie) */
+      #qr-button {
+        display: none !important;
+      }
+    }
+
+
+
+    .dimension-panel {
+      background-color: white;
+      border: 1px solid #ccc;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      padding: 10px;
+      border-radius: 5px;
+      font-size: 14px;
+      z-index: 1001;
+    }
+
+    #hdr-toggle {
+      position: relative;
+    }
+
+    #hdr-panel {
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%) translateY(-8px);
+      background: #fff;
+      border-radius: 12px;
+      padding: 12px 16px;
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15);
+      z-index: 9999;
+      min-width: 240px;
+      display: none;
+      padding-top: 30px;
+    }
+
+    #hdr-panel.hidden {
+      display: none;
+    }
+
+    #hdr-close {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      color: #111111;
+      z-index: 1000;
+    }
+
+    #hdr-options {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding-top: 10px;
+    }
+
+    #hdr-options .thumbnail {
+      width: 72px;
+      height: 72px;
+    }
+
+    #hdr-options .thumbnail img {
+      max-width: 100%;
+      max-height: 100%;
+    }
+
+    .hdr-close-btn {
+      position: absolute;
+      top: 8px;
+      right: 10px;
+      background: none;
+      border: none;
+      font-size: 22px;
+      font-weight: bold;
+      cursor: pointer;
+      color: #555;
+      z-index: 10000;
+    }
+
+    .hdr-close-btn:hover {
+      color: #000;
+    }
+
+    #export-panel {
+      position: absolute;
+      bottom: 60px;
+      /* nad przyciskiem */
+      right: 62px;
+      /* <- tu zwiększ wartość, żeby przesunąć panel bardziej w lewo */
+      background: #ffffff;
+      border: 1px solid #eeeeee;
+      border-radius: 8px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 100;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    #export-panel.hidden {
+      display: none;
+    }
+
+    .export-btn {
+      background-color: #444;
+      color: #222222;
+      padding: 6px 12px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    .export-btn:hover {
+      background-color: #555;
+    }
+
+
+
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-5px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    #material-options details summary {
+      cursor: pointer;
+      font-weight: bold;
+      background: #f7f7f7;
+      border-radius: 8px;
+      padding: 6px 10px;
+      margin-bottom: 6px;
+    }
+  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
 <body>
-    <div id="app">
-        <canvas id="canvas"></canvas>
-        <div id="config-overview" class="collapsed hidden">
-  <div class="overview-header">
-    <button id="collapse-btn">+</button>
-     <span class="overview-title">Twoja Konfiguracja</span>
-  </div>
-  <div class="overview-content">
-    <!-- tu cała zawartość, która ma się zwijać -->
-    <div id="overview-icons"></div>
-    <div id="overview-details"></div>
-    <div id="overview-total">
-      <p>Suma: <strong id="overview-total-price">0.00 PLN</strong></p>
-      <button id="buy-button">Kupuję</button>
-    </div>
-  </div>
-</div>
-
-        <div id="sidebar">
-            <div id="selected-chair-name">Wybrany model: Brak</div>
-            <div id="model-image-container"></div> <!-- DODAJ TO TUTAJ -->
-            <hr />
-            <div id="model-section">
-                <div class="selection-section">
-                    <h3>Wybierz model:</h3>
-                    <div id="model-thumbnails" class="options-grid"></div>
-                </div>
-            </div>
-            <div id="config-section" style="display:none;">
-                <div id="back-to-models-container" style="margin-bottom: 15px;"></div>
-                <div id="legs-section" class="selection-section">
-                    <h3>Nogi:</h3>
-                    <div id="legs-thumbnails" class="options-grid"></div>
-                </div>
-                <div id="parts-section" class="selection-section">
-                    <h3>Wybierz element:</h3>
-                    <div id="part-tabs" class="options-grid"></div>
-                </div>
-                <div id="materials-section" class="selection-section">
-                    <h3>Wybierz materiał:</h3>
-                    <div id="material-options" class="options-grid"></div>                    
-                </div>
-                
-            </div>
-            <div id="summary"></div>
+  <div id="app">
+    <canvas id="canvas"></canvas>
+    <div id="config-overview" class="collapsed hidden">
+      <div class="overview-header">
+        <button id="collapse-btn">+</button>
+        <span class="overview-title">Twoja Konfiguracja</span>
+      </div>
+      <div class="overview-content">
+        <!-- tu cała zawartość, która ma się zwijać -->
+        <div id="overview-icons"></div>
+        <div id="overview-details"></div>
+        <div id="overview-total">
+          <p>Suma: <strong id="overview-total-price">0.00 PLN</strong></p>
+          <button id="buy-button">Kupuję</button>
         </div>
+      </div>
     </div>
-<!-- FORMULARZ EMAIL - POPUP -->
-<div id="emailModal" class="modal hidden">
-  <div class="modal-content">
-    <span class="close-button">&times;</span>
-    <h2>Wyślij swoją konfigurację</h2>
-    <form id="emailForm">
-      <label for="name">Imię i nazwisko:</label>
-      <input type="text" id="name" name="name" required>
 
-      <label for="email">Adres e-mail:</label>
-      <input type="email" id="email" name="email" required>
+    <div id="sidebar">
+      <div id="selected-chair-name">Wybrany model: Brak</div>
+      <div id="model-image-container"></div> <!-- DODAJ TO TUTAJ -->
+      <hr />
+      <div id="model-section">
+        <div class="selection-section">
+          <h3>Wybierz model:</h3>
+          <div id="model-thumbnails" class="options-grid"></div>
+        </div>
+      </div>
+      <div id="config-section" style="display:none;">
+        <div id="back-to-models-container" style="margin-bottom: 15px;"></div>
+        <div id="legs-section" class="selection-section">
+          <h3>Nogi:</h3>
+          <div id="legs-thumbnails" class="options-grid"></div>
+        </div>
+        <div id="parts-section" class="selection-section">
+          <h3>Wybierz element:</h3>
+          <div id="part-tabs" class="options-grid"></div>
+        </div>
+        <div id="materials-section" class="selection-section">
+          <h3>Wybierz materiał:</h3>
+          <div id="material-options" class="options-grid"></div>
+        </div>
 
-      <label for="phone">Numer telefonu:</label>
-      <input type="tel" id="phone" name="phone">
-
-      <!-- Ukryte pola na dane konfiguracji -->
-      <input type="hidden" id="model" name="model">
-      <input type="hidden" id="price" name="price">
-      <input type="hidden" id="total" name="total">
-
-      <button type="submit">Wyślij</button>
-    </form>
+      </div>
+      <div id="summary"></div>
+    </div>
   </div>
-</div>
+  <!-- FORMULARZ EMAIL - POPUP -->
+  <div id="emailModal" class="modal hidden">
+    <div class="modal-content">
+      <span class="close-button">&times;</span>
+      <h2>Wyślij swoją konfigurację</h2>
+      <form id="emailForm">
+        <label for="name">Imię i nazwisko:</label>
+        <input type="text" id="name" name="name" required>
+
+        <label for="email">Adres e-mail:</label>
+        <input type="email" id="email" name="email" required>
+
+        <label for="phone">Numer telefonu:</label>
+        <input type="tel" id="phone" name="phone">
+
+        <!-- Ukryte pola na dane konfiguracji -->
+        <input type="hidden" id="model" name="model">
+        <input type="hidden" id="price" name="price">
+        <input type="hidden" id="total" name="total">
+
+        <button type="submit">Wyślij</button>
+      </form>
+    </div>
+  </div>
 
 
-<!-- KOMUNIKAT obrotu -->
-<div id="rotate-message">
-  🔄 Obróć urządzenie poziomo
-</div>
-
-
-
-<!-- KOMUNIKAT SUKCESU -->
-<div id="success-message" class="hidden">✅ Dziękujemy! Formularz został wysłany.</div>
-
-
-
-<!-- Dolny panel UI -->
-<div id="bottom-toolbar" style="display: none;">
-
- <!-- Przycisk HDR -->
-<button id="hdr-toggle" title="Zmień HDR">
-  <img src="icons/bulb_icon.png" alt="HDR" style="width: 20px; height: 20px;">
-</button>
-
-<div id="hdr-panel" class="hidden">
-  <button id="hdr-close" class="hdr-close-btn">×</button>
-  <div id="hdr-options" class="options-grid"></div>
-</div>
-
-
-
-
-
-
+  <!-- KOMUNIKAT obrotu -->
+  <div id="rotate-message">
+    🔄 Obróć urządzenie poziomo
+  </div>
 
 
 
- <button id="ar-button" title="AR">
-  <img src="icons/AR_icon.png" alt="AR" style="width: 30px; height: 30px;">
-</button>
-
-<button id="dimensions-show" title="Wymiary modelu">
-  <img src="icons/dimmension_icon.png" alt="Wymiary" style="width: 20px; height: 20px;">
-</button>
+  <!-- KOMUNIKAT SUKCESU -->
+  <div id="success-message" class="hidden">✅ Dziękujemy! Formularz został wysłany.</div>
 
 
-<button id="export-config" title="Pobierz konfigurację">
-  <img src="icons/export_icon.png" alt="Eksport" style="width: 20px; height: 20px;">
-</button>
 
-<!-- Panel eksportu -->
-<div id="export-panel" class="hidden">
-  <button class="export-btn" data-format="fbx">FBX</button>
-  <button class="export-btn" data-format="dae">DAE</button>
-  <button class="export-btn" data-format="obj">OBJ</button>
-</div>
+  <!-- Dolny panel UI -->
+  <div id="bottom-toolbar" style="display: none;">
 
-<button id="qr-button" title="Zobacz na telefonie">
-    <img src="icons/qr_icon.png" alt="QR" style="width: 20px; height: 20px;">
-  </button>
-</div>
+    <!-- Przycisk HDR -->
+    <button id="hdr-toggle" title="Zmień HDR">
+      <img src="icons/bulb_icon.png" alt="HDR" style="width: 20px; height: 20px;">
+    </button>
+
+    <div id="hdr-panel" class="hidden">
+      <button id="hdr-close" class="hdr-close-btn">×</button>
+      <div id="hdr-options" class="options-grid"></div>
+    </div>
 
 
-<div id="dimension-overlay" style="display: none;"></div>
-
-<link rel="manifest" href="manifest.json" />
-<link rel="apple-touch-icon" href="favicon.jpg">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
 
-<div id="ar-popup" style="
+
+
+
+
+
+    <button id="ar-button" title="AR">
+      <img src="icons/AR_icon.png" alt="AR" style="width: 30px; height: 30px;">
+    </button>
+
+    <button id="dimensions-show" title="Wymiary modelu">
+      <img src="icons/dimmension_icon.png" alt="Wymiary" style="width: 20px; height: 20px;">
+    </button>
+
+
+    <button id="export-config" title="Pobierz konfigurację">
+      <img src="icons/export_icon.png" alt="Eksport" style="width: 20px; height: 20px;">
+    </button>
+
+    <!-- Panel eksportu -->
+    <div id="export-panel" class="hidden">
+      <button class="export-btn" data-format="fbx">FBX</button>
+      <button class="export-btn" data-format="dae">DAE</button>
+      <button class="export-btn" data-format="obj">OBJ</button>
+    </div>
+
+    <button id="qr-button" title="Zobacz na telefonie">
+      <img src="icons/qr_icon.png" alt="QR" style="width: 20px; height: 20px;">
+    </button>
+  </div>
+
+
+  <div id="dimension-overlay" style="display: none;"></div>
+
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="favicon.jpg">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+
+  <div id="ar-popup" style="
   position: fixed;
   top: 50%;
   left: 50%;
@@ -1200,10 +1243,10 @@
   text-align: center;
   max-width: 300px;
 ">
-  <img src="icons/AR_icon.png" alt="AR Ikona" style="width: 60px; margin-bottom: 10px;" />
-  <div style="font-size: 18px; font-weight: bold;">Dostępne wkrótce</div>
-  <div style="margin-top: 6px; font-size: 14px;">Tryb AR zostanie wkrótce uruchomiony.</div>
-  <button onclick="document.getElementById('ar-popup').style.display='none'" style="
+    <img src="icons/ar_icon.png" alt="AR Ikona" style="width: 60px; margin-bottom: 10px;" />
+    <div style="font-size: 18px; font-weight: bold;">Dostępne wkrótce</div>
+    <div style="margin-top: 6px; font-size: 14px;">Tryb AR zostanie wkrótce uruchomiony.</div>
+    <button onclick="document.getElementById('ar-popup').style.display='none'" style="
     margin-top: 12px;
     background: #141414;
     color: white;
@@ -1212,401 +1255,402 @@
     border-radius: 6px;
     cursor: pointer;
   ">Zamknij</button>
-</div>
+  </div>
 
 
 
 
 
 
-<div id="qr-popup" style="display:none; position:fixed; top:20%; left:50%; transform:translateX(-50%); background:white; padding:20px; border-radius:12px; box-shadow:0 0 20px rgba(0,0,0,0.2); z-index:3000;">
-  <p style="margin-bottom:10px;">Zeskanuj kod QR telefonem:</p>
-  <div id="qrcode"></div>
- <button id="qr-close-btn">Zamknij</button>
+  <div id="qr-popup"
+    style="display:none; position:fixed; top:20%; left:50%; transform:translateX(-50%); background:white; padding:20px; border-radius:12px; box-shadow:0 0 20px rgba(0,0,0,0.2); z-index:3000;">
+    <p style="margin-bottom:10px;">Zeskanuj kod QR telefonem:</p>
+    <div id="qrcode"></div>
+    <button id="qr-close-btn">Zamknij</button>
 
-</div>
-
-
-<script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
-<script>
-function showQR() {
-  const url = window.location.href;
-  document.getElementById('qr-popup').style.display = 'block';
-  document.getElementById('qrcode').innerHTML = ''; // czyść stare
-  document.getElementById('qr-close-btn').addEventListener('click', () => {
-  document.getElementById('qr-popup').style.display = 'none';
-});
-
-  new QRCode(document.getElementById("qrcode"), {
-    text: url,
-    width: 200,
-    height: 200,
-  });
-}
-</script>
+  </div>
 
 
-<script src="https://cdn.emailjs.com/dist/email.min.js"></script>
-<script>
-  emailjs.init('y6_uovUeRS8M7gZ1H');
-
-  function generateSummaryText() {
-    let text = "";
-    let totalPrice = 0;
-
-    if (window.selectedChair) {
-      const price = parseFloat(window.selectedChair.Cena) || 0;
-      totalPrice += price;
-      text += `Model: ${window.selectedChair.Nazwa} (${price.toFixed(2)} PLN)\n`;
-    }
-
-    if (window.selectedLeg) {
-      const price = parseFloat(window.selectedLeg.Cena) || 0;
-      totalPrice += price;
-      text += `Wariant nóg: ${window.selectedLeg.Nazwa} (${price.toFixed(2)} PLN)\n`;
-    }
-
-    const partOrder = ['seat', 'backseat_inside', 'backseat_outside', 'legs_material', 'backseat'];
-    partOrder.forEach(part => {
-      const mat = window.selectedMaterials?.[part];
-      if (mat) {
-        const price = parseFloat(mat.Cena) || 0;
-        totalPrice += price;
-        text += `${part.replace(/_/g, ' ')}: ${mat.Nazwa} (${price.toFixed(2)} PLN)\n`;
-      }
-    });
-
-    text += `\nSuma konfiguracji: ${totalPrice.toFixed(2)} PLN`;
-    return { text, totalPrice };
-  }
-
-  
-
-  emailForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-
-    const summary = generateSummaryText();
-
-    document.getElementById('model').value = window.selectedChair?.Nazwa || 'Brak modelu';
-    document.getElementById('price').value = parseFloat(window.selectedChair?.Cena || 0).toFixed(2);
-    document.getElementById('total').value = summary.totalPrice.toFixed(2);
-
-    let configTextInput = document.getElementById('configText');
-    if (!configTextInput) {
-      configTextInput = document.createElement('textarea');
-      configTextInput.name = 'configText';
-      configTextInput.id = 'configText';
-      configTextInput.hidden = true;
-      emailForm.appendChild(configTextInput);
-    }
-    configTextInput.value = summary.text;
-
-    emailjs.sendForm('service_h3otax9', 'template_aykvcls', emailForm)
-      .then(() => {
-        document.getElementById('emailModal')?.classList.add('hidden');
-
-        const successMessage = document.getElementById('success-message');
-        successMessage.classList.remove('hidden');
-        successMessage.classList.add('visible');
-
-        setTimeout(() => {
-          successMessage.classList.remove('visible');
-          successMessage.classList.add('hidden');
-        }, 3500);
-
-        emailForm.reset();
-      })
-      .catch((error) => {
-        alert('❌ Coś poszło nie tak. Spróbuj ponownie.');
-        console.error('EmailJS error:', error);
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+  <script>
+    function showQR() {
+      const url = window.location.href;
+      document.getElementById('qr-popup').style.display = 'block';
+      document.getElementById('qrcode').innerHTML = ''; // czyść stare
+      document.getElementById('qr-close-btn').addEventListener('click', () => {
+        document.getElementById('qr-popup').style.display = 'none';
       });
-  });
-</script>
+
+      new QRCode(document.getElementById("qrcode"), {
+        text: url,
+        width: 200,
+        height: 200,
+      });
+    }
+  </script>
 
 
+  <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
+  <script>
+    emailjs.init('y6_uovUeRS8M7gZ1H');
 
+    function generateSummaryText() {
+      let text = "";
+      let totalPrice = 0;
 
+      if (window.selectedChair) {
+        const price = parseFloat(window.selectedChair.Cena) || 0;
+        totalPrice += price;
+        text += `Model: ${window.selectedChair.Nazwa} (${price.toFixed(2)} PLN)\n`;
+      }
 
+      if (window.selectedLeg) {
+        const price = parseFloat(window.selectedLeg.Cena) || 0;
+        totalPrice += price;
+        text += `Wariant nóg: ${window.selectedLeg.Nazwa} (${price.toFixed(2)} PLN)\n`;
+      }
 
-    <script type="module">
-        // Główna biblioteka Three.js (z importmap)
-import * as THREE from 'three'; // opcjonalne, jeśli używasz tylko konkretnych importów
-
-// Konkretnie z Three.js (potrzebne do wymiarów i geometrii)
-import {
-  Group,
-  Box3,
-  Vector3,
-  ArrowHelper,
-  Sprite,
-  SpriteMaterial,
-  CanvasTexture,
-  Color,
-  TextureLoader
-} from 'three';
-
-// ThreePipe core – viewer i pluginy
-import {
-  ThreeViewer,
-  LoadingScreenPlugin,
-  GBufferPlugin,
-  SSAAPlugin,
-} from 'threepipe';
-
-// Pluginy z WebGI (ThreePipe)
-import {
-  SSReflectionPlugin,
-  BloomPlugin
-} from '@threepipe/webgi-plugins';
-
-
-       
-
-
-
-
-
-        const CAMERA_FOV = 12;
-        const CAMERA_NEAR = 0.1;
-        const CAMERA_FAR = 100;
-        const CAMERA_POSITION = { x: -4.5, y: 0.76, z: 3.9 };
-        const CAMERA_TARGET = { x: 0.79, y: -1.09, z: -0.22 };
-
-        const MIN_ZOOM_DISTANCE = 1; // minimalna odległość kamery od modelu (przybliżenie)
-        const MAX_ZOOM_DISTANCE = 8; // maksymalna odległość kamery od modelu (oddalenie)
-        const VERTICAL_OFFSET = 0;
-
-        let viewer, currentModelContainer, currentLegModel;
-        let allData = [];
-        let selectedChair, selectedLeg, selectedMaterials = {};
-        let globalCameraTargetPosition;
-        let userInteracted = false;
-        let dimensionHelpers = [];
-        let currentModel = null;
-        let selectedLegVariant = null;
-        let lastOpenedCollection = null;
-
-
-        
-
-
-
-
-
-        const ELEMENT_ICONS = {
-            seat: 'icons/m_seat_icon.png',
-            backseat_inside: 'icons/m_backseat_in_icon.png',
-            backseat_outside: 'icons/m_backseat_out_icon.png',
-            backseat: 'icons/m_backseat_icon.png',
-            legs: 'icons/m_legs_icon.png'
-        };
-
-        function showScreen(screenName) {
-            document.getElementById('model-section').style.display = screenName === 'models' ? 'block' : 'none';
-            document.getElementById('config-section').style.display = screenName === 'config' ? 'block' : 'none';
+      const partOrder = ['seat', 'backseat_inside', 'backseat_outside', 'legs_material', 'backseat'];
+      partOrder.forEach(part => {
+        const mat = window.selectedMaterials?.[part];
+        if (mat) {
+          const price = parseFloat(mat.Cena) || 0;
+          totalPrice += price;
+          text += `${part.replace(/_/g, ' ')}: ${mat.Nazwa} (${price.toFixed(2)} PLN)\n`;
         }
+      });
 
-        
-        async function loadCameraTarget() {
-            try {
-                const targetsContainer = await viewer.load('camera_target.glb');
-                if (targetsContainer) {
-                    // Szukaj obiektu o nazwie "camera_target" (lub zmień na nazwę empty z Blender)
-                    const targetObject = targetsContainer.getObjectByName('camera_target');
-                    if (targetObject) {
-                        globalCameraTargetPosition = targetObject.getWorldPosition(new Vector3());
-                    } else {
-                        // Jeśli nie znajdzie, użyj środka sceny
-                        globalCameraTargetPosition = new Vector3(0, 0, 0);
-                    }
-                    viewer.scene.remove(targetsContainer); // nie pokazuj empty w scenie
-                }
-            } catch (e) {
-                console.warn("Nie udało się załadować 'camera_target.glb'. Używam domyślnych ustawień.");
-                globalCameraTargetPosition = new Vector3(0, 0, 0);
-            }
+      text += `\nSuma konfiguracji: ${totalPrice.toFixed(2)} PLN`;
+      return { text, totalPrice };
+    }
+
+
+
+    emailForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const summary = generateSummaryText();
+
+      document.getElementById('model').value = window.selectedChair?.Nazwa || 'Brak modelu';
+      document.getElementById('price').value = parseFloat(window.selectedChair?.Cena || 0).toFixed(2);
+      document.getElementById('total').value = summary.totalPrice.toFixed(2);
+
+      let configTextInput = document.getElementById('configText');
+      if (!configTextInput) {
+        configTextInput = document.createElement('textarea');
+        configTextInput.name = 'configText';
+        configTextInput.id = 'configText';
+        configTextInput.hidden = true;
+        emailForm.appendChild(configTextInput);
+      }
+      configTextInput.value = summary.text;
+
+      emailjs.sendForm('service_h3otax9', 'template_aykvcls', emailForm)
+        .then(() => {
+          document.getElementById('emailModal')?.classList.add('hidden');
+
+          const successMessage = document.getElementById('success-message');
+          successMessage.classList.remove('hidden');
+          successMessage.classList.add('visible');
+
+          setTimeout(() => {
+            successMessage.classList.remove('visible');
+            successMessage.classList.add('hidden');
+          }, 3500);
+
+          emailForm.reset();
+        })
+        .catch((error) => {
+          alert('❌ Coś poszło nie tak. Spróbuj ponownie.');
+          console.error('EmailJS error:', error);
+        });
+    });
+  </script>
+
+
+
+
+
+
+  <script type="module">
+    // Główna biblioteka Three.js (z importmap)
+    import * as THREE from 'three'; // opcjonalne, jeśli używasz tylko konkretnych importów
+
+    // Konkretnie z Three.js (potrzebne do wymiarów i geometrii)
+    import {
+      Group,
+      Box3,
+      Vector3,
+      ArrowHelper,
+      Sprite,
+      SpriteMaterial,
+      CanvasTexture,
+      Color,
+      TextureLoader
+    } from 'three';
+
+    // ThreePipe core – viewer i pluginy
+    import {
+      ThreeViewer,
+      LoadingScreenPlugin,
+      GBufferPlugin,
+      SSAAPlugin,
+    } from 'threepipe';
+
+    // Pluginy z WebGI (ThreePipe)
+    import {
+      SSReflectionPlugin,
+      BloomPlugin
+    } from '@threepipe/webgi-plugins';
+
+
+
+
+
+
+
+
+    const CAMERA_FOV = 12;
+    const CAMERA_NEAR = 0.1;
+    const CAMERA_FAR = 100;
+    const CAMERA_POSITION = { x: -4.5, y: 0.76, z: 3.9 };
+    const CAMERA_TARGET = { x: 0.79, y: -1.09, z: -0.22 };
+
+    const MIN_ZOOM_DISTANCE = 1; // minimalna odległość kamery od modelu (przybliżenie)
+    const MAX_ZOOM_DISTANCE = 8; // maksymalna odległość kamery od modelu (oddalenie)
+    const VERTICAL_OFFSET = 0;
+
+    let viewer, currentModelContainer, currentLegModel;
+    let allData = [];
+    let selectedChair, selectedLeg, selectedMaterials = {};
+    let globalCameraTargetPosition;
+    let userInteracted = false;
+    let dimensionHelpers = [];
+    let currentModel = null;
+    let selectedLegVariant = null;
+    let lastOpenedCollection = null;
+
+
+
+
+
+
+
+
+    const ELEMENT_ICONS = {
+      seat: 'icons/m_seat_icon.png',
+      backseat_inside: 'icons/m_backseat_in_icon.png',
+      backseat_outside: 'icons/m_backseat_out_icon.png',
+      backseat: 'icons/m_backseat_icon.png',
+      legs: 'icons/m_legs_icon.png'
+    };
+
+    function showScreen(screenName) {
+      document.getElementById('model-section').style.display = screenName === 'models' ? 'block' : 'none';
+      document.getElementById('config-section').style.display = screenName === 'config' ? 'block' : 'none';
+    }
+
+
+    async function loadCameraTarget() {
+      try {
+        const targetsContainer = await viewer.load('camera_target.glb');
+        if (targetsContainer) {
+          // Szukaj obiektu o nazwie "camera_target" (lub zmień na nazwę empty z Blender)
+          const targetObject = targetsContainer.getObjectByName('camera_target');
+          if (targetObject) {
+            globalCameraTargetPosition = targetObject.getWorldPosition(new Vector3());
+          } else {
+            // Jeśli nie znajdzie, użyj środka sceny
+            globalCameraTargetPosition = new Vector3(0, 0, 0);
+          }
+          viewer.scene.remove(targetsContainer); // nie pokazuj empty w scenie
         }
-            
-async function loadModelWithFreshness(path, viewer, options = {}) {
-  try {
-    // Wykonaj zapytanie HEAD, aby pobrać Last-Modified z serwera
-    const res = await fetch(path, { method: 'HEAD' });
-    const lastModified = res.headers.get('Last-Modified');
+      } catch (e) {
+        console.warn("Nie udało się załadować 'camera_target.glb'. Używam domyślnych ustawień.");
+        globalCameraTargetPosition = new Vector3(0, 0, 0);
+      }
+    }
 
-    // Jeśli data jest dostępna, użyj jej jako wersji cache-bustera
-    const version = lastModified ? new Date(lastModified).getTime() : Date.now();
-    const pathWithVersion = `${path}?v=${version}`;
+    async function loadModelWithFreshness(path, viewer, options = {}) {
+      try {
+        // Wykonaj zapytanie HEAD, aby pobrać Last-Modified z serwera
+        const res = await fetch(path, { method: 'HEAD' });
+        const lastModified = res.headers.get('Last-Modified');
 
-    // Załaduj model z cache-busterem
-    const modelContainer = await viewer.load(pathWithVersion, options);
-    return modelContainer;
-  } catch (e) {
-    console.error(`Nie udało się załadować modelu: ${path}`, e);
-    throw e;
-  }
-}
+        // Jeśli data jest dostępna, użyj jej jako wersji cache-bustera
+        const version = lastModified ? new Date(lastModified).getTime() : Date.now();
+        const pathWithVersion = `${path}?v=${version}`;
 
-        
-        async function init() {
-            const canvas = document.getElementById("canvas");
-            
-            viewer = new ThreeViewer({
-                canvas: canvas,
-                plugins: [LoadingScreenPlugin, GBufferPlugin, SSAAPlugin, SSReflectionPlugin, BloomPlugin],
-                rendererSettings: { antialias: true }
-            });
-            if (viewer.controls) {
-                viewer.controls.minDistance = MIN_ZOOM_DISTANCE;
-                viewer.controls.maxDistance = MAX_ZOOM_DISTANCE;
-                viewer.controls.dampingFactor = 0.1;
-                viewer.controls.enableDamping = true;
-                // Dodaj nasłuchiwanie TUTAJ, po utworzeniu viewer i controls:
-                viewer.controls.addEventListener('change', clampCameraDistance);
-            }
-
-            const collapseBtn = document.getElementById('collapse-btn');
-const overviewPanel = document.getElementById('config-overview');
-
-collapseBtn.onclick = () => {
-  overviewPanel.classList.toggle('collapsed');
-  collapseBtn.textContent = overviewPanel.classList.contains('collapsed') ? '+' : '−';
-};
+        // Załaduj model z cache-busterem
+        const modelContainer = await viewer.load(pathWithVersion, options);
+        return modelContainer;
+      } catch (e) {
+        console.error(`Nie udało się załadować modelu: ${path}`, e);
+        throw e;
+      }
+    }
 
 
-            document.getElementById('buy-button').innerHTML = '<span class="cart-icon">🛒</span>Zapytaj o produkt';
+    async function init() {
+      const canvas = document.getElementById("canvas");
 
-            document.getElementById('buy-button').onclick = () => {
-  const summary = generateSummaryText();
-  const emailAddress = 'mrpeter@o2.pl'; // adres docelowy
+      viewer = new ThreeViewer({
+        canvas: canvas,
+        plugins: [LoadingScreenPlugin, GBufferPlugin, SSAAPlugin, SSReflectionPlugin, BloomPlugin],
+        rendererSettings: { antialias: true }
+      });
+      if (viewer.controls) {
+        viewer.controls.minDistance = MIN_ZOOM_DISTANCE;
+        viewer.controls.maxDistance = MAX_ZOOM_DISTANCE;
+        viewer.controls.dampingFactor = 0.1;
+        viewer.controls.enableDamping = true;
+        // Dodaj nasłuchiwanie TUTAJ, po utworzeniu viewer i controls:
+        viewer.controls.addEventListener('change', clampCameraDistance);
+      }
 
-  const subject = `Zapytanie o wycenę: ${selectedChair.Nazwa}`;
-  const body = `Dzień dobry,\n\nProszę o wycenę poniższej konfiguracji:\n\n${summary.text}\n-------------------\nSuma: ${summary.totalPrice.toFixed(2)} PLN\n\nPozdrawiam,\n[Imię i nazwisko]`;
+      const collapseBtn = document.getElementById('collapse-btn');
+      const overviewPanel = document.getElementById('config-overview');
 
-  console.log("Symulowana wysyłka wiadomości:");
-  console.log("Temat:", subject);
-  console.log("Treść:", body);
-
-  // Zamknij modal jeśli otwarty
-  const modal = document.getElementById('emailModal');
-  if (modal) modal.classList.add('hidden');
-
-  // Pokaż komunikat sukcesu (dodaj klasę visible i usuń hidden)
-  const successMessage = document.getElementById('success-message');
-  if (successMessage) {
-    successMessage.classList.add('visible');
-    successMessage.classList.remove('hidden');
-
-    // Po 0.5s otwórz mailto, by dać czas na pokazanie komunikatu
-    setTimeout(() => {
-      window.location.href = `mailto:${emailAddress}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    }, 500);
-
-    // Ukryj komunikat po 3 sekundach
-    setTimeout(() => {
-      successMessage.classList.remove('visible');
-      successMessage.classList.add('hidden');
-    }, 3500);
-  } else {
-    // Jeżeli brak komunikatu, to od razu wywołaj mailto
-    window.location.href = `mailto:${emailAddress}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-  }
-};
+      collapseBtn.onclick = () => {
+        overviewPanel.classList.toggle('collapsed');
+        collapseBtn.textContent = overviewPanel.classList.contains('collapsed') ? '+' : '−';
+      };
 
 
+      document.getElementById('buy-button').innerHTML = '<span class="cart-icon">🛒</span>Zapytaj o produkt';
 
+      document.getElementById('buy-button').onclick = () => {
+        const summary = generateSummaryText();
+        const emailAddress = 'mrpeter@o2.pl'; // adres docelowy
 
-            try {
-                await viewer.setEnvironmentMap("hdr/hamburg_hbf_1k.hdr", { isHDR: true });
-            } catch (e) { console.error("Błąd ładowania HDR:", e); }
+        const subject = `Zapytanie o wycenę: ${selectedChair.Nazwa}`;
+        const body = `Dzień dobry,\n\nProszę o wycenę poniższej konfiguracji:\n\n${summary.text}\n-------------------\nSuma: ${summary.totalPrice.toFixed(2)} PLN\n\nPozdrawiam,\n[Imię i nazwisko]`;
 
-            await loadCameraTarget();
-            window.addEventListener("resize", resizeCanvas);
-            resizeCanvas();
-            await loadDataFromSheet();
+        console.log("Symulowana wysyłka wiadomości:");
+        console.log("Temat:", subject);
+        console.log("Treść:", body);
+
+        // Zamknij modal jeśli otwarty
+        const modal = document.getElementById('emailModal');
+        if (modal) modal.classList.add('hidden');
+
+        // Pokaż komunikat sukcesu (dodaj klasę visible i usuń hidden)
+        const successMessage = document.getElementById('success-message');
+        if (successMessage) {
+          successMessage.classList.add('visible');
+          successMessage.classList.remove('hidden');
+
+          // Po 0.5s otwórz mailto, by dać czas na pokazanie komunikatu
+          setTimeout(() => {
+            window.location.href = `mailto:${emailAddress}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+          }, 500);
+
+          // Ukryj komunikat po 3 sekundach
+          setTimeout(() => {
+            successMessage.classList.remove('visible');
+            successMessage.classList.add('hidden');
+          }, 3500);
+        } else {
+          // Jeżeli brak komunikatu, to od razu wywołaj mailto
+          window.location.href = `mailto:${emailAddress}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
         }
+      };
 
-        function setCameraView(targetPosition) {
-            const camera = viewer.scene.activeCamera;
-            camera.fov = CAMERA_FOV;
-            camera.near = CAMERA_NEAR;
-            camera.far = CAMERA_FAR;
-            camera.position.set(CAMERA_POSITION.x, CAMERA_POSITION.y, CAMERA_POSITION.z);
 
-            // Ustaw target na wybraną pozycję (np. globalCameraTargetPosition)
-            let center = globalCameraTargetPosition || new Vector3(0, 0, 0);
-            camera.lookAt(center);
-            camera.updateProjectionMatrix();
 
-            // Całkowicie wyłącz kontrolki pozycjonowania
-            if (viewer.controls) {
-                viewer.controls.target.copy(center);
-                viewer.controls.enableRotate = true;
-                viewer.controls.enablePan = false;
-                viewer.controls.screenSpacePanning = false;
-                viewer.controls.enableZoom = false;
-                viewer.controls.enabled = true; // to blokuje WSZYSTKIE interakcje
-                viewer.controls.update();
-            }
-        }
 
-        function resizeCanvas() {
-            const sidebar = document.getElementById("sidebar");
-            const sidebarWidth = sidebar ? sidebar.offsetWidth : 0;
-            const canvas = document.getElementById("canvas");
-            const width = window.innerWidth - sidebarWidth;
-            const height = window.innerHeight;
-            // Ustaw rozmiar CSS
-            canvas.style.width = width + "px";
-            canvas.style.height = height + "px";
-            // Ustaw rozmiar atrybutów (dla WebGL)
-            canvas.width = width;
-            canvas.height = height;
-            if (viewer && viewer.renderer && viewer.scene && viewer.scene.activeCamera) {
-                viewer.renderer.setSize(width, height, false);
-                viewer.scene.activeCamera.aspect = width / height;
-                viewer.scene.activeCamera.updateProjectionMatrix();
-            }
-        }
+      try {
+        await viewer.setEnvironmentMap("hdr/hamburg_hbf_1k.hdr", { isHDR: true });
+      } catch (e) { console.error("Błąd ładowania HDR:", e); }
 
-        async function silentLoadModel(variant) {
-            if (currentModelContainer) viewer.scene.remove(currentModelContainer);
-            currentModelContainer = await loadModelWithFreshness(`chairs/${variant.Nazwa}.glb`, viewer, { autoCenter: true });
+      await loadCameraTarget();
+      window.addEventListener("resize", resizeCanvas);
+      resizeCanvas();
+      await loadDataFromSheet();
+    }
 
-            console.log("Meshe w modelu:", currentModelContainer.children.map(obj => obj.name)); // <-- DODAJ TO TUTAJ
-            //selectedChair = variant; // <-- DODAJ TO!
-            // Wyśrodkuj kamerę na modelu
-            const box = new Box3().setFromObject(currentModelContainer);
-            const center = box.getCenter(new Vector3());
-            setCameraView(center);
-            currentModelContainer.position.sub(center);
-            updateSummary();
-            renderPartButtons();
-        }
+    function setCameraView(targetPosition) {
+      const camera = viewer.scene.activeCamera;
+      camera.fov = CAMERA_FOV;
+      camera.near = CAMERA_NEAR;
+      camera.far = CAMERA_FAR;
+      camera.position.set(CAMERA_POSITION.x, CAMERA_POSITION.y, CAMERA_POSITION.z);
 
-       async function loadModel(variant) {
-    if (currentModelContainer) {
+      // Ustaw target na wybraną pozycję (np. globalCameraTargetPosition)
+      let center = globalCameraTargetPosition || new Vector3(0, 0, 0);
+      camera.lookAt(center);
+      camera.updateProjectionMatrix();
+
+      // Całkowicie wyłącz kontrolki pozycjonowania
+      if (viewer.controls) {
+        viewer.controls.target.copy(center);
+        viewer.controls.enableRotate = true;
+        viewer.controls.enablePan = false;
+        viewer.controls.screenSpacePanning = false;
+        viewer.controls.enableZoom = false;
+        viewer.controls.enabled = true; // to blokuje WSZYSTKIE interakcje
+        viewer.controls.update();
+      }
+    }
+
+    function resizeCanvas() {
+      const sidebar = document.getElementById("sidebar");
+      const sidebarWidth = sidebar ? sidebar.offsetWidth : 0;
+      const canvas = document.getElementById("canvas");
+      const width = window.innerWidth - sidebarWidth;
+      const height = window.innerHeight;
+      // Ustaw rozmiar CSS
+      canvas.style.width = width + "px";
+      canvas.style.height = height + "px";
+      // Ustaw rozmiar atrybutów (dla WebGL)
+      canvas.width = width;
+      canvas.height = height;
+      if (viewer && viewer.renderer && viewer.scene && viewer.scene.activeCamera) {
+        viewer.renderer.setSize(width, height, false);
+        viewer.scene.activeCamera.aspect = width / height;
+        viewer.scene.activeCamera.updateProjectionMatrix();
+      }
+    }
+
+    async function silentLoadModel(variant) {
+      if (currentModelContainer) viewer.scene.remove(currentModelContainer);
+      currentModelContainer = await loadModelWithFreshness(`chairs/${variant.Nazwa}.glb`, viewer, { autoCenter: true });
+
+      console.log("Meshe w modelu:", currentModelContainer.children.map(obj => obj.name)); // <-- DODAJ TO TUTAJ
+      //selectedChair = variant; // <-- DODAJ TO!
+      // Wyśrodkuj kamerę na modelu
+      const box = new Box3().setFromObject(currentModelContainer);
+      const center = box.getCenter(new Vector3());
+      setCameraView(center);
+      currentModelContainer.position.sub(center);
+      updateSummary();
+      renderPartButtons();
+    }
+
+    async function loadModel(variant) {
+      if (currentModelContainer) {
         viewer.scene.remove(currentModelContainer);
         if (typeof currentModelContainer.dispose === 'function') currentModelContainer.dispose();
-    }
-    if (currentLegModel) {
+      }
+      if (currentLegModel) {
         viewer.scene.remove(currentLegModel);
         if (typeof currentLegModel.dispose === 'function') currentLegModel.dispose();
-    }
-    currentModelContainer = null;
-    currentLegModel = null;
-    selectedLeg = null;
-    selectedMaterials = {};
+      }
+      currentModelContainer = null;
+      currentLegModel = null;
+      selectedLeg = null;
+      selectedMaterials = {};
 
-    
 
-    try {
+
+      try {
         const modelPath = `chairs/${variant.Nazwa}.glb`;
-currentModelContainer = await loadModelWithFreshness(modelPath, viewer, { autoCenter: true });
+        currentModelContainer = await loadModelWithFreshness(modelPath, viewer, { autoCenter: true });
 
         // 🔓 Pokaż dolny panel UI po załadowaniu modelu
-const toolbar = document.getElementById('bottom-toolbar');
-toolbar.classList.add('visible');
-toolbar.style.display = 'flex';
+        const toolbar = document.getElementById('bottom-toolbar');
+        toolbar.classList.add('visible');
+        toolbar.style.display = 'flex';
 
 
         selectedChair = variant;
@@ -1615,98 +1659,98 @@ toolbar.style.display = 'flex';
         hideDimensions();
 
         if (selectedChair.Grupa && selectedChair.Grupa.toLowerCase() === 'kubełek') {
-            const chairBounds = new Box3().setFromObject(currentModelContainer);
-            currentModelContainer.position.y -= chairBounds.min.y;
+          const chairBounds = new Box3().setFromObject(currentModelContainer);
+          currentModelContainer.position.y -= chairBounds.min.y;
 
-            // Automatyczne dodanie nóg "Regularne" jeśli istnieją
-            const legsVariants = allData.filter(d => d.Grupa.toLowerCase() === 'nogi');
-            const defaultLeg = legsVariants.find(l => l.Nazwa.toLowerCase().includes('regularne')) || legsVariants[0];
-            if (defaultLeg) {
-                await setLegModel(defaultLeg);
-            }
+          // Automatyczne dodanie nóg "Regularne" jeśli istnieją
+          const legsVariants = allData.filter(d => d.Grupa.toLowerCase() === 'nogi');
+          const defaultLeg = legsVariants.find(l => l.Nazwa.toLowerCase().includes('regularne')) || legsVariants[0];
+          if (defaultLeg) {
+            await setLegModel(defaultLeg);
+          }
 
-            document.getElementById('legs-section').style.display = 'block';
-            
-            // Pokaż materiały nóg
-            activateLegsTabAndShowMaterials();
+          document.getElementById('legs-section').style.display = 'block';
+
+          // Pokaż materiały nóg
+          activateLegsTabAndShowMaterials();
         } else {
-            document.getElementById('legs-section').style.display = 'none';
-            if (currentLegModel) {
-                viewer.scene.remove(currentLegModel);
-                currentLegModel = null;
-                selectedLeg = null;
-            }
+          document.getElementById('legs-section').style.display = 'none';
+          if (currentLegModel) {
+            viewer.scene.remove(currentLegModel);
+            currentLegModel = null;
+            selectedLeg = null;
+          }
         }
 
         setCameraView(globalCameraTargetPosition);
         enforceZoomLimits();
         updateUI();
         showScreen('config');
-        
+
 
         // **Sekcja materiałów nóg - zawsze widoczna dla każdego krzesła!**
         document.getElementById('materials-section').style.display = 'block';
-        
+
         // Renderujemy materiały nóg — czyli kafelki materiałów z grupy "nogi"
         const legsMaterials = allData.filter(d => d.Grupa.toLowerCase() === 'nogi');
         renderOptions('materials-thumbnails', legsMaterials, (item) => {
-            // Tutaj funkcja ustawiająca materiał nogi
-            // (dopasuj do swojej funkcji obsługi kliknięcia)
-            setLegMaterial(item);
+          // Tutaj funkcja ustawiająca materiał nogi
+          // (dopasuj do swojej funkcji obsługi kliknięcia)
+          setLegMaterial(item);
         });
 
         setCameraView(globalCameraTargetPosition);
         enforceZoomLimits();
         updateUI();
         showScreen('config');
-        
-    } catch (e) { 
-        console.error(`BŁĄD ładowania modelu: ${e.message}`, e); 
+
+      } catch (e) {
+        console.error(`BŁĄD ładowania modelu: ${e.message}`, e);
+      }
     }
-}
 
 
 
 
-function createLegMaterial(legData) {
-  const metalness = isNaN(parseFloat(legData.metalness)) ? 1 : parseFloat(legData.metalness);
-  const roughness = isNaN(parseFloat(legData.roughness)) ? 0.1 : parseFloat(legData.roughness);
-  const color = legData.color || '#FFFFFF';
+    function createLegMaterial(legData) {
+      const metalness = isNaN(parseFloat(legData.metalness)) ? 1 : parseFloat(legData.metalness);
+      const roughness = isNaN(parseFloat(legData.roughness)) ? 0.1 : parseFloat(legData.roughness);
+      const color = legData.color || '#FFFFFF';
 
-  return new THREE.MeshStandardMaterial({
-    color: new THREE.Color(color),
-    metalness: metalness,
-    roughness: roughness,
-  });
-}
+      return new THREE.MeshStandardMaterial({
+        color: new THREE.Color(color),
+        metalness: metalness,
+        roughness: roughness,
+      });
+    }
 
-async function setLegModel(variant) {
-    userInteracted = true;
-    console.log("Wywołanie setLegModel dla wariantu:", variant);
-    const oldLegs = currentLegModel;
-    try {
+    async function setLegModel(variant) {
+      userInteracted = true;
+      console.log("Wywołanie setLegModel dla wariantu:", variant);
+      const oldLegs = currentLegModel;
+      try {
         const modelPath = `legs/${variant.Nazwa}.glb`;
         console.log("Ładuję model nóg z ścieżki:", modelPath);
         const newLegs = await loadModelWithFreshness(modelPath, viewer, { autoCenter: false });
 
-        
+
         const legBounds = new Box3().setFromObject(newLegs);
         const legHeight = legBounds.max.y - legBounds.min.y;
 
         if (currentModelContainer && selectedChair) {
-            if (selectedChair.Grupa.toLowerCase() === 'kubełek') {
-                let height = parseFloat(variant.height) || legHeight;
-                newLegs.position.y = -height;
-                currentModelContainer.position.y = 0;
-            } else {
-                currentModelContainer.position.y = legHeight + VERTICAL_OFFSET;
-                newLegs.position.y = 0;
-            }
+          if (selectedChair.Grupa.toLowerCase() === 'kubełek') {
+            let height = parseFloat(variant.height) || legHeight;
+            newLegs.position.y = -height;
+            currentModelContainer.position.y = 0;
+          } else {
+            currentModelContainer.position.y = legHeight + VERTICAL_OFFSET;
+            newLegs.position.y = 0;
+          }
         }
 
         if (oldLegs) {
-            viewer.scene.remove(oldLegs);
-            if (typeof oldLegs.dispose === 'function') oldLegs.dispose();
+          viewer.scene.remove(oldLegs);
+          if (typeof oldLegs.dispose === 'function') oldLegs.dispose();
         }
         viewer.scene.add(newLegs);
         currentLegModel = newLegs;
@@ -1718,1063 +1762,1019 @@ async function setLegModel(variant) {
         // Odśwież listę nóg, żeby podświetlić wybrany wariant
         const legs = allData.filter(d => d.Grupa.toLowerCase() === 'nogi');
         renderOptions('legs-thumbnails', legs, item => {
-            setLegModel(item);
+          setLegModel(item);
         });
 
         updateSummary();
-        
+
         // Wymuszenie odświeżenia sceny
         if (viewer.render) viewer.render();
-    } catch (e) {
-        console.error(`BŁĄD ładowania nóg: ${e.message}`, e);
-    }
-}
-
-
-
-let forceRenderInterval;
-
-function triggerSceneRefresh() {
-  if (viewer?.camera) {
-    viewer.camera.position.x += 0.00001;
-    viewer.camera.zoom += 0.0001; // ⬅️ mikroskopijny zoom
-    viewer.camera.updateProjectionMatrix();
-  }
-  if (viewer?.renderer?.info) {
-    viewer.renderer.info.reset();
-  }
-  if (viewer?.render) viewer.render();
-}
-
-
-function startForceRender(duration = 2000) {
-  clearInterval(forceRenderInterval);
-  forceRenderInterval = setInterval(() => {
-    triggerSceneRefresh();
-  }, 100);
-
-  setTimeout(() => {
-    clearInterval(forceRenderInterval);
-    console.log("🛑 Zakończono wymuszone odświeżanie");
-  }, duration);
-}
-
-
-
-const textureLoader = new TextureLoader();
-
-if (
-  selectedChair?.Grupa?.toLowerCase() === 'kubełek' &&
-  variant.TargetMeshOrModel?.toLowerCase().includes('legs') &&
-  variant.WariantModelu
-) {
-  // 👉 dla kubełków z podmianą nóg — zmień model nóg
-  setLegModel(variant);
-} else if (
-  selectedChair && 
-  (selectedChair.Grupa.toLowerCase() !== 'kubełek' || !variant.WariantModelu)
-) {
-  // 👉 dla pozostałych krzeseł bez wariantów nóg — wyświetl materiały nóg do wyboru
-  showLegMaterialsForSimpleChairs(selectedChair);
-}
-
-function applyMaterialToMesh(variant, forcedMeshName) {
-  const clone = { ...variant };
-  clone.TargetMeshOrModel = forcedMeshName;
-  console.log(`🎯 Przypisano '${clone.Nazwa}' tylko do mesh '${forcedMeshName}'`);
-  applyMaterial(clone);
-}
-
-// Funkcja, która wyświetla kafelki materiałów nóg dla prostych krzeseł
-function showLegMaterialsForSimpleChairs(chair) {
-  const legsMaterialsContainer = document.getElementById('legs-thumbnails');
-   // Usuń tylko kafelki materiałów (pozostaw warianty nóg)
-legsMaterialsContainer.querySelectorAll('.material-tile').forEach(tile => tile.remove());
-
-
-  // Pobierz materiały nóg dla danego krzesła (przykład, wymaga dostosowania)
-  const materials = getMaterialsForLegs(chair.defaultLegsId || 'default');
-
-  materials.forEach(mat => {
-    const tile = document.createElement('div');
-    tile.className = 'material-tile';
-    tile.textContent = mat.Nazwa;
-    tile.style.backgroundImage = `url(${mat.Obrazek || 'fallback.png'})`;
-    tile.onclick = () => {
-  onLegVariantClick(mat.DlaModeliNóg || mat.Nazwa);
-  applyLegMaterial(mat);
-};
-
-    legsMaterialsContainer.appendChild(tile);
-  });
-}
-
-
-// DOBRE ŁADOWANIE MATERIAŁÓW!!!
-
-async function applyMaterial(variant) {
-  console.log('applyMaterial wywołane z:', variant);
-  
-  if (!currentModelContainer) {
-    console.warn('currentModelContainer jest null lub undefined');
-    return;
-  }
-  
-  if (!variant.TargetMeshOrModel) {
-    console.warn('Brak TargetMeshOrModel w wariancie');
-    return;
-  }
-    
-  if (!currentModelContainer || !variant.TargetMeshOrModel) return;
-
-  const targetNames = variant.TargetMeshOrModel.split(',').map(name => name.trim());
-  const folderPath = variant.Wartość.startsWith('textures/') ? variant.Wartość : `textures/${variant.Wartość}`;
-
-  for (const targetName of targetNames) {
-    let container;
-    if (targetName.toLowerCase() === 'legs') {
-      if (selectedChair?.Grupa?.toLowerCase() === 'krzesło' || !currentLegModel) {
-        container = currentModelContainer;
-      } else {
-        container = currentLegModel;
-      }
-    } else {
-      container = currentModelContainer;
-    }
-
-    let targetObject = null;
-
-    container?.traverse(obj => {
-      if (
-        obj.isMesh &&
-        obj.name &&
-        obj.name.toLowerCase().trim() === targetName.toLowerCase().trim()
-      ) {
-        targetObject = obj;
-      }
-    });
-
-    if (!targetObject) {
-      console.warn(`❌ Mesh '${targetName}' nie znaleziony w modelu`);
-      continue;
-    }
-
-    if (!targetObject.material) {
-      console.warn(`⚠️ Mesh '${targetName}' nie ma materiału.`);
-      continue;
-    }
-
-    const material = targetObject.material.clone();
-
-    // Funkcja do bezpiecznego ładowania tekstury (zwraca null, jeśli nie uda się załadować)
-    async function loadTextureSafe(url) {
-      try {
-        const tex = await textureLoader.loadAsync(url);
-        tex.magFilter = THREE.LinearFilter;
-        tex.minFilter = THREE.LinearMipMapLinearFilter;
-        tex.anisotropy = viewer?.renderer?.capabilities?.getMaxAnisotropy?.() || 4;
-
-        tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-        tex.encoding = THREE.sRGBEncoding;
-        tex.offset.set(0, 0);            // ← brak przesunięcia
-        tex.repeat.set(1, 1);            // ← domyślne powielenie
-        tex.needsUpdate = true;         // ← odświeżenie
-        return tex;
-      } catch {
-        return null;
-      }
-    }
-
-    if (folderPath && !/\.(jpg|jpeg|png|gif)$/i.test(folderPath)) {
-      const baseColorTex = await loadTextureSafe(`${folderPath}/baseColor.jpg`);
-      const normalTex = await loadTextureSafe(`${folderPath}/normal.jpg`);
-      const roughnessTex = await loadTextureSafe(`${folderPath}/roughness.jpg`);
-      const metallicTex = await loadTextureSafe(`${folderPath}/metallic.jpg`);
-
-     
-
-
-      // ⬇️ BASE COLOR
-if (baseColorTex) {
-  baseColorTex.wrapS = THREE.RepeatWrapping;
-  baseColorTex.wrapT = THREE.RepeatWrapping;
-  baseColorTex.offset.set(0, 0);
-  baseColorTex.repeat.set(1.001, 1.001);
-  baseColorTex.encoding = THREE.sRGBEncoding;
-  baseColorTex.magFilter = THREE.LinearFilter;
-  baseColorTex.minFilter = THREE.LinearMipMapLinearFilter;
-  baseColorTex.anisotropy = viewer?.renderer?.capabilities?.getMaxAnisotropy?.() || 4;
-  baseColorTex.needsUpdate = true;
-  material.map = baseColorTex;
-} else {
-  material.map = null;
-}
-
-// ⬇️ NORMAL
-if (normalTex) {
-  normalTex.wrapS = THREE.RepeatWrapping;
-  normalTex.wrapT = THREE.RepeatWrapping;
-  normalTex.offset.set(0, 0);
-  normalTex.repeat.set(1.001, 1.001);
-  normalTex.encoding = THREE.LinearEncoding;
-  normalTex.needsUpdate = true;
-  material.normalMap = normalTex;
-} else {
-  material.normalMap = null;
-}
-
-// ⬇️ ROUGHNESS
-if (roughnessTex) {
-  roughnessTex.wrapS = THREE.RepeatWrapping;
-  roughnessTex.wrapT = THREE.RepeatWrapping;
-  roughnessTex.offset.set(0, 0);
-  roughnessTex.repeat.set(1.001, 1.001);
-  roughnessTex.encoding = THREE.LinearEncoding;
-  roughnessTex.needsUpdate = true;
-  material.roughnessMap = roughnessTex;
-} else {
-  material.roughnessMap = null;
-}
-
-// ⬇️ METALLIC
-if (metallicTex) {
-  metallicTex.wrapS = THREE.RepeatWrapping;
-  metallicTex.wrapT = THREE.RepeatWrapping;
-  metallicTex.offset.set(0, 0);
-  metallicTex.repeat.set(1.001, 1.001);
-  metallicTex.encoding = THREE.LinearEncoding;
-  metallicTex.needsUpdate = true;
-  material.metalnessMap = metallicTex;
-} else {
-  material.metalnessMap = null;
-}
-
-
-      material.color.set(0xffffff);
-
-      if (baseColorTex) baseColorTex.needsUpdate = true;
-      if (normalTex) normalTex.needsUpdate = true;
-      if (roughnessTex) roughnessTex.needsUpdate = true;
-      if (metallicTex) metallicTex.needsUpdate = true;
-
-      material.needsUpdate = true;
-
-      targetObject.material = material;
-
-      triggerSceneRefresh();
-      startForceRender();
-
-      console.log(`✅ Załadowano mapy na mesh '${targetName}':`, {
-        baseColorMap: !!material.map,
-        normalMap: !!material.normalMap,
-        roughnessMap: !!material.roughnessMap,
-        metallicMap: !!material.metalnessMap
-      });
-
-    } else if (variant.Wartość && /\.(jpg|jpeg|png)$/i.test(variant.Wartość)) {
-      // obsługa gdy podano pojedynczy plik (np. baseColor)
-      try {
-        const texture = await textureLoader.loadAsync(variant.Wartość);
-        tex.magFilter = THREE.LinearFilter;
-        tex.minFilter = THREE.LinearMipMapLinearFilter;
-        tex.anisotropy = viewer?.renderer?.capabilities?.getMaxAnisotropy?.() || 4;
-
-        texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-        texture.encoding = THREE.sRGBEncoding;
-        tex.offset.set(0, 0);            // ← brak przesunięcia
-        tex.repeat.set(1, 1);            // ← domyślne powielenie
-        tex.needsUpdate = true;         // ← odświeżenie
-
-        material.map = texture;
-        material.color.set(0xffffff);
-        material.map.needsUpdate = true;
-        material.needsUpdate = true;
-
-        targetObject.material = material;
-
-        triggerSceneRefresh();
-        startForceRender();
-
-        console.log(`✅ Tekstura '${variant.Wartość}' załadowana na mesh '${targetName}'`);
       } catch (e) {
-        console.warn(`❌ Nie udało się załadować tekstury: ${variant.Wartość}`, e);
+        console.error(`BŁĄD ładowania nóg: ${e.message}`, e);
       }
-    if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(variant.Wartość)) {
-    if (!(targetObject.material instanceof THREE.MeshStandardMaterial)) {
-      console.log(`🛠️ Zamiana materiału na MeshStandardMaterial dla '${targetName}'`);
-      const newMat = new THREE.MeshStandardMaterial();
-      targetObject.material.dispose();
-      targetObject.material = newMat;
-    }
-    const material = targetObject.material;
-
-    try {
-      material.map = null;
-      material.color = new THREE.Color(`0x${variant.Wartość.substring(1)}`); // Convert "#RRGGBB" to "0xRRGGBB"
-
-    // Logowanie surowych wartości
-    console.log(`Metalness raw: '${variant.Metalness}', Roughness raw: '${variant.Roughness}'`);
-
-    // Obcinamy spacje i konwertujemy na float
-    const metalRaw = (variant.Metalness || '').toString().trim();
-    const roughRaw = (variant.Roughness || '').toString().trim();
-
-    const metalVal = metalRaw !== '' ? parseFloat(metalRaw) : 0.35;
-    const roughVal = roughRaw !== '' ? parseFloat(roughRaw) : 0.4;
-
-    console.log(`Metalness parsed: ${metalVal}, Roughness parsed: ${roughVal}`);
-
-    material.metalness = !isNaN(metalVal) ? metalVal : 0.35;
-    material.roughness = !isNaN(roughVal) ? roughVal : 0.4;
-
-    targetObject.material = material;
-    targetObject.geometry.computeVertexNormals(); // Add this line
-    material.needsUpdate = true;
-
-    triggerSceneRefresh();
-    startForceRender();
-
-    console.log(`🎨 Kolor i właściwości materiału ustawione na '${targetName}': kolor ${variant.Wartość}, metalness ${material.metalness}, roughness ${material.roughness}`);
-  } catch (e) {
-    console.warn(`❌ Nie udało się ustawić koloru lub właściwości: ${variant.Wartość}`, e);
-  }
-}
-    } else {
-      console.warn(`⚠️ Niepoprawna wartość materiału: ${variant.Wartość}`);
-    }
-  }
-
-  // Zapamiętanie wyboru i odświeżenie sceny - możesz tu zostawić swój oryginalny kod
-  targetNames.forEach(targetName => {
-    selectedMaterials[targetName] = variant;
-    if (targetName === 'legs' || targetName === 'legs_material') {
-      selectedMaterials['legs_material'] = variant;
-    }
-  });
-
-  // 🗂️ Automatycznie przypisz Folder do eksportu
-Object.entries(selectedMaterials).forEach(([key, mat]) => {
-  if (!mat.Folder && typeof mat.Wartość === 'string') {
-    const parts = mat.Wartość.split('/');
-    const last = parts[parts.length - 1];
-    if (last && texturesFilesByFolder?.[last]) {
-      mat.Folder = last;
-      console.log(`📁 Dodano Folder='${last}' do '${key}'`);
-    }
-  }
-});
-
-  viewer.scene.traverse(obj => {
-    if (obj.isMesh && obj.material) {
-      obj.material.needsUpdate = true;
-    }
-  });
-
-  if (viewer?.camera) {
-    viewer.camera.position.x += 0.00001;
-    viewer.camera.updateProjectionMatrix();
-  }
-
-  if (viewer?.render) viewer.render();
-
-  updateSummary();
-}
-
-function applyMaterialToSpecificMesh(variant, meshKey) {
-  const clone = { ...variant };
-  clone.TargetMeshOrModel = meshKey;
-  console.log(`🎯 Przypisano '${variant.Nazwa}' tylko do mesh '${meshKey}'`);
-  applyMaterial(clone);
-}
-
-
-
-// DOBRE ŁADOWANIE MATERIAŁÓW!!!
-
-
-
-
-
-            function renderOptions(containerId, items, onSelect, isInteractive = true) {
-                const container = document.getElementById(containerId);
-                if (!container) return;
-                container.innerHTML = '';
-                items.forEach((item, index) => {
-                    const wrapper = document.createElement('div');
-                    wrapper.className = 'thumbnail-wrapper';
-                    const button = document.createElement('div');
-                    button.className = 'thumbnail';
-                    button.title = item.Nazwa;
-
-                    // PODŚWIETLENIE WYBRANEGO
-                    let isSelected = false;
-                    if (containerId === 'material-options') {
-                        if (item.Grupa && item.Grupa.toLowerCase() === 'materiały_nóg') {
-                            isSelected = selectedMaterials['legs_material'] && selectedMaterials['legs_material'].Nazwa === item.Nazwa;
-                        } else if (item.TargetMeshOrModel) {
-                            const targets = item.TargetMeshOrModel.split(',').map(t => t.trim());
-                            isSelected = targets.some(t => selectedMaterials[t] && selectedMaterials[t].Nazwa === item.Nazwa);
-                        }
-                    } else if (containerId === 'legs-thumbnails') {
-                        isSelected = selectedLeg && selectedLeg.Nazwa === item.Nazwa;
-                    }
-                    if (isSelected) button.classList.add('selected');
-
-                    if (isInteractive) {
-                        button.addEventListener('click', () => {
-                            onSelect(item);
-                            container.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('selected'));
-                            button.classList.add('selected');
-                        });
-                    }
-                    const img = document.createElement('img');
-                    img.src = item.Obrazek && item.Obrazek.length > 4 ? item.Obrazek : 'icons/placeholder.svg';
-                    img.alt = item.Nazwa;
-                    button.appendChild(img);
-                    const caption = document.createElement('div');
-                    caption.className = 'thumbnail-caption';
-                    caption.textContent = item.Nazwa;
-                    wrapper.appendChild(button);
-                    wrapper.appendChild(caption);
-                    container.appendChild(wrapper);
-                });
-            }
-
-            
-
-
-
-function renderFilteredMaterialOptions(targetMesh) {
-  let materialOptions = [];
-
-  if (!selectedChair || !selectedChair.Grupa) return;
-  const grupa = selectedChair.Grupa.toLowerCase();
-
-  // 🔧 FUNKCJA POMOCNICZA: sprawdza czy wpis pasuje do grupy docelowej
-  const isAllowedForGroup = (entryGroupDocelowa) => {
-    if (!entryGroupDocelowa) return false; // pusta = nie pokazuj
-    const values = entryGroupDocelowa.toLowerCase().split(',').map(s => s.trim());
-    return values.includes('wszystkie') || values.includes(grupa) || values.includes('kubełek, krzesło');
-  };
-
-  // 🦵 MATERIAŁY NÓG
-  if (targetMesh === 'legs' || targetMesh === 'legs_material') {
-    materialOptions = allData.filter(d =>
-      d.Grupa?.toLowerCase() === 'materiały_nóg' &&
-      isAllowedForGroup(d.GrupaDocelowa) &&
-      d.Visible?.toLowerCase() !== 'false'
-    );
-
-    // Filtrowanie po typie nóg, jeśli istnieje
-    if (selectedLeg && selectedLeg.Typ) {
-      materialOptions = materialOptions.filter(mat =>
-        !mat.Typ || mat.Typ.toLowerCase().trim() === selectedLeg.Typ.toLowerCase().trim()
-      );
     }
 
-    // Dodatkowo filtruj po DlaModeluNóg
-    if (selectedLeg && selectedLeg.Nazwa) {
-      const currentLegName = selectedLeg.Nazwa.toLowerCase().trim();
-      materialOptions = materialOptions.filter(mat => {
-        const allowedLegs = mat.DlaModeluNóg
-          ? mat.DlaModeluNóg.split(',').map(s => s.trim().toLowerCase())
-          : [];
-        return allowedLegs.length === 0 || allowedLegs.includes(currentLegName);
+
+
+    let forceRenderInterval;
+
+    function triggerSceneRefresh() {
+      if (viewer?.camera) {
+        viewer.camera.position.x += 0.00001;
+        viewer.camera.zoom += 0.0001; // ⬅️ mikroskopijny zoom
+        viewer.camera.updateProjectionMatrix();
+      }
+      if (viewer?.renderer?.info) {
+        viewer.renderer.info.reset();
+      }
+      if (viewer?.render) viewer.render();
+    }
+
+
+    function startForceRender(duration = 2000) {
+      clearInterval(forceRenderInterval);
+      forceRenderInterval = setInterval(() => {
+        triggerSceneRefresh();
+      }, 100);
+
+      setTimeout(() => {
+        clearInterval(forceRenderInterval);
+        console.log("🛑 Zakończono wymuszone odświeżanie");
+      }, duration);
+    }
+
+
+
+    const textureLoader = new TextureLoader();
+
+    if (
+      selectedChair?.Grupa?.toLowerCase() === 'kubełek' &&
+      variant.TargetMeshOrModel?.toLowerCase().includes('legs') &&
+      variant.WariantModelu
+    ) {
+      // 👉 dla kubełków z podmianą nóg — zmień model nóg
+      setLegModel(variant);
+    } else if (
+      selectedChair &&
+      (selectedChair.Grupa.toLowerCase() !== 'kubełek' || !variant.WariantModelu)
+    ) {
+      // 👉 dla pozostałych krzeseł bez wariantów nóg — wyświetl materiały nóg do wyboru
+      showLegMaterialsForSimpleChairs(selectedChair);
+    }
+
+    function applyMaterialToMesh(variant, forcedMeshName) {
+      const clone = { ...variant };
+      clone.TargetMeshOrModel = forcedMeshName;
+      console.log(`🎯 Przypisano '${clone.Nazwa}' tylko do mesh '${forcedMeshName}'`);
+      applyMaterial(clone);
+    }
+
+    // Funkcja, która wyświetla kafelki materiałów nóg dla prostych krzeseł
+    function showLegMaterialsForSimpleChairs(chair) {
+      const legsMaterialsContainer = document.getElementById('legs-thumbnails');
+      // Usuń tylko kafelki materiałów (pozostaw warianty nóg)
+      legsMaterialsContainer.querySelectorAll('.material-tile').forEach(tile => tile.remove());
+
+
+      // Pobierz materiały nóg dla danego krzesła (przykład, wymaga dostosowania)
+      const materials = getMaterialsForLegs(chair.defaultLegsId || 'default');
+
+      materials.forEach(mat => {
+        const tile = document.createElement('div');
+        tile.className = 'material-tile';
+        tile.textContent = mat.Nazwa;
+        tile.style.backgroundImage = `url(${mat.Obrazek || 'fallback.png'})`;
+        tile.onclick = () => {
+          onLegVariantClick(mat.DlaModeliNóg || mat.Nazwa);
+          applyLegMaterial(mat);
+        };
+
+        legsMaterialsContainer.appendChild(tile);
       });
     }
 
-    renderOptions('material-options', materialOptions, item =>
-      applyMaterialToSpecificMesh(item, 'legs')
-    );
-    return;
+
+    // DOBRE ŁADOWANIE MATERIAŁÓW!!!
+
+    async function applyMaterial(variant) {
+      console.log('📦 variant:', variant);
+
+      
+
+
+      if (!currentModelContainer) {
+        console.warn('currentModelContainer jest null lub undefined');
+        return;
+      }
+
+      if (!variant.TargetMeshOrModel) {
+        console.warn('Brak TargetMeshOrModel w wariancie');
+        return;
+      }
+
+      if (!currentModelContainer || !variant.TargetMeshOrModel) return;
+
+      const targetNames = variant.TargetMeshOrModel.split(',').map(name => name.trim());
+      const isHex = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(variant.Color || variant.Wartość);
+const folderPath = (!isHex && variant.Wartość.startsWith('textures/')) ? variant.Wartość : `textures/${variant.Wartość}`;
+
+
+      for (const targetName of targetNames) {
+        let container;
+        if (targetName.toLowerCase() === 'legs') {
+          if (selectedChair?.Grupa?.toLowerCase() === 'krzesło' || !currentLegModel) {
+            container = currentModelContainer;
+          } else {
+            container = currentLegModel;
+          }
+        } else {
+          container = currentModelContainer;
+        }
+
+        let targetObject = null;
+
+        container?.traverse(obj => {
+          if (
+            obj.isMesh &&
+            obj.name &&
+            obj.name.toLowerCase().trim() === targetName.toLowerCase().trim()
+          ) {
+            targetObject = obj;
+          }
+        });
+
+        if (!targetObject) {
+          console.warn(`❌ Mesh '${targetName}' nie znaleziony w modelu`);
+          continue;
+        }
+
+        if (!targetObject.material) {
+          console.warn(`⚠️ Mesh '${targetName}' nie ma materiału.`);
+          continue;
+        }
+
+        const material = targetObject.material.clone();
+
+        
+        
+
+        
+        // Funkcja do bezpiecznego ładowania tekstury (zwraca null, jeśli nie uda się załadować)
+  async function loadTextureSafe(url) {
+    try {
+      const tex = await textureLoader.loadAsync(url);
+      tex.magFilter = THREE.LinearFilter;
+      tex.minFilter = THREE.LinearMipMapLinearFilter;
+      tex.anisotropy = viewer?.renderer?.capabilities?.getMaxAnisotropy?.() || 4;
+
+      tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+      tex.encoding = THREE.sRGBEncoding;
+      tex.offset.set(0, 0);            // ← brak przesunięcia
+      tex.repeat.set(1, 1);            // ← domyślne powielenie
+      tex.needsUpdate = true;         // ← odświeżenie
+      return tex;
+    } catch {
+      return null;
+    }
   }
 
-  // ✳️ MATERIAŁY TKANINOWE (siedzisko, oparcia itd.)
-  // ✳️ Materiały tkaninowe (seat, backseat itd.)
-materialOptions = allData.filter(d =>
-  d.Grupa?.toLowerCase() === 'tkanina' &&
-  d.TargetMeshOrModel &&
-  d.TargetMeshOrModel.split(',').map(s => s.trim()).includes(targetMesh) &&
-  isAllowedForGroup(d.GrupaDocelowa) &&
-  d.Visible?.toLowerCase() !== 'false'
-);
+  if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(variant.Color || variant.Wartość)) {
+    // ⬅️ obsługa koloru
+  } else if (folderPath && !/\.(jpg|jpeg|png|gif)$/i.test(folderPath)) {
+    const baseColorTex = await loadTextureSafe(`${folderPath}/baseColor.jpg`);
+    const normalTex = await loadTextureSafe(`${folderPath}/normal.jpg`);
+    const roughnessTex = await loadTextureSafe(`${folderPath}/roughness.jpg`);
+    const metallicTex = await loadTextureSafe(`${folderPath}/metallic.jpg`);
 
-// 🔄 Grupa wg Kolekcji
-const groupedByCollection = {};
-materialOptions.forEach(mat => {
-  const key = mat.Kolekcja?.trim() || 'Inne';
-  if (!groupedByCollection[key]) groupedByCollection[key] = [];
-  groupedByCollection[key].push(mat);
-});
-
-// 🧱 Stwórz panele kolekcji
-const container = document.getElementById('material-options');
-container.innerHTML = '';
-
-Object.entries(groupedByCollection).forEach(([kolekcja, materiały]) => {
-  const panel = document.createElement('details');
-  panel.open = (kolekcja === lastOpenedCollection); // otwórz tylko wybraną
-
-  const summary = document.createElement('summary');
-  summary.textContent = kolekcja;
-  summary.style.fontSize = '16px';
-  summary.style.fontWeight = 'bold';
-  summary.style.margin = '12px 0';
-  panel.appendChild(summary);
-
-  const grid = document.createElement('div');
-  grid.className = 'options-grid';
-
-  materiały.forEach(mat => {
-    const wrapper = document.createElement('div');
-    wrapper.className = 'thumbnail-wrapper';
-
-    const button = document.createElement('div');
-    button.className = 'thumbnail';
-    button.title = mat.Nazwa;
-
-    const img = document.createElement('img');
-    img.src = mat.Obrazek || 'icons/placeholder.svg';
-    img.alt = mat.Nazwa;
-    button.appendChild(img);
-
-    const caption = document.createElement('div');
-    caption.className = 'thumbnail-caption';
-    caption.textContent = mat.Nazwa;
-
-    wrapper.appendChild(button);
-    wrapper.appendChild(caption);
-
-    button.onclick = () => {
-      applyMaterialToSpecificMesh(mat, targetMesh);
-      container.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('selected'));
-      button.classList.add('selected');
-
-      // 🧠 zapamiętaj kolekcję materiału
-      lastOpenedCollection = kolekcja;
-    };
-
-    grid.appendChild(wrapper);
-  });
-
-  panel.appendChild(grid);
-  container.appendChild(panel);
-
-  // 🧠 kliknięcie nagłówka kolekcji — pokaż tylko tę jedną
-  summary.addEventListener('click', () => {
-  // ⏱ Czekamy na zmianę stanu <details>
-  setTimeout(() => {
-    // Jeśli panel został otwarty — zapamiętaj kolekcję
-    if (panel.open) {
-      lastOpenedCollection = kolekcja;
+    // ⬇️ BASE COLOR
+    if (baseColorTex) {
+      baseColorTex.wrapS = THREE.RepeatWrapping;
+      baseColorTex.wrapT = THREE.RepeatWrapping;
+      baseColorTex.offset.set(0, 0);
+      baseColorTex.repeat.set(1.001, 1.001);
+      baseColorTex.encoding = THREE.sRGBEncoding;
+      baseColorTex.magFilter = THREE.LinearFilter;
+      baseColorTex.minFilter = THREE.LinearMipMapLinearFilter;
+      baseColorTex.anisotropy = viewer?.renderer?.capabilities?.getMaxAnisotropy?.() || 4;
+      baseColorTex.needsUpdate = true;
+      material.map = baseColorTex;
     } else {
-      // Jeśli został właśnie zamknięty — wyczyść zapamiętaną kolekcję
-      if (lastOpenedCollection === kolekcja) {
-        lastOpenedCollection = null;
-      }
+      material.map = null;
     }
 
-    // Zamknij inne panele
-    container.querySelectorAll('details').forEach(p => {
-      if (p !== panel) p.open = false;
-    });
-  }, 0);
-});
+    // ⬇️ NORMAL
+    if (normalTex) {
+      normalTex.wrapS = THREE.RepeatWrapping;
+      normalTex.wrapT = THREE.RepeatWrapping;
+      normalTex.offset.set(0, 0);
+      normalTex.repeat.set(1.001, 1.001);
+      normalTex.encoding = THREE.LinearEncoding;
+      normalTex.magFilter = THREE.LinearFilter;
+      normalTex.minFilter = THREE.LinearMipMapLinearFilter;
+      normalTex.anisotropy = viewer?.renderer?.capabilities?.getMaxAnisotropy?.() || 4;
+      normalTex.needsUpdate = true;
+      material.normalMap = normalTex;
+    } else {
+      material.normalMap = null;
+    }
 
-    lastOpenedCollection = kolekcja;
-    container.querySelectorAll('details').forEach(p => {
-      p.open = (p === panel);
-    });
-  });
+    // ⬇️ ROUGHNESS
+    if (roughnessTex) {
+      roughnessTex.wrapS = THREE.RepeatWrapping;
+      roughnessTex.wrapT = THREE.RepeatWrapping;
+      roughnessTex.offset.set(0, 0);
+      roughnessTex.repeat.set(1.001, 1.001);
+      roughnessTex.encoding = THREE.LinearEncoding;
+      roughnessTex.magFilter = THREE.LinearFilter;
+      roughnessTex.minFilter = THREE.LinearMipMapLinearFilter;
+      roughnessTex.anisotropy = viewer?.renderer?.capabilities?.getMaxAnisotropy?.() || 4;
+      roughnessTex.needsUpdate = true;
+      material.roughnessMap = roughnessTex;
+    } else {
+      material.roughnessMap = null;
+    }
+
+    // ⬇️ METALLIC
+    if (metallicTex) {
+      metallicTex.wrapS = THREE.RepeatWrapping;
+      metallicTex.wrapT = THREE.RepeatWrapping;
+      metallicTex.offset.set(0, 0);
+      metallicTex.repeat.set(1.001, 1.001);
+      metallicTex.encoding = THREE.LinearEncoding;
+      metallicTex.magFilter = THREE.LinearFilter;
+      metallicTex.minFilter = THREE.LinearMipMapLinearFilter;
+      metallicTex.anisotropy = viewer?.renderer?.capabilities?.getMaxAnisotropy?.() || 4;
+      metallicTex.needsUpdate = true;
+      material.metalnessMap = metallicTex;
+    } else {
+      material.metalnessMap = null;
+    }
+
+    // ⬇️ Metalness / Roughness z arkusza
+    console.log('🧪 Raw Metalness:', variant.Metalness);
+    console.log('🧪 Raw Roughness:', variant.Roughness);
+
+    function parseValue(val, fallback) {
+      const raw = (val || '')
+        .toString()
+        .trim()
+        .replace(/['"]/g, '')
+        .replace(',', '.');
+      const parsed = parseFloat(raw);
+      return !isNaN(parsed) ? parsed : fallback;
+    }
+
+    const metalness = parseValue(variant.Metalness, 0);
+    const roughness = parseValue(variant.Roughness, 0.814);
+
+    material.metalness = metalness;
+    material.roughness = roughness;
+  }
+
+  material.color.set(0xffffff);
+
+  material.needsUpdate = true;
+  targetObject.material = material;
+
+  if (targetObject.geometry?.computeVertexNormals) {
+    targetObject.geometry.computeVertexNormals();
+  }
+
+  triggerSceneRefresh?.();
+  startForceRender?.();
+
+  console.log(`✅ Załadowano tekstury na '${targetName}'`);
+  console.log(`🧪 Metalness=${material.metalness}, Roughness=${material.roughness}`);
 }
 
 
   
 
 
+        // Zapamiętanie wyboru i odświeżenie sceny - możesz tu zostawić swój oryginalny kod
+        targetNames.forEach(targetName => {
+          selectedMaterials[targetName] = variant;
+          if (targetName === 'legs' || targetName === 'legs_material') {
+            selectedMaterials['legs_material'] = variant;
+          }
+        });
 
-
-
-
-
-
-            function activateLegsTabAndShowMaterials() {
-                // Podświetl zakładkę "Nogi" po data-key
-                const partTabs = document.querySelectorAll('#part-tabs .thumbnail');
-                partTabs.forEach(tab => tab.classList.remove('selected'));
-                partTabs.forEach(tab => {
-                    if (tab.dataset.key === 'legs') {
-                        tab.classList.add('selected');
-                    }
-                });
-
-                // Pokaż sekcję materiałów i wyświetl wszystkie materiały nóg
-                document.getElementById('materials-section').style.display = 'block';
-                renderFilteredMaterialOptions('legs');
-                
+        // 🗂️ Automatycznie przypisz Folder do eksportu
+        Object.entries(selectedMaterials).forEach(([key, mat]) => {
+          if (!mat.Folder && typeof mat.Wartość === 'string') {
+            const parts = mat.Wartość.split('/');
+            const last = parts[parts.length - 1];
+            if (last && texturesFilesByFolder?.[last]) {
+              mat.Folder = last;
+              console.log(`📁 Dodano Folder='${last}' do '${key}'`);
             }
+          }
+        });
 
-            function renderPartTabs() {
-                const container = document.getElementById('part-tabs');
-                container.innerHTML = '';
-                // Pobierz unikalne elementy do wyboru
-                const allTargets = allData.filter(d => d.TargetMeshOrModel)
-                    .flatMap(d => d.TargetMeshOrModel.split(',').map(t => t.trim()));
-                const uniqueTargets = [...new Set(allTargets)];
-                if (uniqueTargets.length === 0) {
-                    document.getElementById('parts-section').style.display = 'none';
-                    return;
-                }
-                document.getElementById('parts-section').style.display = 'block';
+        viewer.scene.traverse(obj => {
+          if (obj.isMesh && obj.material) {
+            obj.material.needsUpdate = true;
+          }
+        });
 
-                // Mapowanie nazw technicznych na polskie
-                const POLISH_LABELS = {
-                    seat: 'Siedzisko',
-                    backseat_inside: 'Oparcie wew.',
-                    backseat_outside: 'Oparcie zew.',
-                    backseat: 'Oparcie',
-                    legs: 'Nogi'
-                };
+        if (viewer?.camera) {
+          viewer.camera.position.x += 0.00001;
+          viewer.camera.updateProjectionMatrix();
+        }
 
-                renderOptions('part-tabs', uniqueTargets.map(name => {
-                    const key = name.trim().toLowerCase();
-                    return {
-                        Nazwa: POLISH_LABELS[key] || name.trim(),
-                        Obrazek: ELEMENT_ICONS[key] || 'icons/placeholder.svg',
-                        _technicalKey: key
-                    };
-                }), (item) => {
-                    if (item._technicalKey === 'legs') {
-                        activateLegsTabAndShowMaterials();
-                    } else {
-                        // Podświetl klikniętą zakładkę
-                        const partTabs = document.querySelectorAll('#part-tabs .thumbnail');
-                        partTabs.forEach(tab => tab.classList.remove('selected'));
-                        partTabs.forEach(tab => {
-                            if (tab.title && tab.title.toLowerCase().includes(item.Nazwa.toLowerCase())) {
-                                tab.classList.add('selected');
-                            }
-                        });
-                        document.getElementById('materials-section').style.display = 'block';
-                        renderFilteredMaterialOptions(item._technicalKey);
-                    }
-                });
+        if (viewer?.render) viewer.render();
+
+        updateSummary();
+      }
+
+      function applyMaterialToSpecificMesh(variant, meshKey) {
+        const clone = { ...variant };
+        clone.TargetMeshOrModel = meshKey;
+        console.log(`🎯 Przypisano '${variant.Nazwa}' tylko do mesh '${meshKey}'`);
+        applyMaterial(clone);
+      }
+
+      // DOBRE ŁADOWANIE MATERIAŁÓW!!!
+
+
+
+
+
+      function renderOptions(containerId, items, onSelect, isInteractive = true) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        container.innerHTML = '';
+        items.forEach((item, index) => {
+          const wrapper = document.createElement('div');
+          wrapper.className = 'thumbnail-wrapper';
+          const button = document.createElement('div');
+          button.className = 'thumbnail';
+          button.title = item.Nazwa;
+
+          // PODŚWIETLENIE WYBRANEGO
+          let isSelected = false;
+          if (containerId === 'material-options') {
+            if (item.Grupa && item.Grupa.toLowerCase() === 'materiały_nóg') {
+              isSelected = selectedMaterials['legs_material'] && selectedMaterials['legs_material'].Nazwa === item.Nazwa;
+            } else if (item.TargetMeshOrModel) {
+              const targets = item.TargetMeshOrModel.split(',').map(t => t.trim());
+              isSelected = targets.some(t => selectedMaterials[t] && selectedMaterials[t].Nazwa === item.Nazwa);
             }
+          } else if (containerId === 'legs-thumbnails') {
+            isSelected = selectedLeg && selectedLeg.Nazwa === item.Nazwa;
+          }
+          if (isSelected) button.classList.add('selected');
 
-            function updateUI() {
-    const backContainer = document.getElementById('back-to-models-container');
-    backContainer.innerHTML = '';
-    if (selectedChair && (selectedChair.Obrazek || selectedChair.Image)) {
-        // Stwórz ramkę z ikonką i X
-        const btn = document.createElement('div');
-        btn.className = 'back-to-model-btn';
-        btn.title = 'Wróć do wyboru modelu';
+          if (isInteractive) {
+            button.addEventListener('click', () => {
+              onSelect(item);
+              container.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('selected'));
+              button.classList.add('selected');
+            });
+          }
+          const img = document.createElement('img');
+          img.src = item.Obrazek && item.Obrazek.length > 4 ? item.Obrazek : 'icons/placeholder.svg';
+          img.alt = item.Nazwa;
+          button.appendChild(img);
+          const caption = document.createElement('div');
+          caption.className = 'thumbnail-caption';
+          caption.textContent = item.Nazwa;
+          wrapper.appendChild(button);
+          wrapper.appendChild(caption);
+          container.appendChild(wrapper);
+        });
+      }
 
-        // Ikonka modelu
-        const img = document.createElement('img');
-        img.src = selectedChair.Obrazek || selectedChair.Image;
-        img.alt = selectedChair.Nazwa;
-        btn.appendChild(img);
 
-        // Przycisk X w rogu
-        const xBtn = document.createElement('button');
-        xBtn.className = 'close-x';
-        xBtn.innerHTML = '&times;';
-        xBtn.title = 'Wróć do wyboru modelu';
-        xBtn.onclick = (e) => {
-            e.stopPropagation();
-            showScreen('models');
-        };
-        btn.appendChild(xBtn);
 
-        // Kliknięcie w całą ramkę też wraca do wyboru modelu
-        btn.onclick = () => showScreen('models');
 
-        backContainer.appendChild(btn);
-    }
 
-    const legs = allData.filter(d => d.Grupa.toLowerCase() === 'nogi');
-    renderPartButtons();
+      function renderFilteredMaterialOptions(targetMesh) {
+        let materialOptions = [];
 
-    // Sekcja nóg i materiały nóg – nogi tylko dla kubełków, materiały dla kubełków i krzeseł
-    if (selectedChair && selectedChair.Grupa) {
+        if (!selectedChair || !selectedChair.Grupa) return;
         const grupa = selectedChair.Grupa.toLowerCase();
 
-        if (grupa === 'kubełek') {
+        // 🔧 FUNKCJA POMOCNICZA: sprawdza czy wpis pasuje do grupy docelowej
+        const isAllowedForGroup = (entryGroupDocelowa) => {
+          if (!entryGroupDocelowa) return false; // pusta = nie pokazuj
+          const values = entryGroupDocelowa.toLowerCase().split(',').map(s => s.trim());
+          return values.includes('wszystkie') || values.includes(grupa) || values.includes('kubełek, krzesło');
+        };
+
+        // 🦵 MATERIAŁY NÓG
+        if (targetMesh === 'legs' || targetMesh === 'legs_material') {
+          materialOptions = allData.filter(d =>
+            d.Grupa?.toLowerCase() === 'materiały_nóg' &&
+            isAllowedForGroup(d.GrupaDocelowa) &&
+            d.Visible?.toLowerCase() !== 'false'
+          );
+
+          // Filtrowanie po typie nóg, jeśli istnieje
+          if (selectedLeg && selectedLeg.Typ) {
+            materialOptions = materialOptions.filter(mat =>
+              !mat.Typ || mat.Typ.toLowerCase().trim() === selectedLeg.Typ.toLowerCase().trim()
+            );
+          }
+
+          // Dodatkowo filtruj po DlaModeluNóg
+          if (selectedLeg && selectedLeg.Nazwa) {
+            const currentLegName = selectedLeg.Nazwa.toLowerCase().trim();
+            materialOptions = materialOptions.filter(mat => {
+              const allowedLegs = mat.DlaModeluNóg
+                ? mat.DlaModeluNóg.split(',').map(s => s.trim().toLowerCase())
+                : [];
+              return allowedLegs.length === 0 || allowedLegs.includes(currentLegName);
+            });
+          }
+
+          renderOptions('material-options', materialOptions, item =>
+            applyMaterialToSpecificMesh(item, 'legs')
+          );
+          return;
+        }
+
+        // ✳️ MATERIAŁY TKANINOWE (siedzisko, oparcia itd.)
+        // ✳️ Materiały tkaninowe (seat, backseat itd.)
+        materialOptions = allData.filter(d =>
+          d.Grupa?.toLowerCase() === 'tkanina' &&
+          d.TargetMeshOrModel &&
+          d.TargetMeshOrModel.split(',').map(s => s.trim()).includes(targetMesh) &&
+          isAllowedForGroup(d.GrupaDocelowa) &&
+          d.Visible?.toLowerCase() !== 'false'
+        );
+
+        // 🔄 Grupa wg Kolekcji
+        const groupedByCollection = {};
+        materialOptions.forEach(mat => {
+          const key = mat.Kolekcja?.trim() || 'Inne';
+          if (!groupedByCollection[key]) groupedByCollection[key] = [];
+          groupedByCollection[key].push(mat);
+        });
+
+        // 🧱 Stwórz panele kolekcji
+        const container = document.getElementById('material-options');
+        container.innerHTML = '';
+
+        Object.entries(groupedByCollection).forEach(([kolekcja, materiały]) => {
+          const panel = document.createElement('details');
+          panel.open = (kolekcja === lastOpenedCollection); // otwórz tylko wybraną
+
+          const summary = document.createElement('summary');
+          summary.textContent = kolekcja;
+          summary.style.fontSize = '16px';
+          summary.style.fontWeight = 'bold';
+          summary.style.margin = '12px 0';
+          panel.appendChild(summary);
+
+          const grid = document.createElement('div');
+          grid.className = 'options-grid';
+
+          materiały.forEach(mat => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'thumbnail-wrapper';
+
+            const button = document.createElement('div');
+            button.className = 'thumbnail';
+            button.title = mat.Nazwa;
+
+            const img = document.createElement('img');
+            img.src = mat.Obrazek || 'icons/placeholder.svg';
+            img.alt = mat.Nazwa;
+            button.appendChild(img);
+
+            const caption = document.createElement('div');
+            caption.className = 'thumbnail-caption';
+            caption.textContent = mat.Nazwa;
+
+            wrapper.appendChild(button);
+            wrapper.appendChild(caption);
+
+            button.onclick = () => {
+              applyMaterialToSpecificMesh(mat, targetMesh);
+              container.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('selected'));
+              button.classList.add('selected');
+
+              // 🧠 zapamiętaj kolekcję materiału
+              lastOpenedCollection = kolekcja;
+            };
+
+            grid.appendChild(wrapper);
+          });
+
+          panel.appendChild(grid);
+          container.appendChild(panel);
+
+          // 🧠 kliknięcie nagłówka kolekcji — pokaż tylko tę jedną
+          summary.addEventListener('click', () => {
+            // ⏱ Czekamy na zmianę stanu <details>
+            setTimeout(() => {
+              // Jeśli panel został otwarty — zapamiętaj kolekcję
+              if (panel.open) {
+                lastOpenedCollection = kolekcja;
+              } else {
+                // Jeśli został właśnie zamknięty — wyczyść zapamiętaną kolekcję
+                if (lastOpenedCollection === kolekcja) {
+                  lastOpenedCollection = null;
+                }
+              }
+
+              // Zamknij inne panele
+              container.querySelectorAll('details').forEach(p => {
+                if (p !== panel) p.open = false;
+              });
+            }, 0);
+          });
+
+          lastOpenedCollection = kolekcja;
+          container.querySelectorAll('details').forEach(p => {
+            p.open = (p === panel);
+          });
+        });
+      }
+
+
+
+
+
+
+
+
+
+
+
+      function activateLegsTabAndShowMaterials() {
+        // Podświetl zakładkę "Nogi" po data-key
+        const partTabs = document.querySelectorAll('#part-tabs .thumbnail');
+        partTabs.forEach(tab => tab.classList.remove('selected'));
+        partTabs.forEach(tab => {
+          if (tab.dataset.key === 'legs') {
+            tab.classList.add('selected');
+          }
+        });
+
+        // Pokaż sekcję materiałów i wyświetl wszystkie materiały nóg
+        document.getElementById('materials-section').style.display = 'block';
+        renderFilteredMaterialOptions('legs');
+
+      }
+
+      function renderPartTabs() {
+        const container = document.getElementById('part-tabs');
+        container.innerHTML = '';
+        // Pobierz unikalne elementy do wyboru
+        const allTargets = allData.filter(d => d.TargetMeshOrModel)
+          .flatMap(d => d.TargetMeshOrModel.split(',').map(t => t.trim()));
+        const uniqueTargets = [...new Set(allTargets)];
+        if (uniqueTargets.length === 0) {
+          document.getElementById('parts-section').style.display = 'none';
+          return;
+        }
+        document.getElementById('parts-section').style.display = 'block';
+
+        // Mapowanie nazw technicznych na polskie
+        const POLISH_LABELS = {
+          seat: 'Siedzisko',
+          backseat_inside: 'Oparcie wew.',
+          backseat_outside: 'Oparcie zew.',
+          backseat: 'Oparcie',
+          legs: 'Nogi'
+        };
+
+        renderOptions('part-tabs', uniqueTargets.map(name => {
+          const key = name.trim().toLowerCase();
+          return {
+            Nazwa: POLISH_LABELS[key] || name.trim(),
+            Obrazek: ELEMENT_ICONS[key] || 'icons/placeholder.svg',
+            _technicalKey: key
+          };
+        }), (item) => {
+          if (item._technicalKey === 'legs') {
+            activateLegsTabAndShowMaterials();
+          } else {
+            // Podświetl klikniętą zakładkę
+            const partTabs = document.querySelectorAll('#part-tabs .thumbnail');
+            partTabs.forEach(tab => tab.classList.remove('selected'));
+            partTabs.forEach(tab => {
+              if (tab.title && tab.title.toLowerCase().includes(item.Nazwa.toLowerCase())) {
+                tab.classList.add('selected');
+              }
+            });
+            document.getElementById('materials-section').style.display = 'block';
+            renderFilteredMaterialOptions(item._technicalKey);
+          }
+        });
+      }
+
+      function updateUI() {
+        const backContainer = document.getElementById('back-to-models-container');
+        backContainer.innerHTML = '';
+        if (selectedChair && (selectedChair.Obrazek || selectedChair.Image)) {
+          // Stwórz ramkę z ikonką i X
+          const btn = document.createElement('div');
+          btn.className = 'back-to-model-btn';
+          btn.title = 'Wróć do wyboru modelu';
+
+          // Ikonka modelu
+          const img = document.createElement('img');
+          img.src = selectedChair.Obrazek || selectedChair.Image;
+          img.alt = selectedChair.Nazwa;
+          btn.appendChild(img);
+
+          // Przycisk X w rogu
+          const xBtn = document.createElement('button');
+          xBtn.className = 'close-x';
+          xBtn.innerHTML = '&times;';
+          xBtn.title = 'Wróć do wyboru modelu';
+          xBtn.onclick = (e) => {
+            e.stopPropagation();
+            showScreen('models');
+          };
+          btn.appendChild(xBtn);
+
+          // Kliknięcie w całą ramkę też wraca do wyboru modelu
+          btn.onclick = () => showScreen('models');
+
+          backContainer.appendChild(btn);
+        }
+
+        const legs = allData.filter(d => d.Grupa.toLowerCase() === 'nogi');
+        renderPartButtons();
+
+        // Sekcja nóg i materiały nóg – nogi tylko dla kubełków, materiały dla kubełków i krzeseł
+        if (selectedChair && selectedChair.Grupa) {
+          const grupa = selectedChair.Grupa.toLowerCase();
+
+          if (grupa === 'kubełek') {
             console.log("Pokazuję nogi i materiały nóg dla kubełka");
             document.getElementById('legs-section').style.display = 'block';
             renderOptions('legs-thumbnails', legs, item => {
-                setLegModel(item);
+              setLegModel(item);
             });
 
             // Ukryj sekcję materiałów, pokaże się po kliknięciu w zakładkę
             document.getElementById('materials-section').style.display = 'none';
-        } else if (grupa === 'krzesło') {
+          } else if (grupa === 'krzesło') {
             console.log("Ukrywam sekcję nóg dla krzesła");
             document.getElementById('legs-section').style.display = 'none';
 
             // Ukryj sekcję materiałów, pokaże się po kliknięciu w zakładkę
             document.getElementById('materials-section').style.display = 'none';
-        } else {
+          } else {
             console.log("Ukrywam sekcje nóg i materiałów");
             document.getElementById('legs-section').style.display = 'none';
             document.getElementById('materials-section').style.display = 'none';
+          }
+        } else {
+          console.log("Brak wybranego elementu lub grupy");
+          document.getElementById('legs-section').style.display = 'none';
+          document.getElementById('materials-section').style.display = 'none';
         }
-    } else {
-        console.log("Brak wybranego elementu lub grupy");
-        document.getElementById('legs-section').style.display = 'none';
-        document.getElementById('materials-section').style.display = 'none';
-    }
-
-    updateSummary();
-}
-
-const visibleData = allData.filter(d =>
-  d.Visible?.toString().trim().length > 0
-);
-
-
-            async function loadDataFromSheet() {
-                const sheetId = '1vCs6YeHgKqlYwg8rvJOqVzNRnXeATJCBuK-zh3NNj78';
-                const sheetURL = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=Dane&v=${new Date().getTime()}`;
-                try {
-                    const response = await fetch(sheetURL + '?nocache=' + Date.now(), { cache: 'no-store' });
-
-                    const csvText = await response.text();
-                    const rows = csvText.trim().split('\n');
-                    const headers = rows.shift().split(',').map(h => h.trim().replace(/"/g, ''));
-                    allData = rows.map(row => {
-    const values = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
-    const obj = {};
-    headers.forEach((header, index) => obj[header] = values[index]?.trim().replace(/"/g, '') || '');
-    return obj;
-  }).filter(item => item.Visible?.toLowerCase() !== 'false');
-
-                    const mainModels = allData.filter(d => ['krzesło', 'kubełek'].includes(d.Grupa.toLowerCase()));
-                    renderOptions('model-thumbnails', mainModels, item => loadModel(item));
-                    showScreen('models');
-
-                    const hdrEntries = allData.filter(d => d.HDR && d.HDRIcon);
-renderHDROptions(hdrEntries);
-
-
-
-
-
-                    // ZAWSZE na starcie ładuj Default.glb (nie ustawiaj selectedChair!)
-                    if (currentModelContainer) {
-                        viewer.scene.remove(currentModelContainer);
-                        if (typeof currentModelContainer.dispose === 'function') currentModelContainer.dispose();
-                    }
-                    currentModelContainer = await viewer.load('chairs/Default.glb', { autoCenter: true });
-                    setCameraView(new Vector3(0, 0, 0));
-                    selectedChair = null;
-                    selectedLeg = null;
-                    selectedMaterials = {};
-                    userInteracted = false;
-                    updateSummary();
-                    const toolbar = document.getElementById('bottom-toolbar');
-if (toolbar) {
-  toolbar.style.display = 'flex';
-  toolbar.classList.add('visible');
-}
-
-                } catch (e) { console.error("Błąd ładowania danych:", e); document.body.innerHTML = `Błąd ładowania danych: ${e.message}`; }
-            }
-
-           document.getElementById('hdr-toggle')?.addEventListener('click', (e) => {
-  e.stopPropagation();
-  const panel = document.getElementById('hdr-panel');
-  panel.classList.toggle('hidden');
-  document.getElementById('hdr-panel').style.display = 'block';
-
-});
- 
-            
-
-            function updateSummary() {
-                const overviewPanel = document.getElementById('config-overview');
-                const overviewIconsDiv = document.getElementById("overview-icons");
-                const overviewDetailsDiv = document.getElementById("overview-details");
-                const overviewTotalPriceSpan = document.getElementById("overview-total-price");
-
-                overviewIconsDiv.innerHTML = '';
-                overviewDetailsDiv.innerHTML = '';
-                overviewTotalPriceSpan.textContent = `0.00 PLN`;
-
-                // Jeśli nie było interakcji, nie pokazuj szczegółów
-                if (!userInteracted) {
-                    document.getElementById("selected-chair-name").textContent = `Wybrany model: Brak`;
-                    overviewPanel.style.display = 'block';
-                    return;
-                }
-
-                // Kolejność elementów do podsumowania
-                const partOrder = ['seat', 'backseat_inside', 'backseat_outside', 'legs_material', 'backseat'];
-                const partLabels = ['Siedzisko', 'Oparcie wew.', 'Oparcie zew.', 'Nogi', 'Oparcie'];
-
-                // Ikonka modelu
-                if (userInteracted && selectedChair && (selectedChair.Obrazek || selectedChair.Image)) {
-                    const icon = document.createElement('img');
-                    icon.src = selectedChair.Obrazek || selectedChair.Image;
-                    icon.title = selectedChair.Nazwa;
-                    icon.className = 'model-image'; // <-- dodaj tę klasę!
-                    overviewIconsDiv.appendChild(icon);
-                }
-
-                // Ikonki materiałów dla każdego elementu
-                partOrder.forEach((partKey, idx) => {
-                    const mat = selectedMaterials[partKey];
-                    if (mat && (mat.Obrazek || mat.Image)) {
-                        const icon = document.createElement('img');
-                        icon.src = mat.Obrazek || mat.Image;
-                        icon.title = mat.Nazwa;
-                        overviewIconsDiv.appendChild(icon);
-                    }
-                });
-
-                // Ikonka wybranego wariantu nóg (jeśli jest)
-                if (selectedLeg && (selectedLeg.Obrazek || selectedLeg.Image)) {
-                    const icon = document.createElement('img');
-                    icon.src = selectedLeg.Obrazek || selectedLeg.Image;
-                    icon.title = selectedLeg.Nazwa;
-                    overviewIconsDiv.appendChild(icon);
-                }
-
-                // Szczegóły i ceny
-                let totalPrice = 0;
-                if (selectedChair && selectedChair.Cena) {
-                    const price = parseFloat(selectedChair.Cena) || 0;
-                    totalPrice += price;
-                    const detailLine = document.createElement('div');
-                    detailLine.className = 'detail-item';
-                    const label = (selectedChair.Grupa && selectedChair.Grupa.toLowerCase() === 'krzesło') ? 'Krzesło' : 'Model';
-                    detailLine.innerHTML = `<span>${label}: ${selectedChair.Nazwa}</span><strong>: ${price.toFixed(2)} PLN</strong>`;
-                    overviewDetailsDiv.appendChild(detailLine);
-                }
-                partOrder.forEach((partKey, idx) => {
-                    const mat = selectedMaterials[partKey];
-                    if (mat) {
-                        const price = parseFloat(mat.Cena) || 0;
-                        totalPrice += price;
-                        const detailLine = document.createElement('div');
-                        detailLine.className = 'detail-item';
-                        detailLine.innerHTML = `<span>${partLabels[idx]}: ${mat.Nazwa}</span><strong>: ${price.toFixed(2)} PLN</strong>`;
-                        overviewDetailsDiv.appendChild(detailLine);
-                    }
-                });
-                // Dodano szczegóły wariantu nóg
-                if (selectedLeg) {
-                    const price = parseFloat(selectedLeg.Cena) || 0;
-                    const detailLine = document.createElement('div');
-                    detailLine.className = 'detail-item';
-                    detailLine.innerHTML = `<span>Wariant nóg: ${selectedLeg.Nazwa}</span><strong>: ${price.toFixed(2)} PLN</strong>`;
-                    overviewDetailsDiv.appendChild(detailLine);
-                }
-                if (selectedLeg) {
-  const price = parseFloat(selectedLeg.Cena) || 0;
-  totalPrice += price;
-}
-
-                const hr = document.createElement('hr');
-                overviewDetailsDiv.appendChild(hr);
-
-                overviewTotalPriceSpan.textContent = `${totalPrice.toFixed(2)} PLN`;
-                document.getElementById("selected-chair-name").textContent = `Wybrany model: ${selectedChair ? selectedChair.Nazwa : "Brak"}`;
-                
-
-
-                window.selectedChair = selectedChair;
-window.selectedLeg = selectedLeg;
-window.selectedMaterials = selectedMaterials;
-
-            }
-
-            function enforceZoomLimits() {
-                if (viewer && viewer.controls) {
-                    viewer.controls.minDistance = MIN_ZOOM_DISTANCE;
-                    viewer.controls.maxDistance = MAX_ZOOM_DISTANCE;
-                    viewer.controls.enableDamping = true;
-                    viewer.controls.dampingFactor = 0.1;
-                    viewer.controls.update();
-                }
-            }
-
-            function clampCameraDistance() {
-                if (!viewer || !viewer.scene || !viewer.scene.activeCamera || !viewer.controls) return;
-                const camera = viewer.scene.activeCamera;
-                const target = viewer.controls.target;
-                const pos = camera.position;
-                const dist = pos.distanceTo(target);
-
-                if (dist < MIN_ZOOM_DISTANCE) {
-                    // Przesuń kamerę na sferę o promieniu MIN_ZOOM_DISTANCE od targetu
-                    const dir = pos.clone().sub(target).normalize();
-                    camera.position.copy(target.clone().add(dir.multiplyScalar(MIN_ZOOM_DISTANCE)));
-                    camera.updateProjectionMatrix();
-                    viewer.controls.update();
-                }
-                if (dist > MAX_ZOOM_DISTANCE) {
-                    // Przesuń kamerę na sferę o promieniu MAX_ZOOM_DISTANCE od targetu
-                    const dir = pos.clone().sub(target).normalize();
-                    camera.position.copy(target.clone().add(dir.multiplyScalar(MAX_ZOOM_DISTANCE)));
-                    camera.updateProjectionMatrix();
-                    viewer.controls.update();
-                }
-            }
-
-
-            // Nowa funkcja do ograniczeń zoomu w obrębie bańki
-            function forceBubbleZoomLimitsEachFrame() {
-                if (!viewer || !viewer.scene || !viewer.scene.activeCamera) return;
-                const camera = viewer.scene.activeCamera;
-                // Środek bańki – możesz zmienić na inny punkt jeśli trzeba
-                const bubbleCenter = new Vector3(0, 0, 0);
-                const pos = camera.position;
-                const dist = pos.distanceTo(bubbleCenter);
-
-                if (dist < MIN_ZOOM_DISTANCE) {
-                    const dir = pos.clone().sub(bubbleCenter).normalize();
-                    camera.position.copy(bubbleCenter.clone().add(dir.multiplyScalar(MIN_ZOOM_DISTANCE)));
-                    camera.updateProjectionMatrix();
-                    if (viewer.controls) viewer.controls.update();
-                }
-                if (dist > MAX_ZOOM_DISTANCE) {
-                    const dir = pos.clone().sub(bubbleCenter).normalize();
-                    camera.position.copy(bubbleCenter.clone().add(dir.multiplyScalar(MAX_ZOOM_DISTANCE)));
-                    camera.updateProjectionMatrix();
-                    if (viewer.controls) viewer.controls.update();
-                }
-            }
-
-            // Uruchom sprawdzanie w każdej klatce
-            function animateBubbleZoomLimit() {
-                forceBubbleZoomLimitsEachFrame();
-                requestAnimationFrame(animateBubbleZoomLimit);
-            }
-            animateBubbleZoomLimit();
-
-
-
-            
-
-
-
-
-
-const exportButton = document.getElementById("export-config");
-const exportPanel = document.getElementById("export-panel");
-
-exportButton.addEventListener("click", () => {
-  exportPanel.classList.toggle("hidden");
-});
-
-// Opcjonalnie – ukrywanie po kliknięciu poza panelem
-document.addEventListener("click", (e) => {
-  if (!exportPanel.contains(e.target) && !exportButton.contains(e.target)) {
-    exportPanel.classList.add("hidden");
-  }
-});
-
-// Obsługa kliknięć eksportu (przykładowo)
-document.querySelectorAll(".export-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    const format = btn.dataset.format;
-    alert(`Eksport jako: ${format.toUpperCase()}`);
-    exportPanel.classList.add("hidden");
-  });
-});
-
-
-
-
-// — Obsługa dolnego paska narzędziowego HDR
-
-function renderHDROptions(entries) {
-  const container = document.getElementById('hdr-options');
-  if (!container) return;
-  container.innerHTML = '';
-
-  entries.forEach(entry => {
-    const img = document.createElement('img');
-    img.src = entry.HDRIcon;
-    img.alt = entry.Nazwa || entry.HDR;
-    img.onerror = () => {
-      img.src = 'icons/placeholder.svg';
-    };
 
-    const thumb = document.createElement('div');
-    thumb.className = 'thumbnail';
-    
-    
-    thumb.title = entry.Nazwa || entry.HDR;
-    thumb.appendChild(img);
-    thumb.onclick = () => {
-      viewer.setEnvironmentMap(entry.HDR, { isHDR: true });
-      document.getElementById('hdr-panel')?.classList.add('hidden');
-    };
+        updateSummary();
+      }
+
+      const visibleData = allData.filter(d =>
+        d.Visible?.toString().trim().length > 0
+      );
+
+
+      async function loadDataFromSheet() {
+        const sheetId = '1vCs6YeHgKqlYwg8rvJOqVzNRnXeATJCBuK-zh3NNj78';
+        const sheetURL = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=Dane&v=${new Date().getTime()}`;
+        try {
+          const response = await fetch(sheetURL + '?nocache=' + Date.now(), { cache: 'no-store' });
+
+          const csvText = await response.text();
+          const rows = csvText.trim().split('\n');
+          const headers = rows.shift().split(',').map(h => h.trim().replace(/"/g, ''));
+          allData = rows.map(row => {
+            const values = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
+            const obj = {};
+            headers.forEach((header, index) => obj[header] = values[index]?.trim().replace(/"/g, '') || '');
+            return obj;
+          }).filter(item => item.Visible?.toLowerCase() !== 'false');
+
+          const mainModels = allData.filter(d => ['krzesło', 'kubełek'].includes(d.Grupa.toLowerCase()));
+          renderOptions('model-thumbnails', mainModels, item => loadModel(item));
+          showScreen('models');
+
+          const hdrEntries = allData.filter(d => d.HDR && d.HDRIcon);
+          renderHDROptions(hdrEntries);
+
+
+
+
+
+          // ZAWSZE na starcie ładuj Default.glb (nie ustawiaj selectedChair!)
+          if (currentModelContainer) {
+            viewer.scene.remove(currentModelContainer);
+            if (typeof currentModelContainer.dispose === 'function') currentModelContainer.dispose();
+          }
+          currentModelContainer = await viewer.load('chairs/Default.glb', { autoCenter: true });
+          setCameraView(new Vector3(0, 0, 0));
+          selectedChair = null;
+          selectedLeg = null;
+          selectedMaterials = {};
+          userInteracted = false;
+          updateSummary();
+          const toolbar = document.getElementById('bottom-toolbar');
+          if (toolbar) {
+            toolbar.style.display = 'flex';
+            toolbar.classList.add('visible');
+          }
+
+        } catch (e) { console.error("Błąd ładowania danych:", e); document.body.innerHTML = `Błąd ładowania danych: ${e.message}`; }
+      }
+
+      document.getElementById('hdr-toggle')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const panel = document.getElementById('hdr-panel');
+        panel.classList.toggle('hidden');
+        document.getElementById('hdr-panel').style.display = 'block';
+
+      });
+
+
+
+      function updateSummary() {
+        const overviewPanel = document.getElementById('config-overview');
+        const overviewIconsDiv = document.getElementById("overview-icons");
+        const overviewDetailsDiv = document.getElementById("overview-details");
+        const overviewTotalPriceSpan = document.getElementById("overview-total-price");
+
+        overviewIconsDiv.innerHTML = '';
+        overviewDetailsDiv.innerHTML = '';
+        overviewTotalPriceSpan.textContent = `0.00 PLN`;
+
+        // Jeśli nie było interakcji, nie pokazuj szczegółów
+        if (!userInteracted) {
+          document.getElementById("selected-chair-name").textContent = `Wybrany model: Brak`;
+          overviewPanel.style.display = 'block';
+          return;
+        }
+
+        // Kolejność elementów do podsumowania
+        const partOrder = ['seat', 'backseat_inside', 'backseat_outside', 'legs_material', 'backseat'];
+        const partLabels = ['Siedzisko', 'Oparcie wew.', 'Oparcie zew.', 'Nogi', 'Oparcie'];
+
+        // Ikonka modelu
+        if (userInteracted && selectedChair && (selectedChair.Obrazek || selectedChair.Image)) {
+          const icon = document.createElement('img');
+          icon.src = selectedChair.Obrazek || selectedChair.Image;
+          icon.title = selectedChair.Nazwa;
+          icon.className = 'model-image'; // <-- dodaj tę klasę!
+          overviewIconsDiv.appendChild(icon);
+        }
+
+        // Ikonki materiałów dla każdego elementu
+        partOrder.forEach((partKey, idx) => {
+          const mat = selectedMaterials[partKey];
+          if (mat && (mat.Obrazek || mat.Image)) {
+            const icon = document.createElement('img');
+            icon.src = mat.Obrazek || mat.Image;
+            icon.title = mat.Nazwa;
+            overviewIconsDiv.appendChild(icon);
+          }
+        });
+
+        // Ikonka wybranego wariantu nóg (jeśli jest)
+        if (selectedLeg && (selectedLeg.Obrazek || selectedLeg.Image)) {
+          const icon = document.createElement('img');
+          icon.src = selectedLeg.Obrazek || selectedLeg.Image;
+          icon.title = selectedLeg.Nazwa;
+          overviewIconsDiv.appendChild(icon);
+        }
+
+        // Szczegóły i ceny
+        let totalPrice = 0;
+        if (selectedChair && selectedChair.Cena) {
+          const price = parseFloat(selectedChair.Cena) || 0;
+          totalPrice += price;
+          const detailLine = document.createElement('div');
+          detailLine.className = 'detail-item';
+          const label = (selectedChair.Grupa && selectedChair.Grupa.toLowerCase() === 'krzesło') ? 'Krzesło' : 'Model';
+          detailLine.innerHTML = `<span>${label}: ${selectedChair.Nazwa}</span><strong>: ${price.toFixed(2)} PLN</strong>`;
+          overviewDetailsDiv.appendChild(detailLine);
+        }
+        partOrder.forEach((partKey, idx) => {
+          const mat = selectedMaterials[partKey];
+          if (mat) {
+            const price = parseFloat(mat.Cena) || 0;
+            totalPrice += price;
+            const detailLine = document.createElement('div');
+            detailLine.className = 'detail-item';
+            detailLine.innerHTML = `<span>${partLabels[idx]}: ${mat.Nazwa}</span><strong>: ${price.toFixed(2)} PLN</strong>`;
+            overviewDetailsDiv.appendChild(detailLine);
+          }
+        });
+        // Dodano szczegóły wariantu nóg
+        if (selectedLeg) {
+          const price = parseFloat(selectedLeg.Cena) || 0;
+          const detailLine = document.createElement('div');
+          detailLine.className = 'detail-item';
+          detailLine.innerHTML = `<span>Wariant nóg: ${selectedLeg.Nazwa}</span><strong>: ${price.toFixed(2)} PLN</strong>`;
+          overviewDetailsDiv.appendChild(detailLine);
+        }
+        if (selectedLeg) {
+          const price = parseFloat(selectedLeg.Cena) || 0;
+          totalPrice += price;
+        }
+
+        const hr = document.createElement('hr');
+        overviewDetailsDiv.appendChild(hr);
+
+        overviewTotalPriceSpan.textContent = `${totalPrice.toFixed(2)} PLN`;
+        document.getElementById("selected-chair-name").textContent = `Wybrany model: ${selectedChair ? selectedChair.Nazwa : "Brak"}`;
+
+
+
+        window.selectedChair = selectedChair;
+        window.selectedLeg = selectedLeg;
+        window.selectedMaterials = selectedMaterials;
+
+      }
+
+      function enforceZoomLimits() {
+        if (viewer && viewer.controls) {
+          viewer.controls.minDistance = MIN_ZOOM_DISTANCE;
+          viewer.controls.maxDistance = MAX_ZOOM_DISTANCE;
+          viewer.controls.enableDamping = true;
+          viewer.controls.dampingFactor = 0.1;
+          viewer.controls.update();
+        }
+      }
+
+      function clampCameraDistance() {
+        if (!viewer || !viewer.scene || !viewer.scene.activeCamera || !viewer.controls) return;
+        const camera = viewer.scene.activeCamera;
+        const target = viewer.controls.target;
+        const pos = camera.position;
+        const dist = pos.distanceTo(target);
+
+        if (dist < MIN_ZOOM_DISTANCE) {
+          // Przesuń kamerę na sferę o promieniu MIN_ZOOM_DISTANCE od targetu
+          const dir = pos.clone().sub(target).normalize();
+          camera.position.copy(target.clone().add(dir.multiplyScalar(MIN_ZOOM_DISTANCE)));
+          camera.updateProjectionMatrix();
+          viewer.controls.update();
+        }
+        if (dist > MAX_ZOOM_DISTANCE) {
+          // Przesuń kamerę na sferę o promieniu MAX_ZOOM_DISTANCE od targetu
+          const dir = pos.clone().sub(target).normalize();
+          camera.position.copy(target.clone().add(dir.multiplyScalar(MAX_ZOOM_DISTANCE)));
+          camera.updateProjectionMatrix();
+          viewer.controls.update();
+        }
+      }
+
+
+      // Nowa funkcja do ograniczeń zoomu w obrębie bańki
+      function forceBubbleZoomLimitsEachFrame() {
+        if (!viewer || !viewer.scene || !viewer.scene.activeCamera) return;
+        const camera = viewer.scene.activeCamera;
+        // Środek bańki – możesz zmienić na inny punkt jeśli trzeba
+        const bubbleCenter = new Vector3(0, 0, 0);
+        const pos = camera.position;
+        const dist = pos.distanceTo(bubbleCenter);
+
+        if (dist < MIN_ZOOM_DISTANCE) {
+          const dir = pos.clone().sub(bubbleCenter).normalize();
+          camera.position.copy(bubbleCenter.clone().add(dir.multiplyScalar(MIN_ZOOM_DISTANCE)));
+          camera.updateProjectionMatrix();
+          if (viewer.controls) viewer.controls.update();
+        }
+        if (dist > MAX_ZOOM_DISTANCE) {
+          const dir = pos.clone().sub(bubbleCenter).normalize();
+          camera.position.copy(bubbleCenter.clone().add(dir.multiplyScalar(MAX_ZOOM_DISTANCE)));
+          camera.updateProjectionMatrix();
+          if (viewer.controls) viewer.controls.update();
+        }
+      }
+
+      // Uruchom sprawdzanie w każdej klatce
+      function animateBubbleZoomLimit() {
+        forceBubbleZoomLimitsEachFrame();
+        requestAnimationFrame(animateBubbleZoomLimit);
+      }
+      animateBubbleZoomLimit();
+
+
+
+
+
+
+
+
+
+      const exportButton = document.getElementById("export-config");
+      const exportPanel = document.getElementById("export-panel");
+
+      exportButton.addEventListener("click", () => {
+        exportPanel.classList.toggle("hidden");
+      });
+
+      // Opcjonalnie – ukrywanie po kliknięciu poza panelem
+      document.addEventListener("click", (e) => {
+        if (!exportPanel.contains(e.target) && !exportButton.contains(e.target)) {
+          exportPanel.classList.add("hidden");
+        }
+      });
+
+      // Obsługa kliknięć eksportu (przykładowo)
+      document.querySelectorAll(".export-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const format = btn.dataset.format;
+          alert(`Eksport jako: ${format.toUpperCase()}`);
+          exportPanel.classList.add("hidden");
+        });
+      });
+
+
+
 
-    const caption = document.createElement('div');
-    caption.className = 'thumbnail-caption';
-    caption.textContent = entry.Nazwa || entry.HDR;
+      // — Obsługa dolnego paska narzędziowego HDR
 
-    const wrapper = document.createElement('div');
-    wrapper.className = 'thumbnail-wrapper';
-    wrapper.appendChild(thumb);
-    //wrapper.appendChild(caption);
+      function renderHDROptions(entries) {
+        const container = document.getElementById('hdr-options');
+        if (!container) return;
+        container.innerHTML = '';
+
+        entries.forEach(entry => {
+          const img = document.createElement('img');
+          img.src = entry.HDRIcon;
+          img.alt = entry.Nazwa || entry.HDR;
+          img.onerror = () => {
+            img.src = 'icons/placeholder.svg';
+          };
 
-    container.appendChild(wrapper);
-  });
-}
+          const thumb = document.createElement('div');
+          thumb.className = 'thumbnail';
 
 
+          thumb.title = entry.Nazwa || entry.HDR;
+          thumb.appendChild(img);
+          thumb.onclick = () => {
+            viewer.setEnvironmentMap(entry.HDR, { isHDR: true });
+            document.getElementById('hdr-panel')?.classList.add('hidden');
+          };
 
-// Sterowanie widocznością panelu
+          const caption = document.createElement('div');
+          caption.className = 'thumbnail-caption';
+          caption.textContent = entry.Nazwa || entry.HDR;
 
-// Sterowanie widocznością panelu
-window.addEventListener('DOMContentLoaded', () => {
-  const hdrToggle = document.getElementById('hdr-toggle');
-  const hdrPanel = document.getElementById('hdr-panel');
-  const hdrClose = document.getElementById('hdr-close');
+          const wrapper = document.createElement('div');
+          wrapper.className = 'thumbnail-wrapper';
+          wrapper.appendChild(thumb);
+          //wrapper.appendChild(caption);
 
-  function toggleHDRPanel() {
-    hdrPanel.classList.toggle('hidden');
-    hdrPanel.style.display = hdrPanel.classList.contains('hidden') ? 'none' : 'block';
-  }
+          container.appendChild(wrapper);
+        });
+      }
 
-  hdrToggle?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    toggleHDRPanel();
-  });
 
-  hdrPanel?.addEventListener('click', (e) => {
-    e.stopPropagation();
-  });
 
-  document.addEventListener('click', () => {
-    hdrPanel?.classList.add('hidden');
-    hdrPanel.style.display = 'none';
-  });
+      // Sterowanie widocznością panelu
 
-  hdrClose?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    hdrPanel?.classList.add('hidden');
-    hdrPanel.style.display = 'none';
-  });
-});
+      // Sterowanie widocznością panelu
+      window.addEventListener('DOMContentLoaded', () => {
+        const hdrToggle = document.getElementById('hdr-toggle');
+        const hdrPanel = document.getElementById('hdr-panel');
+        const hdrClose = document.getElementById('hdr-close');
 
-// Modyfikacja istniejącego kodu obsługi przycisku HDR
-document.getElementById('hdr-toggle')?.addEventListener('click', (e) => {
-  e.stopPropagation();
-  const panel = document.getElementById('hdr-panel');
-  panel.classList.toggle('hidden');
-  panel.style.display = panel.classList.contains('hidden') ? 'none' : 'block';
-});
+        function toggleHDRPanel() {
+          hdrPanel.classList.toggle('hidden');
+          hdrPanel.style.display = hdrPanel.classList.contains('hidden') ? 'none' : 'block';
+        }
 
+        hdrToggle?.addEventListener('click', (e) => {
+          e.stopPropagation();
+          toggleHDRPanel();
+        });
 
+        hdrPanel?.addEventListener('click', (e) => {
+          e.stopPropagation();
+        });
 
+        document.addEventListener('click', () => {
+          hdrPanel?.classList.add('hidden');
+          hdrPanel.style.display = 'none';
+        });
 
+        hdrClose?.addEventListener('click', (e) => {
+          e.stopPropagation();
+          hdrPanel?.classList.add('hidden');
+          hdrPanel.style.display = 'none';
+        });
+      });
 
+      // Modyfikacja istniejącego kodu obsługi przycisku HDR
+      document.getElementById('hdr-toggle')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const panel = document.getElementById('hdr-panel');
+        panel.classList.toggle('hidden');
+        panel.style.display = panel.classList.contains('hidden') ? 'none' : 'block';
+      });
 
 
 
@@ -2787,122 +2787,127 @@ document.getElementById('hdr-toggle')?.addEventListener('click', (e) => {
 
 
 
-// Panel wymiarów
-document.getElementById('dimensions-show')?.addEventListener('click', (e) => {
-  e.stopPropagation();
-  console.log("📐 Kliknięto przycisk wymiarów");
-  showDimensions();
-});
 
 
 
 
 
+      // Panel wymiarów
+      document.getElementById('dimensions-show')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        console.log("📐 Kliknięto przycisk wymiarów");
+        showDimensions();
+      });
 
 
-  
 
 
 
 
 
-// 🔧 Ukrywanie panelu
-document.getElementById('dimensions-show')?.addEventListener('click', () => {
-  const overlay = document.getElementById('dimension-overlay');
-  const labels = overlay.querySelectorAll('.dimension-label');
 
-  // 🧾 Pobierz z arkusza
-  const item = allData.find(i => {
-    const g = (i.Grupa || '').toLowerCase();
-    return (g === 'krzesło' || g === 'kubełek') && i.Wymiary;
-  });
 
-  const dims = item?.Wymiary?.match(/x\s*=\s*(\d+[\.,]?\d*)\s*cm.*?y\s*=\s*(\d+[\.,]?\d*)\s*cm.*?z\s*=\s*(\d+[\.,]?\d*)\s*cm/i);
 
-  if (dims) {
-    labels[0].textContent = `x = ${dims[1]} cm`;
-    labels[1].textContent = `y = ${dims[2]} cm`;
-    labels[2].textContent = `z = ${dims[3]} cm`;
-  }
 
-  overlay.style.display = 'block';
 
-  // ⏱ Opcjonalnie ukryj po 6 sek.
-  setTimeout(() => overlay.style.display = 'none', 6000);
-});
 
+      // 🔧 Ukrywanie panelu
+      document.getElementById('dimensions-show')?.addEventListener('click', () => {
+        const overlay = document.getElementById('dimension-overlay');
+        const labels = overlay.querySelectorAll('.dimension-label');
 
+        // 🧾 Pobierz z arkusza
+        const item = allData.find(i => {
+          const g = (i.Grupa || '').toLowerCase();
+          return (g === 'krzesło' || g === 'kubełek') && i.Wymiary;
+        });
 
+        const dims = item?.Wymiary?.match(/x\s*=\s*(\d+[\.,]?\d*)\s*cm.*?y\s*=\s*(\d+[\.,]?\d*)\s*cm.*?z\s*=\s*(\d+[\.,]?\d*)\s*cm/i);
 
+        if (dims) {
+          labels[0].textContent = `x = ${dims[1]} cm`;
+          labels[1].textContent = `y = ${dims[2]} cm`;
+          labels[2].textContent = `z = ${dims[3]} cm`;
+        }
 
+        overlay.style.display = 'block';
 
+        // ⏱ Opcjonalnie ukryj po 6 sek.
+        setTimeout(() => overlay.style.display = 'none', 6000);
+      });
 
-window.addEventListener('load', () => {
-  const showQRBtn = document.getElementById('qr-button').addEventListener('click', showQR);
 
 
-  if (!showQRBtn) return;
 
-  // Pokaż przycisk po załadowaniu strony i UI
-  showQRBtn.style.display = 'flex';
 
-  // Podłącz event do wyświetlenia kodu QR
-  showQRBtn.addEventListener('click', () => {
-    const qrPopup = document.getElementById('qr-popup');
-    const qrContainer = document.getElementById('qrcode');
-    if (!qrPopup || !qrContainer) return;
 
-    qrPopup.style.display = 'block';
-    qrContainer.innerHTML = '';
 
-    new QRCode(qrContainer, {
-      text: window.location.href,
-      width: 200,
-      height: 200,
-    });
-  });
-});
+      window.addEventListener('load', () => {
+        const showQRBtn = document.getElementById('qr-button').addEventListener('click', showQR);
 
-function showConfigOverview() {
-  const overviewPanel = document.getElementById('config-overview');
-  overviewPanel.classList.remove('hidden');
-}
 
-// Wywołaj tę funkcję w odpowiednim momencie, np. po załadowaniu modelu
+        if (!showQRBtn) return;
 
+        // Pokaż przycisk po załadowaniu strony i UI
+        showQRBtn.style.display = 'flex';
 
-document.addEventListener('click', () => {
-  hdrPanel.classList.add('hidden');
-});
+        // Podłącz event do wyświetlenia kodu QR
+        showQRBtn.addEventListener('click', () => {
+          const qrPopup = document.getElementById('qr-popup');
+          const qrContainer = document.getElementById('qrcode');
+          if (!qrPopup || !qrContainer) return;
 
+          qrPopup.style.display = 'block';
+          qrContainer.innerHTML = '';
 
+          new QRCode(qrContainer, {
+            text: window.location.href,
+            width: 200,
+            height: 200,
+          });
+        });
+      });
 
-function showDimensions() {
-    const dimensionOverlay = document.getElementById('dimension-overlay');
-    dimensionOverlay.style.display = 'block';
-    dimensionOverlay.innerHTML = ''; // Wyczyść poprzednie wymiary
+      function showConfigOverview() {
+        const overviewPanel = document.getElementById('config-overview');
+        overviewPanel.classList.remove('hidden');
+      }
 
-    if (!selectedChair) return;
+      // Wywołaj tę funkcję w odpowiednim momencie, np. po załadowaniu modelu
 
-    // Parsowanie wymiarów z kolumny Wymiary
-    const dimensionsString = selectedChair.Wymiary || '';
-    const dimensionsParsed = {};
-    dimensionsString.split(',').forEach(dim => {
-        const [key, value] = dim.split('=').map(s => s.trim());
-        if (key && value) {
+
+      document.addEventListener('click', () => {
+        hdrPanel.classList.add('hidden');
+      });
+
+
+
+      function showDimensions() {
+        const dimensionOverlay = document.getElementById('dimension-overlay');
+        dimensionOverlay.style.display = 'block';
+        dimensionOverlay.innerHTML = ''; // Wyczyść poprzednie wymiary
+
+        if (!selectedChair) return;
+
+        // Parsowanie wymiarów z kolumny Wymiary
+        const dimensionsString = selectedChair.Wymiary || '';
+        const dimensionsParsed = {};
+        dimensionsString.split(',').forEach(dim => {
+          const [key, value] = dim.split('=').map(s => s.trim());
+          if (key && value) {
             dimensionsParsed[key.toLowerCase()] = parseFloat(value);
-        }
-    });
+          }
+        });
 
-    const dimensions = [
-        { label: 'Szerokość', value: dimensionsParsed.x },
-        { label: 'Głębokość', value: dimensionsParsed.y },
-        { label: 'Wysokość', value: dimensionsParsed.z }
-    ];
+        const dimensions = [
+          { label: 'Szerokość', value: dimensionsParsed.x },
+          { label: 'Głębokość', value: dimensionsParsed.y },
+          { label: 'Wysokość', value: dimensionsParsed.z }
+        ];
 
-    const panel = document.createElement('div');
-    panel.className = 'dimension-panel';
-    panel.style.cssText = `
+        const panel = document.createElement('div');
+        panel.className = 'dimension-panel';
+        panel.style.cssText = `
   position: fixed;
   top: 85%;
   transform: translate(-150%, -50%);
@@ -2916,299 +2921,289 @@ function showDimensions() {
 `;
 
 
-    dimensions.forEach(dim => {
-        if (dim.value !== undefined) {
+        dimensions.forEach(dim => {
+          if (dim.value !== undefined) {
             const dimElement = document.createElement('div');
             dimElement.textContent = `${dim.label}: ${dim.value} cm`;
             dimElement.style.marginBottom = '5px';
             panel.appendChild(dimElement);
-        }
-    });
-
-    dimensionOverlay.appendChild(panel);
-}
-
-function hideDimensions() {
-    const dimensionOverlay = document.getElementById('dimension-overlay');
-    dimensionOverlay.style.display = 'none';
-}
-
-
-
-// 📦 Ładowanie JSZip
-async function loadJSZip() {
-  if (!window.JSZip) {
-    await import('https://cdn.jsdelivr.net/npm/jszip@3.10.0/dist/jszip.min.js');
-  }
-}
-
-// 📁 Załaduj listę plików tekstur z files.json
-let texturesFilesByFolder = {};
-async function loadTexturesFilesList() {
-  try {
-    const res = await fetch('textures/files.json');
-    texturesFilesByFolder = await res.json();
-  } catch (e) {
-    console.error('Błąd ładowania files.json:', e);
-    texturesFilesByFolder = {};
-  }
-}
-
-// 📐 Obsługiwane formaty eksportu
-const modelFormats = ['fbx', 'obj', 'dae'];
-
-// 🗜️ Główna funkcja eksportu ZIP
-async function handleExport(format) {
-  if (!window.JSZip) {
-    alert('JSZip niezaładowany!');
-    return;
-  }
-
-  if (!modelFormats.includes(format)) {
-    alert(`Nieobsługiwany format eksportu: ${format}`);
-    return;
-  }
-
-  const zip = new JSZip();
-
-  // 🪑 Eksport głównego modelu krzesła
-  const chairModel = window.selectedChair?.Nazwa || 'BrakModelu';
-  const chairPath = `export/${chairModel}.${format}`;
-
-  try {
-    const res = await fetch(chairPath);
-    if (!res.ok) throw new Error(`Nie znaleziono modelu krzesła: ${chairPath}`);
-    const blob = await res.blob();
-    zip.file(`${chairModel}.${format}`, blob);
-  } catch (e) {
-    alert(e.message);
-    return;
-  }
-
-  // 🦵 Eksport nóg (jeśli wybrano)
-  const legModel = window.selectedLeg?.Nazwa;
-  if (legModel) {
-    const legPath = `export/${legModel}.${format}`;
-    try {
-      const res = await fetch(legPath);
-      if (res.ok) {
-        const blob = await res.blob();
-        zip.file(`${legModel}.${format}`, blob);
-      } else {
-        console.warn(`Nie znaleziono modelu nóg: ${legPath}`);
-      }
-    } catch (e) {
-      console.warn(`Błąd pobierania nóg: ${e.message}`);
-    }
-  }
-
-  // 🎨 Eksport materiałów / tekstur z kolekcją i bez
-  const textureFolderInZip = zip.folder('textures');
-  const materials = Object.values(window.selectedMaterials || {});
-  const collection = window.selectedChair?.Kolekcja?.trim() || '';
-
-  for (const mat of materials) {
-    const folder = mat.Folder || mat.Wartość;
-    const textureFiles = texturesFilesByFolder[folder] || [];
-
-    for (const texFile of textureFiles) {
-      const candidatePaths = [
-        collection ? `textures/${collection}/${folder}/${texFile}` : null,
-        `textures/${folder}/${texFile}`
-      ].filter(Boolean);
-
-      let found = false;
-
-      for (const path of candidatePaths) {
-        try {
-          const res = await fetch(path);
-          if (res.ok) {
-            const blob = await res.blob();
-            textureFolderInZip.file(`${folder}/${texFile}`, blob);
-            found = true;
-            break;
           }
-        } catch (e) {
-          console.warn(`❌ Błąd pobierania: ${path}`, e);
+        });
+
+        dimensionOverlay.appendChild(panel);
+      }
+
+      function hideDimensions() {
+        const dimensionOverlay = document.getElementById('dimension-overlay');
+        dimensionOverlay.style.display = 'none';
+      }
+
+
+
+      // 📦 Ładowanie JSZip
+      async function loadJSZip() {
+        if (!window.JSZip) {
+          await import('https://cdn.jsdelivr.net/npm/jszip@3.10.0/dist/jszip.min.js');
         }
       }
 
-      if (!found) {
-        console.warn(`⚠️ Nie znaleziono tekstury: ${folder}/${texFile}`);
+      // 📁 Załaduj listę plików tekstur z files.json
+      let texturesFilesByFolder = {};
+      async function loadTexturesFilesList() {
+        try {
+          const res = await fetch('textures/files.json');
+          texturesFilesByFolder = await res.json();
+        } catch (e) {
+          console.error('Błąd ładowania files.json:', e);
+          texturesFilesByFolder = {};
+        }
       }
-    }
-  }
 
-  // 📦 Finalny zapis ZIP
-  const blob = await zip.generateAsync({ type: 'blob' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `export_${chairModel}_${format}.zip`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(a.href);
-}
-
-// 🚀 Inicjalizacja tekstur na starcie
-await loadTexturesFilesList();
-
-// 🖱️ Obsługa kliknięcia eksportu
-document.querySelectorAll('.export-btn').forEach(button => {
-  button.addEventListener('click', async () => {
-    await loadJSZip();
-    const format = button.getAttribute('data-format');
-    await handleExport(format);
-  });
-});
-
-
-
-function updateMaterialTiles() {
-  const legsMaterialsContainer = document.getElementById('legs-thumbnails');
-  if (!legsMaterialsContainer || !selectedChair || !selectedLeg) return;
-
-  // 🧼 Czyść tylko kafelki materiałów nóg
-  legsMaterialsContainer.querySelectorAll('.material-tile')?.forEach(tile => tile.remove());
-
-  const allEntries = getMaterialsFromSheet();
-  const chairType = selectedChair.Grupa?.trim().toLowerCase();       // 'krzesło' lub 'kubełek'
-  const legVariant = selectedLeg.Nazwa?.trim().toLowerCase();       // np. 'regularne'
-
-  const filteredMaterials = allEntries.filter(mat => {
-    // ✅ tylko materiały nóg
-    if (mat.Grupa?.trim().toLowerCase() !== 'materiały_nóg') return false;
-
-    // ✅ czy materiał pasuje do typu krzesła (GrupaDocelowa)
-    const grupaDocelowa = mat.GrupaDocelowa?.toLowerCase() || '';
-    const grupy = grupaDocelowa.split(',').map(g => g.trim());
-    if (!grupy.includes(chairType)) return false;
-
-    // ✅ jeśli krzesło → ignorujemy DlaModeluNóg
-    if (chairType === 'krzesło') return true;
+      // 📐 Obsługiwane formaty eksportu
+      const modelFormats = ['fbx', 'obj', 'dae'];
+
+      // 🗜️ Główna funkcja eksportu ZIP
+      async function handleExport(format) {
+        if (!window.JSZip) {
+          alert('JSZip niezaładowany!');
+          return;
+        }
+
+        if (!modelFormats.includes(format)) {
+          alert(`Nieobsługiwany format eksportu: ${format}`);
+          return;
+        }
+
+        const zip = new JSZip();
+
+        // 🪑 Eksport głównego modelu krzesła
+        const chairModel = window.selectedChair?.Nazwa || 'BrakModelu';
+        const chairPath = `export/${chairModel}.${format}`;
+
+        try {
+          const res = await fetch(chairPath);
+          if (!res.ok) throw new Error(`Nie znaleziono modelu krzesła: ${chairPath}`);
+          const blob = await res.blob();
+          zip.file(`${chairModel}.${format}`, blob);
+        } catch (e) {
+          alert(e.message);
+          return;
+        }
+
+        // 🦵 Eksport nóg (jeśli wybrano)
+        const legModel = window.selectedLeg?.Nazwa;
+        if (legModel) {
+          const legPath = `export/${legModel}.${format}`;
+          try {
+            const res = await fetch(legPath);
+            if (res.ok) {
+              const blob = await res.blob();
+              zip.file(`${legModel}.${format}`, blob);
+            } else {
+              console.warn(`Nie znaleziono modelu nóg: ${legPath}`);
+            }
+          } catch (e) {
+            console.warn(`Błąd pobierania nóg: ${e.message}`);
+          }
+        }
+
+        // 🎨 Eksport materiałów / tekstur z kolekcją i bez
+        const textureFolderInZip = zip.folder('textures');
+        const materials = Object.values(window.selectedMaterials || {});
+        const collection = window.selectedChair?.Kolekcja?.trim() || '';
+
+        for (const mat of materials) {
+          const folder = mat.Folder || mat.Wartość;
+          const textureFiles = texturesFilesByFolder[folder] || [];
+
+          for (const texFile of textureFiles) {
+            const candidatePaths = [
+              collection ? `textures/${collection}/${folder}/${texFile}` : null,
+              `textures/${folder}/${texFile}`
+            ].filter(Boolean);
+
+            let found = false;
+
+            for (const path of candidatePaths) {
+              try {
+                const res = await fetch(path);
+                if (res.ok) {
+                  const blob = await res.blob();
+                  textureFolderInZip.file(`${folder}/${texFile}`, blob);
+                  found = true;
+                  break;
+                }
+              } catch (e) {
+                console.warn(`❌ Błąd pobierania: ${path}`, e);
+              }
+            }
+
+            if (!found) {
+              console.warn(`⚠️ Nie znaleziono tekstury: ${folder}/${texFile}`);
+            }
+          }
+        }
+
+        // 📦 Finalny zapis ZIP
+        const blob = await zip.generateAsync({ type: 'blob' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `export_${chairModel}_${format}.zip`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(a.href);
+      }
+
+      // 🚀 Inicjalizacja tekstur na starcie
+      await loadTexturesFilesList();
+
+      // 🖱️ Obsługa kliknięcia eksportu
+      document.querySelectorAll('.export-btn').forEach(button => {
+        button.addEventListener('click', async () => {
+          await loadJSZip();
+          const format = button.getAttribute('data-format');
+          await handleExport(format);
+        });
+      });
 
-    // ✅ jeśli kubełek → DlaModeluNóg musi zawierać aktualny wariant nóg
-    const dlaModelu = mat.DlaModeluNóg?.toLowerCase().trim();
-    if (!dlaModelu || dlaModelu.length === 0) return false;
 
-    const allowedVariants = dlaModelu.split(',').map(v => v.trim());
-    return allowedVariants.includes(legVariant);
-  });
 
-  filteredMaterials.forEach(mat => {
-    const tile = document.createElement('div');
-    tile.className = 'material-tile';
-    tile.textContent = mat.Nazwa;
-    tile.style.backgroundImage = `url(${mat.Obrazek || 'fallback.png'})`;
-    tile.onclick = () => applyLegMaterial(mat);
-    legsMaterialsContainer.appendChild(tile);
-  });
+      function updateMaterialTiles() {
+        const legsMaterialsContainer = document.getElementById('legs-thumbnails');
+        if (!legsMaterialsContainer || !selectedChair || !selectedLeg) return;
 
-  console.log(`✅ Pokazano ${filteredMaterials.length} materiałów nóg dla '${chairType}', wariant nóg '${selectedLeg.Nazwa}'`);
-}
+        // 🧼 Czyść tylko kafelki materiałów nóg
+        legsMaterialsContainer.querySelectorAll('.material-tile')?.forEach(tile => tile.remove());
 
+        const allEntries = getMaterialsFromSheet();
+        const chairType = selectedChair.Grupa?.trim().toLowerCase();       // 'krzesło' lub 'kubełek'
+        const legVariant = selectedLeg.Nazwa?.trim().toLowerCase();       // np. 'regularne'
 
+        const filteredMaterials = allEntries.filter(mat => {
+          // ✅ tylko materiały nóg
+          if (mat.Grupa?.trim().toLowerCase() !== 'materiały_nóg') return false;
 
+          // ✅ czy materiał pasuje do typu krzesła (GrupaDocelowa)
+          const grupaDocelowa = mat.GrupaDocelowa?.toLowerCase() || '';
+          const grupy = grupaDocelowa.split(',').map(g => g.trim());
+          if (!grupy.includes(chairType)) return false;
 
+          // ✅ jeśli krzesło → ignorujemy DlaModeluNóg
+          if (chairType === 'krzesło') return true;
 
-//UKRYWANIE PRZYCISKÓW ELEMENTÓW KRZESŁA
+          // ✅ jeśli kubełek → DlaModeluNóg musi zawierać aktualny wariant nóg
+          const dlaModelu = mat.DlaModeluNóg?.toLowerCase().trim();
+          if (!dlaModelu || dlaModelu.length === 0) return false;
 
-// kolejność części i ich powiązane nazwy meshów/obiektów
-const partOrder = ['seat', 'backseat_inside', 'backseat_outside', 'backseat', 'legs_material'];
+          const allowedVariants = dlaModelu.split(',').map(v => v.trim());
+          return allowedVariants.includes(legVariant);
+        });
 
-// funkcja tworząca i wyświetlająca przyciski części krzesła na podstawie danych wybranego krzesła
-function renderPartButtons() {
-  const partTabs = document.getElementById('part-tabs');
-  partTabs.innerHTML = ''; // czyścimy zawartość
+        filteredMaterials.forEach(mat => {
+          const tile = document.createElement('div');
+          tile.className = 'material-tile';
+          tile.textContent = mat.Nazwa;
+          tile.style.backgroundImage = `url(${mat.Obrazek || 'fallback.png'})`;
+          tile.onclick = () => applyLegMaterial(mat);
+          legsMaterialsContainer.appendChild(tile);
+        });
 
-  if (!selectedChair) {
-    console.warn('renderPartButtons: brak wybranego krzesła');
-    return;
-  }
+        console.log(`✅ Pokazano ${filteredMaterials.length} materiałów nóg dla '${chairType}', wariant nóg '${selectedLeg.Nazwa}'`);
+      }
 
-  const availableElementsRaw = selectedChair['DostępneElementy'] || '';
-  if (!availableElementsRaw.trim()) {
-    console.log('renderPartButtons: brak dostępnych elementów — nie pokazuję nic.');
-    return;
-  }
 
-  const availableParts = availableElementsRaw
-    .split(',')
-    .map(el => el.trim().toLowerCase())
-    .filter(Boolean);
 
-  const partNames = {
-    seat: 'Siedzisko',
-    backseat_inside: 'Oparcie wew.',
-    backseat_outside: 'Oparcie zew.',
-    backseat: 'Oparcie',
-    
-    legs: 'Nogi'
-  };
 
-  Object.keys(ELEMENT_ICONS).forEach(part => {
-    if (availableParts.includes(part)) {
-      
-      const wrapper = document.createElement('div');
-      wrapper.className = 'thumbnail-wrapper';
 
-      const thumb = document.createElement('div');
-      thumb.className = 'thumbnail';
-      thumb.title = part;
-      thumb.dataset.key = part; // ✅ TO jest potrzebne dla dalszego UI
+      //UKRYWANIE PRZYCISKÓW ELEMENTÓW KRZESŁA
 
-      thumb.onclick = () => {
-  document.querySelectorAll('#part-tabs .thumbnail').forEach(tab => tab.classList.remove('selected'));
-  thumb.classList.add('selected');
-  document.getElementById('materials-section').style.display = 'block';
+      // kolejność części i ich powiązane nazwy meshów/obiektów
+      const partOrder = ['seat', 'backseat_inside', 'backseat_outside', 'backseat', 'legs_material'];
 
-  // Pokazuje odpowiednie materiały do klikniętej części
-  renderFilteredMaterialOptions(part);
-};
+      // funkcja tworząca i wyświetlająca przyciski części krzesła na podstawie danych wybranego krzesła
+      function renderPartButtons() {
+        const partTabs = document.getElementById('part-tabs');
+        partTabs.innerHTML = ''; // czyścimy zawartość
 
-      const img = document.createElement('img');
-      img.src = ELEMENT_ICONS[part];
-      img.alt = part;
+        if (!selectedChair) {
+          console.warn('renderPartButtons: brak wybranego krzesła');
+          return;
+        }
 
-      thumb.appendChild(img);
-      wrapper.appendChild(thumb);
+        const availableElementsRaw = selectedChair['DostępneElementy'] || '';
+        if (!availableElementsRaw.trim()) {
+          console.log('renderPartButtons: brak dostępnych elementów — nie pokazuję nic.');
+          return;
+        }
 
-      const caption = document.createElement('div');
-      caption.className = 'thumbnail-caption';
-      caption.textContent = partNames[part] || part;
-      wrapper.appendChild(caption);
+        const availableParts = availableElementsRaw
+          .split(',')
+          .map(el => el.trim().toLowerCase())
+          .filter(Boolean);
 
-      partTabs.appendChild(wrapper);
-    }
-  });
-}
+        const partNames = {
+          seat: 'Siedzisko',
+          backseat_inside: 'Oparcie wew.',
+          backseat_outside: 'Oparcie zew.',
+          backseat: 'Oparcie',
 
+          legs: 'Nogi'
+        };
 
+        Object.keys(ELEMENT_ICONS).forEach(part => {
+          if (availableParts.includes(part)) {
 
+            const wrapper = document.createElement('div');
+            wrapper.className = 'thumbnail-wrapper';
 
-// Przykładowo: gdy zmieniasz krzesło, wywołujesz:
-renderPartButtons();
+            const thumb = document.createElement('div');
+            thumb.className = 'thumbnail';
+            thumb.title = part;
+            thumb.dataset.key = part; // ✅ TO jest potrzebne dla dalszego UI
 
+            thumb.onclick = () => {
+              document.querySelectorAll('#part-tabs .thumbnail').forEach(tab => tab.classList.remove('selected'));
+              thumb.classList.add('selected');
+              document.getElementById('materials-section').style.display = 'block';
 
+              // Pokazuje odpowiednie materiały do klikniętej części
+              renderFilteredMaterialOptions(part);
+            };
 
+            const img = document.createElement('img');
+            img.src = ELEMENT_ICONS[part];
+            img.alt = part;
 
-const arButton = document.getElementById('ar-button');
-if (arButton) {
-  arButton.addEventListener('click', () => {
-    const popup = document.getElementById('ar-popup');
-    if (popup) popup.style.display = 'block';
-  });
-}
+            thumb.appendChild(img);
+            wrapper.appendChild(thumb);
 
+            const caption = document.createElement('div');
+            caption.className = 'thumbnail-caption';
+            caption.textContent = partNames[part] || part;
+            wrapper.appendChild(caption);
 
+            partTabs.appendChild(wrapper);
+          }
+        });
+      }
 
 
 
 
+      // Przykładowo: gdy zmieniasz krzesło, wywołujesz:
+      renderPartButtons();
 
 
 
 
+      const arButton = document.getElementById('ar-button');
+      if (arButton) {
+        arButton.addEventListener('click', () => {
+          const popup = document.getElementById('ar-popup');
+          if (popup) popup.style.display = 'block';
+        });
+      }
 
 
 
@@ -3218,85 +3213,95 @@ if (arButton) {
 
 
 
-            init();
 
-            // Rejestracja Service Workera
-   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('service-worker.js')
-      .then(() => console.log('Service Worker registered'))
-      .catch(err => console.error('SW registration failed:', err));
-  }
 
-            // Pokaż/ukryj popup
-const emailModal = document.getElementById('emailModal');
-const closeBtn = emailModal.querySelector('.close-button');
-const buyButton = document.getElementById('buy-button');
-const emailForm = document.getElementById('emailForm');
-const successMessage = document.getElementById('success-message');
 
-buyButton.addEventListener('click', () => {
-  emailModal.classList.remove('hidden');
-  emailModal.classList.add('visible');
-  successMessage.classList.remove('visible'); // ukryj komunikat na otwarciu
-  successMessage.classList.add('hidden');
-});
 
-closeBtn.addEventListener('click', () => {
-  emailModal.classList.remove('visible');
-  emailModal.classList.add('hidden');
-});
 
-emailModal.addEventListener('click', (e) => {
-  if (e.target === emailModal) {
-    emailModal.classList.remove('visible');
-    emailModal.classList.add('hidden');
-  }
-});
 
-emailForm.addEventListener('submit', (e) => {
-  e.preventDefault();
 
-  // Tutaj wysyłka danych formularza (jeśli masz backend)
-  // Można dodać fetch lub EmailJS
 
-  // Po wysłaniu:
-  emailModal.classList.remove('visible');
-  emailModal.classList.add('hidden');
 
-  successMessage.classList.remove('hidden');
-  successMessage.classList.add('visible');
 
-  setTimeout(() => {
-    successMessage.classList.remove('visible');
-    successMessage.classList.add('hidden');
-  }, 3000);
+      init();
 
-  emailForm.reset(); // wyczyść formularz
-});
+      // Rejestracja Service Workera
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('service-worker.js')
+          .then(() => console.log('Service Worker registered'))
+          .catch(err => console.error('SW registration failed:', err));
+      }
 
+      // Pokaż/ukryj popup
+      const emailModal = document.getElementById('emailModal');
+      const closeBtn = emailModal.querySelector('.close-button');
+      const buyButton = document.getElementById('buy-button');
+      const emailForm = document.getElementById('emailForm');
+      const successMessage = document.getElementById('success-message');
 
-const btn = document.getElementById('dimensions-show');
-if (btn) {
-  btn.onclick = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    console.log("📐 Kliknięto przycisk wymiarów");
-    toggleDimensions();
-  };
-}
+      buyButton.addEventListener('click', () => {
+        emailModal.classList.remove('hidden');
+        emailModal.classList.add('visible');
+        successMessage.classList.remove('visible'); // ukryj komunikat na otwarciu
+        successMessage.classList.add('hidden');
+      });
 
+      closeBtn.addEventListener('click', () => {
+        emailModal.classList.remove('visible');
+        emailModal.classList.add('hidden');
+      });
 
-// Po inicjalizacji (czyli gdy masz już modele i przyciski):
-document.querySelectorAll(".export-btn").forEach(button => {
-  button.addEventListener("click", () => {
-    const format = button.getAttribute("data-format");
-    handleExport(format);
-  });
-});
+      emailModal.addEventListener('click', (e) => {
+        if (e.target === emailModal) {
+          emailModal.classList.remove('visible');
+          emailModal.classList.add('hidden');
+        }
+      });
 
+      emailForm.addEventListener('submit', (e) => {
+        e.preventDefault();
 
+        // Tutaj wysyłka danych formularza (jeśli masz backend)
+        // Można dodać fetch lub EmailJS
 
-    </script>
+        // Po wysłaniu:
+        emailModal.classList.remove('visible');
+        emailModal.classList.add('hidden');
+
+        successMessage.classList.remove('hidden');
+        successMessage.classList.add('visible');
+
+        setTimeout(() => {
+          successMessage.classList.remove('visible');
+          successMessage.classList.add('hidden');
+        }, 3000);
+
+        emailForm.reset(); // wyczyść formularz
+      });
+
+
+      const btn = document.getElementById('dimensions-show');
+      if (btn) {
+        btn.onclick = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log("📐 Kliknięto przycisk wymiarów");
+          toggleDimensions();
+        };
+      }
+
+
+      // Po inicjalizacji (czyli gdy masz już modele i przyciski):
+      document.querySelectorAll(".export-btn").forEach(button => {
+        button.addEventListener("click", () => {
+          const format = button.getAttribute("data-format");
+          handleExport(format);
+        });
+      });
+
+
+
+  </script>
 </body>
 
 </html>
