@@ -1030,6 +1030,15 @@
   }
 }
 
+#material-options details summary {
+  cursor: pointer;
+  font-weight: bold;
+  background: #f7f7f7;
+  border-radius: 8px;
+  padding: 6px 10px;
+  margin-bottom: 6px;
+}
+
 
 
     </style>
@@ -1348,6 +1357,7 @@ import {
         let dimensionHelpers = [];
         let currentModel = null;
         let selectedLegVariant = null;
+        let lastOpenedCollection = null;
 
 
         
@@ -1390,6 +1400,24 @@ import {
             }
         }
             
+async function loadModelWithFreshness(path, viewer, options = {}) {
+  try {
+    // Wykonaj zapytanie HEAD, aby pobrać Last-Modified z serwera
+    const res = await fetch(path, { method: 'HEAD' });
+    const lastModified = res.headers.get('Last-Modified');
+
+    // Jeśli data jest dostępna, użyj jej jako wersji cache-bustera
+    const version = lastModified ? new Date(lastModified).getTime() : Date.now();
+    const pathWithVersion = `${path}?v=${version}`;
+
+    // Załaduj model z cache-busterem
+    const modelContainer = await viewer.load(pathWithVersion, options);
+    return modelContainer;
+  } catch (e) {
+    console.error(`Nie udało się załadować modelu: ${path}`, e);
+    throw e;
+  }
+}
 
         
         async function init() {
@@ -1515,7 +1543,8 @@ collapseBtn.onclick = () => {
 
         async function silentLoadModel(variant) {
             if (currentModelContainer) viewer.scene.remove(currentModelContainer);
-            currentModelContainer = await viewer.load(`chairs/${variant.Nazwa}.glb`, { autoCenter: true });
+            currentModelContainer = await loadModelWithFreshness(`chairs/${variant.Nazwa}.glb`, viewer, { autoCenter: true });
+
             console.log("Meshe w modelu:", currentModelContainer.children.map(obj => obj.name)); // <-- DODAJ TO TUTAJ
             //selectedChair = variant; // <-- DODAJ TO!
             // Wyśrodkuj kamerę na modelu
@@ -1545,16 +1574,8 @@ collapseBtn.onclick = () => {
 
     try {
         const modelPath = `chairs/${variant.Nazwa}.glb`;
-        async function glbExists(path) {
-  try {
-    const res = await fetch(path, { method: 'HEAD' });
-    return res.ok;
-  } catch {
-    return false;
-  }
-}
+currentModelContainer = await loadModelWithFreshness(modelPath, viewer, { autoCenter: true });
 
-        currentModelContainer = await viewer.load(modelPath, { autoCenter: true });
         // 🔓 Pokaż dolny panel UI po załadowaniu modelu
 const toolbar = document.getElementById('bottom-toolbar');
 toolbar.classList.add('visible');
@@ -1639,7 +1660,8 @@ async function setLegModel(variant) {
     try {
         const modelPath = `legs/${variant.Nazwa}.glb`;
         console.log("Ładuję model nóg z ścieżki:", modelPath);
-        const newLegs = await viewer.load(modelPath, { autoCenter: false });
+        const newLegs = await loadModelWithFreshness(modelPath, viewer, { autoCenter: false });
+
         
         const legBounds = new Box3().setFromObject(newLegs);
         const legHeight = legBounds.max.y - legBounds.min.y;
@@ -2163,7 +2185,7 @@ container.innerHTML = '';
 
 Object.entries(groupedByCollection).forEach(([kolekcja, materiały]) => {
   const panel = document.createElement('details');
-  panel.open = true; // domyślnie otwarte, możesz ustawić na false
+  panel.open = (kolekcja === lastOpenedCollection); // otwórz tylko wybraną
 
   const summary = document.createElement('summary');
   summary.textContent = kolekcja;
@@ -2199,6 +2221,9 @@ Object.entries(groupedByCollection).forEach(([kolekcja, materiały]) => {
       applyMaterialToSpecificMesh(mat, targetMesh);
       container.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('selected'));
       button.classList.add('selected');
+
+      // 🧠 zapamiętaj kolekcję materiału
+      lastOpenedCollection = kolekcja;
     };
 
     grid.appendChild(wrapper);
@@ -2206,13 +2231,38 @@ Object.entries(groupedByCollection).forEach(([kolekcja, materiały]) => {
 
   panel.appendChild(grid);
   container.appendChild(panel);
+
+  // 🧠 kliknięcie nagłówka kolekcji — pokaż tylko tę jedną
+  summary.addEventListener('click', () => {
+  // ⏱ Czekamy na zmianę stanu <details>
+  setTimeout(() => {
+    // Jeśli panel został otwarty — zapamiętaj kolekcję
+    if (panel.open) {
+      lastOpenedCollection = kolekcja;
+    } else {
+      // Jeśli został właśnie zamknięty — wyczyść zapamiętaną kolekcję
+      if (lastOpenedCollection === kolekcja) {
+        lastOpenedCollection = null;
+      }
+    }
+
+    // Zamknij inne panele
+    container.querySelectorAll('details').forEach(p => {
+      if (p !== panel) p.open = false;
+    });
+  }, 0);
 });
 
-
-  renderOptions('material-options', materialOptions, item =>
-    applyMaterialToSpecificMesh(item, targetMesh)
-  );
+    lastOpenedCollection = kolekcja;
+    container.querySelectorAll('details').forEach(p => {
+      p.open = (p === panel);
+    });
+  });
 }
+
+
+  
+
 
 
 
