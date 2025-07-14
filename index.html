@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8" />
-  <title>Konfigurator krzeseł - Fajne Krzesła</title>
+  <title>Konfigurator krzeseł FK</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
   <script type="importmap">
 {
@@ -215,12 +215,12 @@
     }
 
     #overview-details .detail-item {
-      font-size: 15px;
+      font-size: 16px;
       margin: 8px 0;
     }
 
     #overview-total-price {
-      font-size: 15px;
+      font-size: 22px;
     }
 
     #overview-icons {
@@ -1061,6 +1061,13 @@
       background-color: #555;
     }
 
+    .collection-icon {
+  height: 64px;
+  width: auto;
+  display: block;
+  margin: 0 auto;
+  margin-bottom: 6px;
+}
 
 
 
@@ -1084,85 +1091,6 @@
       padding: 6px 10px;
       margin-bottom: 6px;
     }
-
-   /* Tkaniny — siatka kafelków */
-#material-options.group-tkaniny .options-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 12px;
-  margin-top: 8px;
-}
-
-
-/* Nogi — siatka kafelków */
-#material-options.group-nogi .options-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
-  gap: 8px;
-  margin-top: 8px;
-}
-
-
-/* Dla każdego panelu w trybie nóg */
-#material-options.group-nogi .collection-panel {
-  display: inline-block;
-  text-align: center;
-  margin-bottom: 0;
-  border: none;
-  padding: 0;
-}
-
-/* Ikonki kolekcji */
-.collection-panel summary {
-  list-style: none;
-  cursor: pointer;
-  display: block;
-}
-
-/* 🦵 Kafelki materiałów nóg */
-#material-options.group-nogi .options-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
-  gap: 8px;
-  margin-top: 8px;
-}
-
-#material-options.group-nogi .options-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
-  gap: 8px;
-  margin-top: 8px;
-}
-
-.options-grid {
-  background: rgb(255, 255, 255);
-  display: grid !important;
-  grid-template-columns: repeat(auto-fit, minmax(72px, 1fr)) !important;
-}
-
-
-.collection-panel summary::-webkit-details-marker {
-  display: none;
-}
-
-.collection-icon {
-  height: 64px;
-  width: auto;
-  margin-bottom: 6px;
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-/* Kafelki materiałów */
-.options-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
-  gap: 8px;
-  margin-top: 8px;
-}
-
-
   </style>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
@@ -1239,9 +1167,6 @@
       </form>
     </div>
   </div>
-
-
-  <div id="leg-collections"></div>
 
 
   <!-- KOMUNIKAT obrotu -->
@@ -2245,126 +2170,48 @@ const folderPath = (!isHex && variant.Wartość.startsWith('textures/')) ? varia
         };
 
         // 🦵 MATERIAŁY NÓG
-if (targetMesh === 'legs' || targetMesh === 'legs_material') {
-  const container = document.getElementById('material-options');
-  container.classList.remove('group-nogi', 'group-tkaniny'); // 🔄 usuń poprzednią klasę
-  container.classList.add('group-nogi'); // ✅ dodaj klasę dla układu nóg
+        if (targetMesh === 'legs' || targetMesh === 'legs_material') {
+          materialOptions = allData.filter(d =>
+            d.Grupa?.toLowerCase() === 'materiały_nóg' &&
+            isAllowedForGroup(d.GrupaDocelowa) &&
+            d.Visible?.toLowerCase() !== 'false'
+          );
 
-  materialOptions = allData.filter(d =>
-    d.Grupa?.toLowerCase() === 'materiały_nóg' &&
-    isAllowedForGroup(d.GrupaDocelowa) &&
-    d.Visible?.toLowerCase() !== 'false'
-  );
+          // Filtrowanie po typie nóg, jeśli istnieje
+          if (selectedLeg && selectedLeg.Typ) {
+            materialOptions = materialOptions.filter(mat =>
+              !mat.Typ || mat.Typ.toLowerCase().trim() === selectedLeg.Typ.toLowerCase().trim()
+            );
+          }
 
-  // Filtrowanie po typie nóg, jeśli istnieje
-  if (selectedLeg && selectedLeg.Typ) {
-    materialOptions = materialOptions.filter(mat =>
-      !mat.Typ || mat.Typ.toLowerCase().trim() === selectedLeg.Typ.toLowerCase().trim()
-    );
-  }
+          // Dodatkowo filtruj po DlaModeluNóg
+          if (selectedLeg && selectedLeg.Nazwa) {
+            const currentLegName = selectedLeg.Nazwa.toLowerCase().trim();
+            materialOptions = materialOptions.filter(mat => {
+              const allowedLegs = mat.DlaModeluNóg
+                ? mat.DlaModeluNóg.split(',').map(s => s.trim().toLowerCase())
+                : [];
+              return allowedLegs.length === 0 || allowedLegs.includes(currentLegName);
+            });
+          }
 
-  // Dodatkowo filtruj po DlaModeluNóg
-  if (selectedLeg && selectedLeg.Nazwa) {
-    const currentLegName = selectedLeg.Nazwa.toLowerCase().trim();
-    materialOptions = materialOptions.filter(mat => {
-      const allowedLegs = mat.DlaModeluNóg
-        ? mat.DlaModeluNóg.split(',').map(s => s.trim().toLowerCase())
-        : [];
-      return allowedLegs.length === 0 || allowedLegs.includes(currentLegName);
-    });
-  }
-
-  // 🔄 Grupa wg Kolekcji
-  const groupedByCollection = {};
-  materialOptions.forEach(mat => {
-    const key = mat.Kolekcja?.trim() || 'Inne';
-    if (!groupedByCollection[key]) groupedByCollection[key] = [];
-    groupedByCollection[key].push(mat);
-  });
-
-  container.innerHTML = '';
-
-  Object.entries(groupedByCollection).forEach(([kolekcja, materiały]) => {
-    const panel = document.createElement('details');
-    panel.setAttribute('data-kolekcja', kolekcja);
-    panel.classList.add('collection-panel');
-    panel.open = false;
-
-    const summary = document.createElement('summary');
-    summary.innerHTML = `<img src="icons/${kolekcja.toLowerCase()}.png" alt="${kolekcja}" class="collection-icon">`;
-    panel.appendChild(summary);
-
-    const grid = document.createElement('div');
-    grid.className = 'options-grid';
-
-    materiały.forEach(mat => {
-      const wrapper = document.createElement('div');
-      wrapper.className = 'thumbnail-wrapper';
-
-      const button = document.createElement('div');
-      button.className = 'thumbnail';
-      button.title = mat.Nazwa;
-
-      const img = document.createElement('img');
-      img.src = mat.Obrazek || 'icons/placeholder.svg';
-      img.alt = mat.Nazwa;
-      button.appendChild(img);
-
-      const caption = document.createElement('div');
-      caption.className = 'thumbnail-caption';
-      caption.textContent = mat.Nazwa;
-
-      wrapper.appendChild(button);
-      wrapper.appendChild(caption);
-
-      button.onclick = () => {
-        applyMaterialToSpecificMesh(mat, 'legs');
-        container.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('selected'));
-        button.classList.add('selected');
-
-        lastOpenedCollection = kolekcja;
-        container.querySelectorAll('details').forEach(p => {
-          p.open = (p.getAttribute('data-kolekcja') === kolekcja);
-        });
-      };
-
-      grid.appendChild(wrapper);
-    });
-
-    panel.appendChild(grid);
-    container.appendChild(panel);
-
-    summary.addEventListener('click', () => {
-      setTimeout(() => {
-        if (panel.open) {
-          lastOpenedCollection = kolekcja;
-          container.querySelectorAll('details').forEach(p => {
-            if (p !== panel) p.open = false;
-          });
-        } else {
-          if (lastOpenedCollection === kolekcja) lastOpenedCollection = null;
+          renderOptions('material-options', materialOptions, item =>
+            applyMaterialToSpecificMesh(item, 'legs')
+          );
+          return;
         }
-      }, 0);
-    });
-  });
 
-  if (lastOpenedCollection) {
-    const toOpen = container.querySelector(`details[data-kolekcja="${lastOpenedCollection}"]`);
-    if (toOpen) toOpen.open = true;
-  }
+        // ✳️ MATERIAŁY TKANINOWE (siedzisko, oparcia itd.)
+        // ✳️ Materiały tkaninowe (seat, backseat itd.)
+        materialOptions = allData.filter(d =>
+          d.Grupa?.toLowerCase() === 'tkanina' &&
+          d.TargetMeshOrModel &&
+          d.TargetMeshOrModel.split(',').map(s => s.trim()).includes(targetMesh) &&
+          isAllowedForGroup(d.GrupaDocelowa) &&
+          d.Visible?.toLowerCase() !== 'false'
+        );
 
-  return;
-}
-
-// ✳️ MATERIAŁY TKANINOWE
-materialOptions = allData.filter(d =>
-  d.Grupa?.toLowerCase() === 'tkanina' &&
-  d.TargetMeshOrModel &&
-  d.TargetMeshOrModel.split(',').map(s => s.trim()).includes(targetMesh) &&
-  isAllowedForGroup(d.GrupaDocelowa) &&
-  d.Visible?.toLowerCase() !== 'false'
-);
-
+        // 🔄 Grupa wg Kolekcji
 const groupedByCollection = {};
 materialOptions.forEach(mat => {
   const key = mat.Kolekcja?.trim() || 'Inne';
@@ -2372,21 +2219,18 @@ materialOptions.forEach(mat => {
   groupedByCollection[key].push(mat);
 });
 
+// 🧱 Stwórz panele kolekcji
 const container = document.getElementById('material-options');
-container.classList.remove('group-nogi', 'group-tkaniny'); // 🧼 usuń poprzednie klasy
-container.classList.add('group-tkaniny');                   // ✅ dodaj klasę dla stylu tkanin
-container.innerHTML = '';                                   // potem czyścisz kontener
-
+container.innerHTML = '';
 
 Object.entries(groupedByCollection).forEach(([kolekcja, materiały]) => {
   const panel = document.createElement('details');
   panel.setAttribute('data-kolekcja', kolekcja);
-  panel.classList.add('collection-panel');
-  panel.open = false;
+  panel.open = false; // 🔒 domyślnie zamknięte
 
   const summary = document.createElement('summary');
-  summary.innerHTML = `<img src="icons/${kolekcja.toLowerCase()}.png" alt="${kolekcja}" class="collection-icon">`;
-  panel.appendChild(summary);
+summary.innerHTML = `<img src="icons/${kolekcja.toLowerCase()}.png" alt="${kolekcja}" class="collection-icon">`;
+panel.appendChild(summary);
 
   const grid = document.createElement('div');
   grid.className = 'options-grid';
@@ -2416,8 +2260,10 @@ Object.entries(groupedByCollection).forEach(([kolekcja, materiały]) => {
       container.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('selected'));
       button.classList.add('selected');
 
+      // 🧠 zapamiętaj nazwę kolekcji
       lastOpenedCollection = kolekcja;
 
+      // 🔄 Zamknij inne panele i otwórz tylko bieżący
       container.querySelectorAll('details').forEach(p => {
         p.open = (p.getAttribute('data-kolekcja') === kolekcja);
       });
@@ -2429,6 +2275,7 @@ Object.entries(groupedByCollection).forEach(([kolekcja, materiały]) => {
   panel.appendChild(grid);
   container.appendChild(panel);
 
+  // 🧠 kliknięcie nagłówka kolekcji — pokaż tylko tę jedną
   summary.addEventListener('click', () => {
     setTimeout(() => {
       if (panel.open) {
@@ -2443,6 +2290,7 @@ Object.entries(groupedByCollection).forEach(([kolekcja, materiały]) => {
   });
 });
 
+// ✅ Po wygenerowaniu — otwórz ostatnio klikniętą kolekcję
 if (lastOpenedCollection) {
   const toOpen = container.querySelector(`details[data-kolekcja="${lastOpenedCollection}"]`);
   if (toOpen) toOpen.open = true;
@@ -2451,86 +2299,6 @@ if (lastOpenedCollection) {
 
 
 
-function renderMaterialPanels(materialOptions, targetMesh) {
-  const groupedByCollection = {};
-  materialOptions.forEach(mat => {
-    const key = mat.Kolekcja?.trim() || 'Inne';
-    if (!groupedByCollection[key]) groupedByCollection[key] = [];
-    groupedByCollection[key].push(mat);
-  });
-
-  const container = document.getElementById('material-options');
-  container.innerHTML = '';
-
-  Object.entries(groupedByCollection).forEach(([kolekcja, materiały]) => {
-    const panel = document.createElement('details');
-    panel.setAttribute('data-kolekcja', kolekcja);
-    panel.classList.add('collection-panel');
-    panel.open = false;
-
-    const summary = document.createElement('summary');
-    summary.innerHTML = `<img src="icons/${kolekcja.toLowerCase()}.png" alt="${kolekcja}" class="collection-icon">`;
-    panel.appendChild(summary);
-
-    const grid = document.createElement('div');
-    grid.className = 'options-grid';
-
-    materiały.forEach(mat => {
-      const wrapper = document.createElement('div');
-      wrapper.className = 'thumbnail-wrapper';
-
-      const button = document.createElement('div');
-      button.className = 'thumbnail';
-      button.title = mat.Nazwa;
-
-      const img = document.createElement('img');
-      img.src = mat.Obrazek || 'icons/placeholder.svg';
-      img.alt = mat.Nazwa;
-      button.appendChild(img);
-
-      const caption = document.createElement('div');
-      caption.className = 'thumbnail-caption';
-      caption.textContent = mat.Nazwa;
-
-      wrapper.appendChild(button);
-      wrapper.appendChild(caption);
-
-      button.onclick = () => {
-        applyMaterialToSpecificMesh(mat, targetMesh);
-        container.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('selected'));
-        button.classList.add('selected');
-
-        lastOpenedCollection = kolekcja;
-        container.querySelectorAll('details').forEach(p => {
-          p.open = (p.getAttribute('data-kolekcja') === kolekcja);
-        });
-      };
-
-      grid.appendChild(wrapper);
-    });
-
-    panel.appendChild(grid);
-    container.appendChild(panel);
-
-    summary.addEventListener('click', () => {
-      setTimeout(() => {
-        if (panel.open) {
-          lastOpenedCollection = kolekcja;
-          container.querySelectorAll('details').forEach(p => {
-            if (p !== panel) p.open = false;
-          });
-        } else {
-          if (lastOpenedCollection === kolekcja) lastOpenedCollection = null;
-        }
-      }, 0);
-    });
-  });
-
-  if (lastOpenedCollection) {
-    const toOpen = container.querySelector(`details[data-kolekcja="${lastOpenedCollection}"]`);
-    if (toOpen) toOpen.open = true;
-  }
-}
 
 
 
