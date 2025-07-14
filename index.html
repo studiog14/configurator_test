@@ -232,7 +232,7 @@
     #summary {
       margin-top: auto;
       padding-top: 15px;
-      border-top: 1px solid #ccc;
+      border-top: 1px solid #ffffff;
     }
 
     #back-to-models-container {
@@ -1061,13 +1061,26 @@
       background-color: #555;
     }
 
-    .collection-icon {
+   .collection-icon {
+  width: 64px;
   height: 64px;
-  width: auto;
-  display: block;
-  margin: 0 auto;
-  margin-bottom: 6px;
+  object-fit: contain;
+  cursor: pointer;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  transition: transform 0.2s, border-color 0.2s;
 }
+
+.collection-icon:hover {
+  transform: scale(1.05);
+  border-color: #444;
+}
+
+.collection-icon.selected {
+  outline: 2px solid #000;
+  box-shadow: 0 0 8px rgba(0,0,0,0.2);
+}
+
 
 
 
@@ -1091,6 +1104,37 @@
       padding: 6px 10px;
       margin-bottom: 6px;
     }
+
+    .collection-icon {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  cursor: pointer;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  transition: transform 0.2s, border-color 0.2s;
+}
+
+.collection-icon:hover {
+  transform: scale(1.05);
+  border-color: #444;
+}
+
+.collection-icon.selected {
+  outline: 2px solid #000;
+  box-shadow: 0 0 8px rgba(0,0,0,0.2);
+}
+
+.collection-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 88px;
+  align-items: center;
+}
+
+
+
   </style>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
@@ -1136,8 +1180,15 @@
         </div>
         <div id="materials-section" class="selection-section">
           <h3>Wybierz materiał:</h3>
-          <div id="material-options" class="options-grid"></div>
-        </div>
+          <div id="material-options" style="display: none;"></div>
+
+<!-- PANEL KOLEKCJI + MATERIAŁY -->
+<div id="collection-container" style="display: flex; gap: 24px; margin-top: 20px;">
+  <div id="collection-icons" style="display: flex; flex-direction: column; gap: 14px; width: 88px;"></div>
+  <div id="material-panel-viewer" class="options-grid" style="flex-grow: 1;"></div>
+</div>
+
+
 
       </div>
       <div id="summary"></div>
@@ -1167,6 +1218,9 @@
       </form>
     </div>
   </div>
+
+  
+
 
 
   <!-- KOMUNIKAT obrotu -->
@@ -2157,145 +2211,84 @@ const folderPath = (!isHex && variant.Wartość.startsWith('textures/')) ? varia
 
 
       function renderFilteredMaterialOptions(targetMesh) {
-        let materialOptions = [];
+  if (!selectedChair || !selectedChair.Grupa) return;
 
-        if (!selectedChair || !selectedChair.Grupa) return;
-        const grupa = selectedChair.Grupa.toLowerCase();
+  const grupa = selectedChair.Grupa.toLowerCase();
 
-        // 🔧 FUNKCJA POMOCNICZA: sprawdza czy wpis pasuje do grupy docelowej
-        const isAllowedForGroup = (entryGroupDocelowa) => {
-          if (!entryGroupDocelowa) return false; // pusta = nie pokazuj
-          const values = entryGroupDocelowa.toLowerCase().split(',').map(s => s.trim());
-          return values.includes('wszystkie') || values.includes(grupa) || values.includes('kubełek, krzesło');
-        };
+  function isAllowedForGroup(entryGroupDocelowa) {
+    if (!entryGroupDocelowa) return false;
+    const values = entryGroupDocelowa.toLowerCase().split(',').map(s => s.trim());
+    return values.includes('wszystkie') || values.includes(grupa) || values.includes('kubełek, krzesło');
+  }
 
-        // 🦵 MATERIAŁY NÓG
-        if (targetMesh === 'legs' || targetMesh === 'legs_material') {
-          materialOptions = allData.filter(d =>
-            d.Grupa?.toLowerCase() === 'materiały_nóg' &&
-            isAllowedForGroup(d.GrupaDocelowa) &&
-            d.Visible?.toLowerCase() !== 'false'
-          );
+  let materialOptions = [];
 
-          // Filtrowanie po typie nóg, jeśli istnieje
-          if (selectedLeg && selectedLeg.Typ) {
-            materialOptions = materialOptions.filter(mat =>
-              !mat.Typ || mat.Typ.toLowerCase().trim() === selectedLeg.Typ.toLowerCase().trim()
-            );
-          }
+  const isLegs = targetMesh === 'legs' || targetMesh === 'legs_material';
 
-          // Dodatkowo filtruj po DlaModeluNóg
-          if (selectedLeg && selectedLeg.Nazwa) {
-            const currentLegName = selectedLeg.Nazwa.toLowerCase().trim();
-            materialOptions = materialOptions.filter(mat => {
-              const allowedLegs = mat.DlaModeluNóg
-                ? mat.DlaModeluNóg.split(',').map(s => s.trim().toLowerCase())
-                : [];
-              return allowedLegs.length === 0 || allowedLegs.includes(currentLegName);
-            });
-          }
+  if (isLegs) {
+    materialOptions = allData.filter(d =>
+      d.Grupa?.toLowerCase() === 'materiały_nóg' &&
+      isAllowedForGroup(d.GrupaDocelowa) &&
+      d.Visible?.toLowerCase() !== 'false'
+    );
 
-          renderOptions('material-options', materialOptions, item =>
-            applyMaterialToSpecificMesh(item, 'legs')
-          );
-          return;
-        }
+    if (selectedLeg && selectedLeg.Typ) {
+      materialOptions = materialOptions.filter(mat =>
+        !mat.Typ || mat.Typ.toLowerCase().trim() === selectedLeg.Typ.toLowerCase().trim()
+      );
+    }
 
-        // ✳️ MATERIAŁY TKANINOWE (siedzisko, oparcia itd.)
-        // ✳️ Materiały tkaninowe (seat, backseat itd.)
-        materialOptions = allData.filter(d =>
-          d.Grupa?.toLowerCase() === 'tkanina' &&
-          d.TargetMeshOrModel &&
-          d.TargetMeshOrModel.split(',').map(s => s.trim()).includes(targetMesh) &&
-          isAllowedForGroup(d.GrupaDocelowa) &&
-          d.Visible?.toLowerCase() !== 'false'
-        );
-
-        // 🔄 Grupa wg Kolekcji
-const groupedByCollection = {};
-materialOptions.forEach(mat => {
-  const key = mat.Kolekcja?.trim() || 'Inne';
-  if (!groupedByCollection[key]) groupedByCollection[key] = [];
-  groupedByCollection[key].push(mat);
-});
-
-// 🧱 Stwórz panele kolekcji
-const container = document.getElementById('material-options');
-container.innerHTML = '';
-
-Object.entries(groupedByCollection).forEach(([kolekcja, materiały]) => {
-  const panel = document.createElement('details');
-  panel.setAttribute('data-kolekcja', kolekcja);
-  panel.open = false; // 🔒 domyślnie zamknięte
-
-  const summary = document.createElement('summary');
-summary.innerHTML = `<img src="icons/${kolekcja.toLowerCase()}.png" alt="${kolekcja}" class="collection-icon">`;
-panel.appendChild(summary);
-
-  const grid = document.createElement('div');
-  grid.className = 'options-grid';
-
-  materiały.forEach(mat => {
-    const wrapper = document.createElement('div');
-    wrapper.className = 'thumbnail-wrapper';
-
-    const button = document.createElement('div');
-    button.className = 'thumbnail';
-    button.title = mat.Nazwa;
-
-    const img = document.createElement('img');
-    img.src = mat.Obrazek || 'icons/placeholder.svg';
-    img.alt = mat.Nazwa;
-    button.appendChild(img);
-
-    const caption = document.createElement('div');
-    caption.className = 'thumbnail-caption';
-    caption.textContent = mat.Nazwa;
-
-    wrapper.appendChild(button);
-    wrapper.appendChild(caption);
-
-    button.onclick = () => {
-      applyMaterialToSpecificMesh(mat, targetMesh);
-      container.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('selected'));
-      button.classList.add('selected');
-
-      // 🧠 zapamiętaj nazwę kolekcji
-      lastOpenedCollection = kolekcja;
-
-      // 🔄 Zamknij inne panele i otwórz tylko bieżący
-      container.querySelectorAll('details').forEach(p => {
-        p.open = (p.getAttribute('data-kolekcja') === kolekcja);
+    if (selectedLeg && selectedLeg.Nazwa) {
+      const currentLegName = selectedLeg.Nazwa.toLowerCase().trim();
+      materialOptions = materialOptions.filter(mat => {
+        const allowedLegs = mat.DlaModeluNóg
+          ? mat.DlaModeluNóg.split(',').map(s => s.trim().toLowerCase())
+          : [];
+        return allowedLegs.length === 0 || allowedLegs.includes(currentLegName);
       });
-    };
+    }
 
-    grid.appendChild(wrapper);
+    const groupedByCollection = {};
+    materialOptions.forEach(mat => {
+      const key = mat.Kolekcja?.trim() || 'Inne';
+      if (!groupedByCollection[key]) groupedByCollection[key] = [];
+      groupedByCollection[key].push(mat);
+    });
+
+    renderCollectionsAndMaterials(groupedByCollection, 'legs');
+    return;
+  }
+
+  // 🧵 TKANINY (siedzisko, oparcie itd.)
+  materialOptions = allData.filter(d =>
+    d.Grupa?.toLowerCase() === 'tkanina' &&
+    d.TargetMeshOrModel &&
+    d.TargetMeshOrModel.split(',').map(t => t.trim()).includes(targetMesh) &&
+    isAllowedForGroup(d.GrupaDocelowa) &&
+    d.Visible?.toLowerCase() !== 'false'
+  );
+
+  const groupedByCollection = {};
+  materialOptions.forEach(mat => {
+    const key = mat.Kolekcja?.trim() || 'Inne';
+    if (!groupedByCollection[key]) groupedByCollection[key] = [];
+    groupedByCollection[key].push(mat);
   });
 
-  panel.appendChild(grid);
-  container.appendChild(panel);
+  renderCollectionsAndMaterials(groupedByCollection, targetMesh);
+}
 
-  // 🧠 kliknięcie nagłówka kolekcji — pokaż tylko tę jedną
-  summary.addEventListener('click', () => {
-    setTimeout(() => {
-      if (panel.open) {
-        lastOpenedCollection = kolekcja;
-        container.querySelectorAll('details').forEach(p => {
-          if (p !== panel) p.open = false;
-        });
-      } else {
-        if (lastOpenedCollection === kolekcja) lastOpenedCollection = null;
-      }
-    }, 0);
-  });
-});
+     
+
+
+
 
 // ✅ Po wygenerowaniu — otwórz ostatnio klikniętą kolekcję
 if (lastOpenedCollection) {
   const toOpen = container.querySelector(`details[data-kolekcja="${lastOpenedCollection}"]`);
   if (toOpen) toOpen.open = true;
 }
-}
+
 
 
 
@@ -3209,6 +3202,98 @@ if (lastOpenedCollection) {
         });
       }
 
+
+const activeCollectionsByMesh = {};
+const materialsByMeshAndCollection = {};
+
+function renderCollectionsAndMaterials(groupedByCollection, targetMesh) {
+  const iconPanel = document.getElementById('collection-icons');
+  const materialPanel = document.getElementById('material-panel-viewer');
+  if (!iconPanel || !materialPanel) return;
+
+  iconPanel.innerHTML = '';
+  materialPanel.innerHTML = '';
+
+  Object.entries(groupedByCollection).forEach(([kolekcja, materiały]) => {
+    const icon = document.createElement('img');
+    icon.src = `icons/${kolekcja.toLowerCase().replace(/\s+/g, '_')}.png`;
+    icon.alt = kolekcja;
+    icon.className = 'collection-icon';
+
+    icon.onclick = () => {
+      const isActive = activeCollectionsByMesh[targetMesh] === kolekcja;
+      iconPanel.querySelectorAll('.collection-icon').forEach(i => i.classList.remove('selected'));
+
+      if (isActive) {
+        activeCollectionsByMesh[targetMesh] = null;
+        materialPanel.innerHTML = '';
+        return;
+      }
+
+      activeCollectionsByMesh[targetMesh] = kolekcja;
+      materialsByMeshAndCollection[targetMesh] = groupedByCollection;
+
+      icon.classList.add('selected');
+      materialPanel.innerHTML = '';
+      renderMaterialsInPanel(materiały, targetMesh);
+    };
+
+    iconPanel.appendChild(icon);
+  });
+
+  // ✅ automatycznie otwórz ostatnio aktywną kolekcję po zmianie elementu
+  const rememberedCollection = activeCollectionsByMesh[targetMesh];
+  const rememberedMaterials = materialsByMeshAndCollection[targetMesh]?.[rememberedCollection];
+
+  if (rememberedCollection && rememberedMaterials) {
+    const rememberedIcon = [...iconPanel.querySelectorAll('.collection-icon')].find(
+      i => i.alt === rememberedCollection
+    );
+    if (rememberedIcon) {
+      rememberedIcon.classList.add('selected');
+      renderMaterialsInPanel(rememberedMaterials, targetMesh);
+    }
+  }
+}
+
+
+
+
+
+
+function renderMaterialsInPanel(materiały, targetMesh) {
+  const viewer = document.getElementById('material-panel-viewer');
+  if (!viewer) return;
+  viewer.innerHTML = '';
+
+  materiały.forEach(mat => {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'thumbnail-wrapper';
+
+    const button = document.createElement('div');
+    button.className = 'thumbnail';
+    button.title = mat.Nazwa;
+
+    const img = document.createElement('img');
+    img.src = mat.Obrazek || 'icons/placeholder.svg';
+    img.alt = mat.Nazwa;
+    button.appendChild(img);
+
+    const caption = document.createElement('div');
+    caption.className = 'thumbnail-caption';
+    caption.textContent = mat.Nazwa;
+
+    wrapper.appendChild(button);
+    wrapper.appendChild(caption);
+    viewer.appendChild(wrapper);
+
+    button.onclick = () => {
+      applyMaterialToSpecificMesh(mat, targetMesh);
+      viewer.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('selected'));
+      button.classList.add('selected');
+    };
+  });
+}
 
 
 
