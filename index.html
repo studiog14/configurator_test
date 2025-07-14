@@ -215,12 +215,12 @@
     }
 
     #overview-details .detail-item {
-      font-size: 16px;
+      font-size: 15px;
       margin: 8px 0;
     }
 
     #overview-total-price {
-      font-size: 22px;
+      font-size: 15px;
     }
 
     #overview-icons {
@@ -1084,6 +1084,14 @@
       padding: 6px 10px;
       margin-bottom: 6px;
     }
+
+    .collection-icon {
+  height: 63px;
+  width: auto;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+
   </style>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
@@ -2222,10 +2230,9 @@ Object.entries(groupedByCollection).forEach(([kolekcja, materiały]) => {
   panel.open = false; // 🔒 domyślnie zamknięte
 
   const summary = document.createElement('summary');
-  summary.textContent = kolekcja;
-  summary.style.fontSize = '16px';
-  summary.style.fontWeight = 'bold';
-  summary.style.margin = '12px 0';
+  summary.innerHTML = `<img src="icons/${kolekcja.toLowerCase()}.png" alt="${kolekcja}" class="collection-icon">`;
+
+  
   panel.appendChild(summary);
 
   const grid = document.createElement('div');
