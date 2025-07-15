@@ -3384,7 +3384,16 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 
-function loadModelManually() {
+
+
+
+
+
+
+
+      init();
+
+      function loadModelManually() {
   const loader = new THREE.GLTFLoader();
 
   fetch('chairs/Molly.glb')
@@ -3402,13 +3411,6 @@ function loadModelManually() {
     });
 }
 
-
-
-
-
-
-
-      init();
 
       // Rejestracja Service Workera
       if ('serviceWorker' in navigator) {
