@@ -3403,6 +3403,15 @@ window.addEventListener('resize', updateRotateMessage);
 window.addEventListener('load', updateRotateMessage);
 
 
+function checkOrientation() {
+  const rotateMsg = document.getElementById('rotate-message');
+  if (!rotateMsg) return;
+
+  const isLandscape = window.innerWidth > window.innerHeight;
+  rotateMsg.style.display = isLandscape ? 'none' : 'flex';
+}
+window.addEventListener('load', checkOrientation);
+window.addEventListener('resize', checkOrientation);
 
 
 
