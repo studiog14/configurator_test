@@ -751,17 +751,45 @@
       }
     }
 
-    @media (max-width: 768px) and (orientation: landscape) {
+    /* 📱 PION: ukryj aplikację, pokaż komunikat */
+@media (max-width: 820px) and (orientation: portrait) {
+  #app,
+  #bottom-toolbar,
+  #sidebar,
+  .dimension-panel,
+  .dimension-label,
+  #qr-button {
+    display: none !important;
+  }
 
-      /* Pokazujemy UI w poziomie */
-      #rotate-message {
-        display: none;
-      }
+  #rotate-message {
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 40px;
+    font-size: 18px;
+    background: #000;
+    color: #fff;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2000;
+  }
+}
 
-      #canvas {
-        width: 40vw;
-        height: 100vh;
-      }
+/* 🤖 POZIOM: pokaż aplikację, ukryj komunikat */
+@media (max-width: 820px) and (orientation: landscape) {
+  #rotate-message {
+    display: none !important;
+  }
+
+  #canvas {
+    width: 40vw;
+    height: 100vh;
+  }
 
       #sidebar {
         width: 25vw;
@@ -3334,7 +3362,29 @@ function renderMaterialsInPanel(materiały, targetMesh) {
 
 
 
+ window.addEventListener('orientationchange', () => {
+    const rotateMsg = document.getElementById('rotate-message');
+    if (!rotateMsg) return;
 
+    // ✅ Jeśli poziomo — chowaj komunikat
+    if (window.innerWidth > window.innerHeight) {
+      rotateMsg.style.display = 'none';
+    } else {
+      rotateMsg.style.display = 'flex';
+    }
+  });
+
+  // ✅ Dodatkowy test przy starcie — gdy strona ładuje się w pionie
+  window.addEventListener('load', () => {
+    const rotateMsg = document.getElementById('rotate-message');
+    if (!rotateMsg) return;
+
+    if (window.innerWidth > window.innerHeight) {
+      rotateMsg.style.display = 'none';
+    } else {
+      rotateMsg.style.display = 'flex';
+    }
+  });
 
 
 
