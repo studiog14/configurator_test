@@ -1679,6 +1679,8 @@
 
       console.log("Meshe w modelu:", currentModelContainer.children.map(obj => obj.name)); // <-- DODAJ TO TUTAJ
       //selectedChair = variant; // <-- DODAJ TO!
+
+      
       // Wyśrodkuj kamerę na modelu
       const box = new Box3().setFromObject(currentModelContainer);
       const center = box.getCenter(new Vector3());
@@ -1715,6 +1717,7 @@
 
 
         selectedChair = variant;
+        
         renderPartButtons();
         userInteracted = true;
         hideDimensions();
@@ -2247,6 +2250,22 @@ const folderPath = (!isHex && variant.Wartość.startsWith('textures/')) ? varia
         return allowedLegs.length === 0 || allowedLegs.includes(currentLegName);
       });
     }
+
+    if (selectedChair && selectedChair.Nazwa) {
+  const currentChairName = selectedChair.Nazwa.toLowerCase().trim();
+  materialOptions = materialOptions.filter(mat => {
+    // ⛔️ Jeśli pole DlaKrzesła jest puste → odrzucamy
+    if (!mat.DlaKrzesła || mat.DlaKrzesła.trim().length === 0) return false;
+
+    const allowedChairs = mat.DlaKrzesła
+      .split(',')
+      .map(s => s.trim().toLowerCase());
+
+    return allowedChairs.includes(currentChairName);
+  });
+}
+
+
 
     const groupedByCollection = {};
     materialOptions.forEach(mat => {
@@ -3073,7 +3092,8 @@ if (lastOpenedCollection) {
         // 🧼 Czyść tylko kafelki materiałów nóg
         legsMaterialsContainer.querySelectorAll('.material-tile')?.forEach(tile => tile.remove());
 
-        const allEntries = getMaterialsFromSheet();
+        const allEntries = allData;
+
         const chairType = selectedChair.Grupa?.trim().toLowerCase();       // 'krzesło' lub 'kubełek'
         const legVariant = selectedLeg.Nazwa?.trim().toLowerCase();       // np. 'regularne'
 
@@ -3207,6 +3227,9 @@ const activeCollectionsByMesh = {};
 const materialsByMeshAndCollection = {};
 
 function renderCollectionsAndMaterials(groupedByCollection, targetMesh) {
+  // ⏱️ Zapisz dane materiałów dla danego elementu
+  materialsByMeshAndCollection[targetMesh] = groupedByCollection;
+
   const iconPanel = document.getElementById('collection-icons');
   const materialPanel = document.getElementById('material-panel-viewer');
   if (!iconPanel || !materialPanel) return;
@@ -3216,7 +3239,17 @@ function renderCollectionsAndMaterials(groupedByCollection, targetMesh) {
 
   Object.entries(groupedByCollection).forEach(([kolekcja, materiały]) => {
     const icon = document.createElement('img');
-    icon.src = `icons/${kolekcja.toLowerCase().replace(/\s+/g, '_')}.png`;
+
+    // 🎯 Ikony specjalne dla 'legs' i 'backseat'
+    let iconFileName = kolekcja.toLowerCase().replace(/\s+/g, '_');
+
+    if (targetMesh === 'legs') {
+      iconFileName += '_legs';
+    } else if (targetMesh === 'backseat') {
+      iconFileName += '_back';
+    }
+
+    icon.src = `icons/${iconFileName}.png`;
     icon.alt = kolekcja;
     icon.className = 'collection-icon';
 
@@ -3231,8 +3264,6 @@ function renderCollectionsAndMaterials(groupedByCollection, targetMesh) {
       }
 
       activeCollectionsByMesh[targetMesh] = kolekcja;
-      materialsByMeshAndCollection[targetMesh] = groupedByCollection;
-
       icon.classList.add('selected');
       materialPanel.innerHTML = '';
       renderMaterialsInPanel(materiały, targetMesh);
@@ -3241,11 +3272,12 @@ function renderCollectionsAndMaterials(groupedByCollection, targetMesh) {
     iconPanel.appendChild(icon);
   });
 
-  // ✅ automatycznie otwórz ostatnio aktywną kolekcję po zmianie elementu
+  // ✅ Automatyczne otwarcie zapamiętanej kolekcji
   const rememberedCollection = activeCollectionsByMesh[targetMesh];
-  const rememberedMaterials = materialsByMeshAndCollection[targetMesh]?.[rememberedCollection];
+  const rememberedGroup = materialsByMeshAndCollection[targetMesh] || {};
+  const rememberedMaterials = rememberedGroup[rememberedCollection];
 
-  if (rememberedCollection && rememberedMaterials) {
+  if (rememberedCollection && rememberedMaterials?.length) {
     const rememberedIcon = [...iconPanel.querySelectorAll('.collection-icon')].find(
       i => i.alt === rememberedCollection
     );
@@ -3255,6 +3287,9 @@ function renderCollectionsAndMaterials(groupedByCollection, targetMesh) {
     }
   }
 }
+
+
+
 
 
 
