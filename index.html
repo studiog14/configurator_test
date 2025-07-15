@@ -3384,17 +3384,24 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 
-fetch('chairs/Molly.glb')
-  .then(res => res.blob())
-  .then(blob => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      loader.parse(reader.result, '', gltf => {
-        scene.add(gltf.scene);
-      });
-    };
-    reader.readAsArrayBuffer(blob);
-  });
+function loadModelManually() {
+  const loader = new THREE.GLTFLoader();
+
+  fetch('chairs/Molly.glb')
+    .then(res => res.blob())
+    .then(blob => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        loader.parse(reader.result, '', gltf => {
+          scene.add(gltf.scene); // musi istnieć wcześniej
+        }, err => {
+          console.error('⛔️ Parse error:', err);
+        });
+      };
+      reader.readAsArrayBuffer(blob);
+    });
+}
+
 
 
 
