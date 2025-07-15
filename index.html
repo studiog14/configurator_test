@@ -1254,9 +1254,9 @@
 
 
   <!-- KOMUNIKAT obrotu -->
-  <div id="rotate-message">
-    🔄 Obróć urządzenie poziomo
-  </div>
+  <div id="rotate-message" style="display: none;">
+  🔄 Obróć urządzenie poziomo
+</div>
 
 
 
@@ -3387,6 +3387,17 @@ function renderMaterialsInPanel(materiały, targetMesh) {
   });
 
 
+function updateRotateMessage() {
+  const rotateMsg = document.getElementById('rotate-message');
+  if (!rotateMsg) return;
+
+  const isLandscape = window.innerWidth > window.innerHeight;
+  rotateMsg.style.display = isLandscape ? 'none' : 'flex';
+}
+
+window.addEventListener('orientationchange', updateRotateMessage);
+window.addEventListener('resize', updateRotateMessage);
+window.addEventListener('load', updateRotateMessage);
 
 
 
