@@ -1,5 +1,5 @@
 {
-  "name": "Konfigurator FK",
+  "name": "Konfigurator - Fajne Krzesła",
   "short_name": "FK",
   "start_url": "./",
   "display": "standalone",
@@ -7,7 +7,7 @@
   "theme_color": "#000000",
   "icons": [
     {
-      "src": "icons/favicon.jpg",
+      "src": "icons/favicon.png",
       "sizes": "192x192",
       "type": "image/jpeg"
     }
