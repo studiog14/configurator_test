@@ -789,6 +789,9 @@
   #canvas {
     width: 40vw;
     height: 100vh;
+    touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
   }
 
       #sidebar {
@@ -3398,6 +3401,7 @@ function updateRotateMessage() {
 window.addEventListener('orientationchange', updateRotateMessage);
 window.addEventListener('resize', updateRotateMessage);
 window.addEventListener('load', updateRotateMessage);
+
 
 
 
