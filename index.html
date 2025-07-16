@@ -2508,6 +2508,11 @@ if (lastOpenedCollection) {
       });
 
 
+setDefaultMaterialsFromSheet();
+updateSummary();
+
+
+
 
       function updateSummary() {
         const overviewPanel = document.getElementById('config-overview');
@@ -2541,13 +2546,24 @@ if (lastOpenedCollection) {
 
         // Ikonki materiałów dla każdego elementu
         partOrder.forEach((partKey, idx) => {
-          const mat = selectedMaterials[partKey];
-          if (mat && (mat.Obrazek || mat.Image)) {
-            const icon = document.createElement('img');
-            icon.src = mat.Obrazek || mat.Image;
-            icon.title = mat.Nazwa;
-            overviewIconsDiv.appendChild(icon);
-          }
+          const mats = selectedMaterials[partKey];
+if (Array.isArray(mats)) {
+  mats.forEach(mat => {
+    if (mat && (mat.Obrazek || mat.Image)) {
+      const icon = document.createElement('img');
+      icon.src = mat.Obrazek || mat.Image;
+      icon.title = mat.Nazwa;
+      overviewIconsDiv.appendChild(icon);
+    }
+  });
+} else if (mats && (mats.Obrazek || mats.Image)) {
+  // Obsługa starego trybu (pojedynczy materiał)
+  const icon = document.createElement('img');
+  icon.src = mats.Obrazek || mats.Image;
+  icon.title = mats.Nazwa;
+  overviewIconsDiv.appendChild(icon);
+}
+
         });
 
         // Ikonka wybranego wariantu nóg (jeśli jest)
@@ -3380,8 +3396,35 @@ window.addEventListener('resize', checkOrientation);
 
 window.addEventListener('DOMContentLoaded', () => {
   // przygotowanie canvas i kontenerów
-  init();
+  
 });
+
+
+function setDefaultMaterialsFromSheet() {
+  if (!Array.isArray(allData) || !window.selectedChair || !selectedChair.Nazwa) return;
+
+  const modelName = selectedChair.Nazwa.trim().toLowerCase();
+  if (typeof window.selectedMaterials !== 'object') window.selectedMaterials = {};
+
+  allData.forEach(row => {
+    const modelMatch = row.Default?.trim().toLowerCase();
+    const targetRaw = row.TargetMeshOrObiect?.trim().toLowerCase();
+    const name = row.Nazwa?.trim();
+    const price = parseFloat(row.Cena) || 0;
+    const image = row.Obrazek || row.Image || '';
+
+    if (!modelMatch || modelMatch !== modelName || !name || !targetRaw) return;
+
+    if (!selectedMaterials[targetRaw]) selectedMaterials[targetRaw] = [];
+
+    selectedMaterials[targetRaw].push({
+      Nazwa: name,
+      Cena: price,
+      Obrazek: image
+    });
+  });
+}
+
 
 
 
@@ -3393,23 +3436,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
       init();
 
-      function loadModelManually() {
-  const loader = new THREE.GLTFLoader();
+    
 
-  fetch('chairs/Molly.glb')
-    .then(res => res.blob())
-    .then(blob => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        loader.parse(reader.result, '', gltf => {
-          scene.add(gltf.scene); // musi istnieć wcześniej
-        }, err => {
-          console.error('⛔️ Parse error:', err);
-        });
-      };
-      reader.readAsArrayBuffer(blob);
-    });
-}
 
 
       // Rejestracja Service Workera
