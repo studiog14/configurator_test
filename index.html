@@ -1129,13 +1129,45 @@
   align-items: center;
 }
 
+#custom-loader {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  font-family: Arial, sans-serif;
+}
 
+#custom-loader img {
+  width: 220px;
+  margin-bottom: 20px;
+}
+
+#custom-loader p {
+  font-size: 18px;
+  color: #333;
+}
+
+#custom-loader.fade-out {
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+}
 
   </style>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
 <body>
+  <div id="custom-loader">
+  <img src="icons/FK_Logo.jpg" alt="Fajne Krzesła" />
+  <p>Ładowanie modelu...</p>
+</div>
+
   <div id="app">
     <canvas id="canvas"></canvas>
     <div id="config-overview" class="collapsed hidden">
@@ -1742,6 +1774,8 @@
           }
         }
 
+        
+
         setCameraView(globalCameraTargetPosition);
         enforceZoomLimits();
         updateUI();
@@ -1769,6 +1803,10 @@
       }
     }
 
+document.getElementById('custom-loader').classList.add('fade-out');
+setTimeout(() => {
+  document.getElementById('custom-loader').style.display = 'none';
+}, 500);
 
 
 
@@ -1783,6 +1821,7 @@
         roughness: roughness,
       });
     }
+    
 
     async function setLegModel(variant) {
       userInteracted = true;
