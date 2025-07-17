@@ -37,7 +37,13 @@
       height: 100vh;
       width: 100vw;
       position: relative;
+      visibility: hidden;
     }
+
+    #app.visible {
+  visibility: visible;
+  opacity: 1;
+}
 
     #canvas {
       flex: 1 1 0;
@@ -1874,10 +1880,8 @@ document.getElementById('model-loader').style.display = 'flex';
       }
     }
 
-document.getElementById('custom-loader').classList.add('fade-out');
-setTimeout(() => {
-  document.getElementById('custom-loader').style.display = 'none';
-}, 500);
+
+
 
 
 
@@ -2594,23 +2598,43 @@ if (lastOpenedCollection) {
 
 
 
-          // ZAWSZE na starcie ładuj Default.glb (nie ustawiaj selectedChair!)
-          if (currentModelContainer) {
-            viewer.scene.remove(currentModelContainer);
-            if (typeof currentModelContainer.dispose === 'function') currentModelContainer.dispose();
-          }
-          currentModelContainer = await viewer.load('chairs/Default.glb', { autoCenter: true });
-          setCameraView(new Vector3(0, 0, 0));
-          selectedChair = null;
-          selectedLeg = null;
-          selectedMaterials = {};
-          userInteracted = false;
-          updateSummary();
-          const toolbar = document.getElementById('bottom-toolbar');
-          if (toolbar) {
-            toolbar.style.display = 'flex';
-            toolbar.classList.add('visible');
-          }
+          // Pokaż loader
+document.getElementById('custom-loader').style.display = 'flex';
+document.getElementById('app').style.visibility = 'hidden';
+
+// Usuń poprzedni model
+if (currentModelContainer) {
+  viewer.scene.remove(currentModelContainer);
+  if (typeof currentModelContainer.dispose === 'function') currentModelContainer.dispose();
+}
+
+// Załaduj nowy model
+currentModelContainer = await viewer.load('chairs/Default.glb', { autoCenter: true });
+setCameraView(new Vector3(0, 0, 0));
+
+// Resetuj wybory
+selectedChair = null;
+selectedLeg = null;
+selectedMaterials = {};
+userInteracted = false;
+
+// Zaktualizuj podsumowanie
+updateSummary();
+
+// Pokaż scenę i ukryj loader
+document.getElementById('custom-loader').classList.add('fade-out');
+setTimeout(() => {
+  document.getElementById('custom-loader').style.display = 'none';
+  document.getElementById('app').style.visibility = 'visible';
+}, 500);
+
+// Pokaż toolbar
+const toolbar = document.getElementById('bottom-toolbar');
+if (toolbar) {
+  toolbar.style.display = 'flex';
+  toolbar.classList.add('visible');
+}
+
 
         } catch (e) { console.error("Błąd ładowania danych:", e); document.body.innerHTML = `Błąd ładowania danych: ${e.message}`; }
       }
