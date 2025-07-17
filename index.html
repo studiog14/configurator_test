@@ -1158,12 +1158,42 @@
   pointer-events: none;
 }
 
+#model-loader {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: #fff;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  font-family: Arial, sans-serif;
+}
+
+#model-loader img {
+  width: 220px;
+  margin-bottom: 20px;
+}
+
+#model-loader p {
+  font-size: 18px;
+  color: #333;
+}
+
+
+
   </style>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
 <body>
   <div id="custom-loader">
+  <img src="icons/FK_Logo.jpg" alt="Fajne Krzesła" />
+  
+</div>
+
+<div id="model-loader">
   <img src="icons/FK_Logo.jpg" alt="Fajne Krzesła" />
   <p>Ładowanie modelu...</p>
 </div>
@@ -1215,6 +1245,7 @@
   <div id="collection-icons" style="display: flex; flex-direction: column; gap: 14px; width: 88px;"></div>
   <div id="material-panel-viewer" class="options-grid" style="flex-grow: 1;"></div>
 </div>
+
 
 
 
@@ -1585,7 +1616,7 @@
 
       viewer = new ThreeViewer({
         canvas: canvas,
-        plugins: [LoadingScreenPlugin, GBufferPlugin, SSAAPlugin, SSReflectionPlugin, BloomPlugin],
+        plugins: [ GBufferPlugin, SSAAPlugin, SSReflectionPlugin, BloomPlugin],
         rendererSettings: { antialias: true }
       });
       if (viewer.controls) {
@@ -1732,7 +1763,7 @@
       selectedLeg = null;
       selectedMaterials = {};
 
-
+document.getElementById('model-loader').style.display = 'flex';
 
       try {
         const modelPath = `chairs/${variant.Nazwa}.glb`;
@@ -1774,7 +1805,8 @@
           }
         }
 
-        
+        document.getElementById('model-loader').style.display = 'none';
+
 
         setCameraView(globalCameraTargetPosition);
         enforceZoomLimits();
@@ -1807,6 +1839,8 @@ document.getElementById('custom-loader').classList.add('fade-out');
 setTimeout(() => {
   document.getElementById('custom-loader').style.display = 'none';
 }, 500);
+
+
 
 
 
@@ -1872,6 +1906,10 @@ setTimeout(() => {
         console.error(`BŁĄD ładowania nóg: ${e.message}`, e);
       }
     }
+document.getElementById('model-loader').classList.add('fade-out');
+setTimeout(() => {
+  document.getElementById('model-loader').style.display = 'none';
+}, 500);
 
 
 
@@ -2582,6 +2620,7 @@ updateSummary();
           icon.className = 'model-image'; // <-- dodaj tę klasę!
           overviewIconsDiv.appendChild(icon);
         }
+        
 
         // Ikonki materiałów dla każdego elementu
         partOrder.forEach((partKey, idx) => {
@@ -2661,6 +2700,8 @@ if (Array.isArray(mats)) {
         window.selectedMaterials = selectedMaterials;
 
       }
+     
+
 
       function enforceZoomLimits() {
         if (viewer && viewer.controls) {

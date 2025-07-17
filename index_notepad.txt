@@ -1129,6 +1129,57 @@
   align-items: center;
 }
 
+#custom-loader {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  font-family: Arial, sans-serif;
+}
+
+#custom-loader img {
+  width: 220px;
+  margin-bottom: 20px;
+}
+
+#custom-loader p {
+  font-size: 18px;
+  color: #333;
+}
+
+#custom-loader.fade-out {
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+}
+
+#model-loader {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: #fff;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  font-family: Arial, sans-serif;
+}
+
+#model-loader img {
+  width: 120px;
+  margin-bottom: 20px;
+}
+
+#model-loader p {
+  font-size: 18px;
+  color: #333;
+}
 
 
   </style>
@@ -1136,6 +1187,11 @@
 </head>
 
 <body>
+  <div id="custom-loader">
+  <img src="icons/FK_Logo.jpg" alt="Fajne Krzesła" />
+  
+</div>
+
   <div id="app">
     <canvas id="canvas"></canvas>
     <div id="config-overview" class="collapsed hidden">
@@ -1184,6 +1240,10 @@
   <div id="material-panel-viewer" class="options-grid" style="flex-grow: 1;"></div>
 </div>
 
+<div id="model-loader">
+  <img src="img/logo.svg" alt="Fajne Krzesła" />
+  <p>Ładowanie modelu...</p>
+</div>
 
 
       </div>
@@ -1553,7 +1613,7 @@
 
       viewer = new ThreeViewer({
         canvas: canvas,
-        plugins: [LoadingScreenPlugin, GBufferPlugin, SSAAPlugin, SSReflectionPlugin, BloomPlugin],
+        plugins: [ GBufferPlugin, SSAAPlugin, SSReflectionPlugin, BloomPlugin],
         rendererSettings: { antialias: true }
       });
       if (viewer.controls) {
@@ -1742,6 +1802,8 @@
           }
         }
 
+        
+
         setCameraView(globalCameraTargetPosition);
         enforceZoomLimits();
         updateUI();
@@ -1769,6 +1831,11 @@
       }
     }
 
+document.getElementById('custom-loader').classList.add('fade-out');
+setTimeout(() => {
+  document.getElementById('custom-loader').style.display = 'none';
+}, 500);
+
 
 
 
@@ -1783,6 +1850,7 @@
         roughness: roughness,
       });
     }
+    
 
     async function setLegModel(variant) {
       userInteracted = true;
@@ -1833,6 +1901,10 @@
         console.error(`BŁĄD ładowania nóg: ${e.message}`, e);
       }
     }
+document.getElementById('model-loader').classList.add('fade-out');
+setTimeout(() => {
+  document.getElementById('model-loader').style.display = 'none';
+}, 500);
 
 
 
@@ -2508,6 +2580,11 @@ if (lastOpenedCollection) {
       });
 
 
+setDefaultMaterialsFromSheet();
+updateSummary();
+
+
+
 
       function updateSummary() {
         const overviewPanel = document.getElementById('config-overview');
@@ -2541,13 +2618,24 @@ if (lastOpenedCollection) {
 
         // Ikonki materiałów dla każdego elementu
         partOrder.forEach((partKey, idx) => {
-          const mat = selectedMaterials[partKey];
-          if (mat && (mat.Obrazek || mat.Image)) {
-            const icon = document.createElement('img');
-            icon.src = mat.Obrazek || mat.Image;
-            icon.title = mat.Nazwa;
-            overviewIconsDiv.appendChild(icon);
-          }
+          const mats = selectedMaterials[partKey];
+if (Array.isArray(mats)) {
+  mats.forEach(mat => {
+    if (mat && (mat.Obrazek || mat.Image)) {
+      const icon = document.createElement('img');
+      icon.src = mat.Obrazek || mat.Image;
+      icon.title = mat.Nazwa;
+      overviewIconsDiv.appendChild(icon);
+    }
+  });
+} else if (mats && (mats.Obrazek || mats.Image)) {
+  // Obsługa starego trybu (pojedynczy materiał)
+  const icon = document.createElement('img');
+  icon.src = mats.Obrazek || mats.Image;
+  icon.title = mats.Nazwa;
+  overviewIconsDiv.appendChild(icon);
+}
+
         });
 
         // Ikonka wybranego wariantu nóg (jeśli jest)
@@ -3380,8 +3468,35 @@ window.addEventListener('resize', checkOrientation);
 
 window.addEventListener('DOMContentLoaded', () => {
   // przygotowanie canvas i kontenerów
-  init();
+  
 });
+
+
+function setDefaultMaterialsFromSheet() {
+  if (!Array.isArray(allData) || !window.selectedChair || !selectedChair.Nazwa) return;
+
+  const modelName = selectedChair.Nazwa.trim().toLowerCase();
+  if (typeof window.selectedMaterials !== 'object') window.selectedMaterials = {};
+
+  allData.forEach(row => {
+    const modelMatch = row.Default?.trim().toLowerCase();
+    const targetRaw = row.TargetMeshOrObiect?.trim().toLowerCase();
+    const name = row.Nazwa?.trim();
+    const price = parseFloat(row.Cena) || 0;
+    const image = row.Obrazek || row.Image || '';
+
+    if (!modelMatch || modelMatch !== modelName || !name || !targetRaw) return;
+
+    if (!selectedMaterials[targetRaw]) selectedMaterials[targetRaw] = [];
+
+    selectedMaterials[targetRaw].push({
+      Nazwa: name,
+      Cena: price,
+      Obrazek: image
+    });
+  });
+}
+
 
 
 
