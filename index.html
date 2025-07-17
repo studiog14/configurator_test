@@ -1145,6 +1145,7 @@
 #custom-loader img {
   width: 220px;
   margin-bottom: 20px;
+  animation: pulse 1.5s infinite;
 }
 
 #custom-loader p {
@@ -1173,15 +1174,47 @@
 
 #model-loader img {
   width: 220px;
-  margin-bottom: 20px;
+  margin-bottom: -10px;
 }
 
 #model-loader p {
   font-size: 18px;
   color: #333;
+  text-align: center;
+  margin: 0;
 }
 
+.loading-dots {
+  display: flex;
+  justify-content: center;
+  margin-top: -10px;
+}
 
+.loading-dots span {
+  font-size: 64px;
+  color: #333;
+  animation: blink 1.5s infinite;
+  margin: 0 4px;
+}
+
+.loading-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.loading-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes blink {
+  0% { opacity: 0.2; }
+  50% { opacity: 1; }
+  100% { opacity: 0.2; }
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.05); opacity: 0.8; }
+  100% { transform: scale(1); opacity: 1; }
+}
 
   </style>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1194,9 +1227,15 @@
 </div>
 
 <div id="model-loader">
+  
   <img src="icons/FK_Logo.jpg" alt="Fajne Krzesła" />
-  <p>Ładowanie modelu...</p>
+  <div class="loading-dots">
+  <span>.</span><span>.</span><span>.</span>
 </div>
+  <p>Loading...</p>
+</div>
+
+
 
   <div id="app">
     <canvas id="canvas"></canvas>
