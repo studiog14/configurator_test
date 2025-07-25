@@ -2468,7 +2468,7 @@ if (lastOpenedCollection) {
           seat: 'Siedzisko',
           backseat_inside: 'Oparcie wew.',
           backseat_outside: 'Oparcie zew.',
-          backseat: 'Oparcie',
+          backseat: 'Siedzisko/Oparcie',
           legs: 'Nogi'
         };
 
@@ -2672,7 +2672,7 @@ updateSummary();
 
         // Kolejność elementów do podsumowania
         const partOrder = ['seat', 'backseat_inside', 'backseat_outside', 'legs_material', 'backseat'];
-        const partLabels = ['Siedzisko', 'Oparcie wew.', 'Oparcie zew.', 'Nogi', 'Oparcie'];
+        const partLabels = ['Siedzisko', 'Oparcie wew.', 'Oparcie zew.', 'Nogi', 'Siedzisko/Oparcie'];
 
         // Ikonka modelu
         if (userInteracted && selectedChair && (selectedChair.Obrazek || selectedChair.Image)) {
@@ -3395,15 +3395,21 @@ function renderCollectionsAndMaterials(groupedByCollection, targetMesh) {
     const icon = document.createElement('img');
 
     // 🎯 Ikony specjalne dla 'legs' i 'backseat'
-    let iconFileName = kolekcja.toLowerCase().replace(/\s+/g, '_');
+    let iconFileName = kolekcja.trim().toLowerCase().replace(/\s+/g, '_');
 
-    if (targetMesh === 'legs') {
-      iconFileName += '_legs';
-    } else if (targetMesh === 'backseat') {
-      iconFileName += '_back';
-    }
+const basePath = `icons/${iconFileName}.png`;
 
-    icon.src = `icons/${iconFileName}.png`;
+fetch(basePath, { method: 'HEAD' })
+  .then(res => {
+    icon.src = res.ok ? basePath : 'icons/default.png';
+  })
+  .catch(() => {
+    icon.src = 'icons/default.png';
+  });
+
+
+
+
     icon.alt = kolekcja;
     icon.className = 'collection-icon';
 

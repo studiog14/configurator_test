@@ -37,7 +37,13 @@
       height: 100vh;
       width: 100vw;
       position: relative;
+      visibility: hidden;
     }
+
+    #app.visible {
+  visibility: visible;
+  opacity: 1;
+}
 
     #canvas {
       flex: 1 1 0;
@@ -765,7 +771,6 @@
 
   canvas {
   touch-action: manipulation;
-  -webkit-user-select: none;
   -webkit-tap-highlight-color: transparent;
   width: 100%;
   height: 100vh;
@@ -1145,6 +1150,7 @@
 #custom-loader img {
   width: 220px;
   margin-bottom: 20px;
+  animation: pulse 1.5s infinite;
 }
 
 #custom-loader p {
@@ -1172,15 +1178,48 @@
 }
 
 #model-loader img {
-  width: 120px;
-  margin-bottom: 20px;
+  width: 220px;
+  margin-bottom: -10px;
 }
 
 #model-loader p {
   font-size: 18px;
   color: #333;
+  text-align: center;
+  margin: 0;
 }
 
+.loading-dots {
+  display: flex;
+  justify-content: center;
+  margin-top: -10px;
+}
+
+.loading-dots span {
+  font-size: 64px;
+  color: #333;
+  animation: blink 1.5s infinite;
+  margin: 0 4px;
+}
+
+.loading-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.loading-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes blink {
+  0% { opacity: 0.2; }
+  50% { opacity: 1; }
+  100% { opacity: 0.2; }
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.05); opacity: 0.8; }
+  100% { transform: scale(1); opacity: 1; }
+}
 
   </style>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1191,6 +1230,17 @@
   <img src="icons/FK_Logo.jpg" alt="Fajne Krzesła" />
   
 </div>
+
+<div id="model-loader">
+  
+  <img src="icons/FK_Logo.jpg" alt="Fajne Krzesła" />
+  <div class="loading-dots">
+  <span>.</span><span>.</span><span>.</span>
+</div>
+  <p>Loading...</p>
+</div>
+
+
 
   <div id="app">
     <canvas id="canvas"></canvas>
@@ -1240,10 +1290,7 @@
   <div id="material-panel-viewer" class="options-grid" style="flex-grow: 1;"></div>
 </div>
 
-<div id="model-loader">
-  <img src="img/logo.svg" alt="Fajne Krzesła" />
-  <p>Ładowanie modelu...</p>
-</div>
+
 
 
       </div>
@@ -1760,7 +1807,7 @@
       selectedLeg = null;
       selectedMaterials = {};
 
-
+document.getElementById('model-loader').style.display = 'flex';
 
       try {
         const modelPath = `chairs/${variant.Nazwa}.glb`;
@@ -1802,7 +1849,8 @@
           }
         }
 
-        
+        document.getElementById('model-loader').style.display = 'none';
+
 
         setCameraView(globalCameraTargetPosition);
         enforceZoomLimits();
@@ -1831,10 +1879,9 @@
       }
     }
 
-document.getElementById('custom-loader').classList.add('fade-out');
-setTimeout(() => {
-  document.getElementById('custom-loader').style.display = 'none';
-}, 500);
+
+
+
 
 
 
@@ -2550,23 +2597,43 @@ if (lastOpenedCollection) {
 
 
 
-          // ZAWSZE na starcie ładuj Default.glb (nie ustawiaj selectedChair!)
-          if (currentModelContainer) {
-            viewer.scene.remove(currentModelContainer);
-            if (typeof currentModelContainer.dispose === 'function') currentModelContainer.dispose();
-          }
-          currentModelContainer = await viewer.load('chairs/Default.glb', { autoCenter: true });
-          setCameraView(new Vector3(0, 0, 0));
-          selectedChair = null;
-          selectedLeg = null;
-          selectedMaterials = {};
-          userInteracted = false;
-          updateSummary();
-          const toolbar = document.getElementById('bottom-toolbar');
-          if (toolbar) {
-            toolbar.style.display = 'flex';
-            toolbar.classList.add('visible');
-          }
+          // Pokaż loader
+document.getElementById('custom-loader').style.display = 'flex';
+document.getElementById('app').style.visibility = 'hidden';
+
+// Usuń poprzedni model
+if (currentModelContainer) {
+  viewer.scene.remove(currentModelContainer);
+  if (typeof currentModelContainer.dispose === 'function') currentModelContainer.dispose();
+}
+
+// Załaduj nowy model
+currentModelContainer = await viewer.load('chairs/Ava.glb', { autoCenter: true });
+setCameraView(new Vector3(0, 0, 0));
+
+// Resetuj wybory
+selectedChair = null;
+selectedLeg = null;
+selectedMaterials = {};
+userInteracted = false;
+
+// Zaktualizuj podsumowanie
+updateSummary();
+
+// Pokaż scenę i ukryj loader
+document.getElementById('custom-loader').classList.add('fade-out');
+setTimeout(() => {
+  document.getElementById('custom-loader').style.display = 'none';
+  document.getElementById('app').style.visibility = 'visible';
+}, 500);
+
+// Pokaż toolbar
+const toolbar = document.getElementById('bottom-toolbar');
+if (toolbar) {
+  toolbar.style.display = 'flex';
+  toolbar.classList.add('visible');
+}
+
 
         } catch (e) { console.error("Błąd ładowania danych:", e); document.body.innerHTML = `Błąd ładowania danych: ${e.message}`; }
       }
@@ -2615,6 +2682,7 @@ updateSummary();
           icon.className = 'model-image'; // <-- dodaj tę klasę!
           overviewIconsDiv.appendChild(icon);
         }
+        
 
         // Ikonki materiałów dla każdego elementu
         partOrder.forEach((partKey, idx) => {
@@ -2694,6 +2762,8 @@ if (Array.isArray(mats)) {
         window.selectedMaterials = selectedMaterials;
 
       }
+     
+
 
       function enforceZoomLimits() {
         if (viewer && viewer.controls) {
@@ -3247,7 +3317,7 @@ if (Array.isArray(mats)) {
           seat: 'Siedzisko',
           backseat_inside: 'Oparcie wew.',
           backseat_outside: 'Oparcie zew.',
-          backseat: 'Oparcie',
+          backseat: 'Siedzisko/Oparcie',
 
           legs: 'Nogi'
         };
