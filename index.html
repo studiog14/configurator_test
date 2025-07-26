@@ -1036,7 +1036,7 @@
       border: 1px solid #eeeeee;
       border-radius: 8px;
       padding: 8px;
-      display: flex;
+      display: none;
       flex-direction: column;
       gap: 8px;
       z-index: 100;
@@ -1047,6 +1047,10 @@
       display: none;
     }
 
+    .hidden {
+  display: none !important;
+}
+
     .export-btn {
       background-color: #444;
       color: #222222;
@@ -1056,6 +1060,7 @@
       cursor: pointer;
       text-align: left;
       white-space: nowrap;
+      display: none !important;
     }
 
     .export-btn:hover {
@@ -1372,12 +1377,13 @@
       <img src="icons/export_icon.png" alt="Eksport" style="width: 20px; height: 20px;">
     </button>
 
-    <!-- Panel eksportu -->
+    
     <div id="export-panel" class="hidden">
       <button class="export-btn" data-format="fbx">FBX</button>
       <button class="export-btn" data-format="dae">DAE</button>
       <button class="export-btn" data-format="obj">OBJ</button>
     </div>
+  
 
     <button id="qr-button" title="Zobacz na telefonie">
       <img src="icons/qr_icon.png" alt="QR" style="width: 20px; height: 20px;">
@@ -2834,7 +2840,9 @@ if (Array.isArray(mats)) {
 
 
 
-
+//Ukrywanie exportu//
+document.getElementById("export-config").classList.add("hidden");
+document.getElementById("export-panel").classList.add("hidden");
 
 
       const exportButton = document.getElementById("export-config");
