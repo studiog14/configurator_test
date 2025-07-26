@@ -1660,6 +1660,14 @@
       }
     }
 
+    function czyNogaPasujeDoKubełka(nogaVariant, kubelekNazwa) {
+  const zgodneKubełki = (nogaVariant.DlaKubełka || '')
+    .toLowerCase()
+    .split(',')
+    .map(k => k.trim());
+  return zgodneKubełki.includes(kubelekNazwa.toLowerCase());
+}
+
 
     async function init() {
       const canvas = document.getElementById("canvas");
@@ -1836,7 +1844,10 @@ document.getElementById('model-loader').style.display = 'flex';
           currentModelContainer.position.y -= chairBounds.min.y;
 
           // Automatyczne dodanie nóg "Regularne" jeśli istnieją
-          const legsVariants = allData.filter(d => d.Grupa.toLowerCase() === 'nogi');
+          const legsVariants = allData
+  .filter(d => d.Grupa.toLowerCase() === 'nogi')
+  .filter(noga => czyNogaPasujeDoKubełka(noga, variant.Nazwa));
+
           const defaultLeg = legsVariants.find(l => l.Nazwa.toLowerCase().includes('regularne')) || legsVariants[0];
           if (defaultLeg) {
             await setLegModel(defaultLeg);
@@ -1904,9 +1915,18 @@ document.getElementById('model-loader').style.display = 'flex';
       });
     }
     
+    
 
     async function setLegModel(variant) {
       userInteracted = true;
+      if (
+  selectedChair?.Grupa?.toLowerCase() === 'kubełek' &&
+  !czyNogaPasujeDoKubełka(variant, selectedChair.Nazwa)
+) {
+  alert(`⚠️ Wariant nóg "${variant.Nazwa}" nie jest dostępny dla kubełka "${selectedChair.Nazwa}".`);
+  return;
+}
+
       console.log("Wywołanie setLegModel dla wariantu:", variant);
       const oldLegs = currentLegModel;
       try {
@@ -1941,10 +1961,17 @@ document.getElementById('model-loader').style.display = 'flex';
 
 
         // Odśwież listę nóg, żeby podświetlić wybrany wariant
-        const legs = allData.filter(d => d.Grupa.toLowerCase() === 'nogi');
-        renderOptions('legs-thumbnails', legs, item => {
-          setLegModel(item);
-        });
+        const legs = allData
+  .filter(d => d.Grupa.toLowerCase() === 'nogi')
+  .filter(noga => {
+    if (!selectedChair || selectedChair.Grupa.toLowerCase() !== 'kubełek') return true;
+    return czyNogaPasujeDoKubełka(noga, selectedChair.Nazwa);
+});
+
+renderOptions('legs-thumbnails', legs, item => {
+  setLegModel(item);
+});
+
 
         updateSummary();
 
@@ -2535,7 +2562,13 @@ if (lastOpenedCollection) {
           backContainer.appendChild(btn);
         }
 
-        const legs = allData.filter(d => d.Grupa.toLowerCase() === 'nogi');
+        const legs = allData
+  .filter(d => d.Grupa.toLowerCase() === 'nogi')
+  .filter(noga => {
+    if (!selectedChair || selectedChair.Grupa.toLowerCase() !== 'kubełek') return true;
+    return czyNogaPasujeDoKubełka(noga, selectedChair.Nazwa);
+  });
+
         renderPartButtons();
 
         // Sekcja nóg i materiały nóg – nogi tylko dla kubełków, materiały dla kubełków i krzeseł
@@ -2921,9 +2954,25 @@ document.getElementById("export-panel").classList.add("hidden");
         const hdrClose = document.getElementById('hdr-close');
 
         function toggleHDRPanel() {
-          hdrPanel.classList.toggle('hidden');
-          hdrPanel.style.display = hdrPanel.classList.contains('hidden') ? 'none' : 'block';
-        }
+  const hdrPanel = document.getElementById('hdr-panel');
+  const isHidden = hdrPanel.classList.toggle('hidden');
+  hdrPanel.style.display = isHidden ? 'none' : 'block';
+
+  const thumbs = document.querySelectorAll('.thumbnail');
+  thumbs.forEach(thumb => {
+    if (!isHidden) {
+      thumb.setAttribute('data-title', thumb.getAttribute('title'));
+      thumb.removeAttribute('title'); // usuń tooltip
+    } else {
+      const saved = thumb.getAttribute('data-title');
+      if (saved) {
+        thumb.setAttribute('title', saved); // przywróć tooltip
+        thumb.removeAttribute('data-title');
+      }
+    }
+  });
+}
+
 
         hdrToggle?.addEventListener('click', (e) => {
           e.stopPropagation();
