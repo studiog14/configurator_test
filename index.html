@@ -1229,6 +1229,52 @@
   100% { transform: scale(1); opacity: 1; }
 }
 
+.loader {
+  border: 8px solid #f3f3f3;
+  border-top: 8px solid #555;
+  
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+  margin-bottom: 12px;
+}
+#material-preloader {
+  display: none;
+  position: absolute; /* fixed zamiast absolute - zawsze na środku okna */
+  transform: translateX(-10%);
+  z-index: 10000;
+  left: 0; top: 0; right: 0; bottom: 0;
+  width: 100vw; height: 100vh;
+  background: rgba(255,255,255,0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#material-preloader .preloader-box {
+  text-align: center;
+  background: rgba(255,255,255,0.97);
+  border-radius: 24px;
+  padding: 48px 64px;
+  box-shadow: 0 0 24px #0003;
+}
+#material-preloader .loader {
+  border: 12px solid #f3f3f3;
+  border-top: 12px solid #555;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+  margin-bottom: 24px;
+}
+@keyframes spin {
+  0% { transform: rotate(0deg);}
+  100% { transform: rotate(360deg);}
+}
+
+
   </style>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
@@ -1251,6 +1297,14 @@
 
 
   <div id="app">
+
+<div id="material-preloader" style="display:none;">
+  <div class="preloader-box">
+    <span class="loader"></span>
+    <div style="margin-top: 16px; font-size: 2em;">Ładowanie materiału...</div>
+  </div>
+</div>
+
     <canvas id="canvas"></canvas>
     <div id="config-overview" class="collapsed hidden">
       <div class="overview-header">
@@ -1963,13 +2017,7 @@ setTimeout(() => {
         renderFilteredMaterialOptions('legs'); // ⬅️ to odświeża widok kafelków materiałów nóg
         updateMaterialTiles(); // ⬅️ MUSI być tutaj!
 
-function czyNogaPasujeDoKubełka(nogaVariant, kubelekNazwa) {
-  const zgodneKubełki = (nogaVariant.DlaKubełka || '')
-    .toLowerCase()
-    .split(',')
-    .map(k => k.trim());
-  return zgodneKubełki.includes(kubelekNazwa.toLowerCase());
-}
+
         // Odśwież listę nóg, żeby podświetlić wybrany wariant
         const legs = allData
   .filter(d => d.Grupa.toLowerCase() === 'nogi')
@@ -2049,6 +2097,16 @@ if (!selectedLeg && legs.length > 0) {
       showLegMaterialsForSimpleChairs(selectedChair);
     }
 
+    // Funkcje preloadera – wklej na górze pliku JS (lub przed applyMaterial)
+function showPreloader() {
+  const el = document.getElementById('material-preloader');
+  if (el) el.style.display = 'flex';
+}
+function hidePreloader() {
+  const el = document.getElementById('material-preloader');
+  if (el) el.style.display = 'none';
+}
+
     function applyMaterialToMesh(variant, forcedMeshName) {
       const clone = { ...variant };
       clone.TargetMeshOrModel = forcedMeshName;
@@ -2081,247 +2139,231 @@ if (!selectedLeg && legs.length > 0) {
     }
 
 
-    // DOBRE ŁADOWANIE MATERIAŁÓW!!!
-
-    async function applyMaterial(variant) {
-      console.log('📦 variant:', variant);
-
-      
+    
 
 
-      if (!currentModelContainer) {
-        console.warn('currentModelContainer jest null lub undefined');
-        return;
-      }
 
-      if (!variant.TargetMeshOrModel) {
-        console.warn('Brak TargetMeshOrModel w wariancie');
-        return;
-      }
+// DOBRE PROGRESYWNE ŁADOWANIE MATERIAŁÓW!!!
 
-      if (!currentModelContainer || !variant.TargetMeshOrModel) return;
+async function applyMaterial(variant) {
+  showPreloader();
+  try {
+    console.log('📦 variant:', variant);
 
-      const targetNames = variant.TargetMeshOrModel.split(',').map(name => name.trim());
-      const isHex = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(variant.Color || variant.Wartość);
-const folderPath = (!isHex && variant.Wartość.startsWith('textures/')) ? variant.Wartość : `textures/${variant.Wartość}`;
+    if (!currentModelContainer) {
+      console.warn('currentModelContainer jest null lub undefined');
+      hidePreloader();
+      return;
+    }
 
+    if (!variant.TargetMeshOrModel) {
+      console.warn('Brak TargetMeshOrModel w wariancie');
+      hidePreloader();
+      return;
+    }
 
-      for (const targetName of targetNames) {
-        let container;
-        if (targetName.toLowerCase() === 'legs') {
-          if (selectedChair?.Grupa?.toLowerCase() === 'krzesło' || !currentLegModel) {
-            container = currentModelContainer;
-          } else {
-            container = currentLegModel;
-          }
-        } else {
+    const targetNames = variant.TargetMeshOrModel.split(',').map(name => name.trim());
+    const isHex = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(variant.Color || variant.Wartość);
+    const folderPath = (!isHex && variant.Wartość.startsWith('textures/')) ? variant.Wartość : `textures/${variant.Wartość}`;
+
+    // Progresywna obsługa wielu meshów - loader znika dopiero po wszystkich meshach
+    const meshPromises = targetNames.map(async (targetName) => {
+      let container;
+      if (targetName.toLowerCase() === 'legs') {
+        if (selectedChair?.Grupa?.toLowerCase() === 'krzesło' || !currentLegModel) {
           container = currentModelContainer;
+        } else {
+          container = currentLegModel;
+        }
+      } else {
+        container = currentModelContainer;
+      }
+
+      let targetObject = null;
+      container?.traverse(obj => {
+        if (
+          obj.isMesh &&
+          obj.name &&
+          obj.name.toLowerCase().trim() === targetName.toLowerCase().trim()
+        ) {
+          targetObject = obj;
+        }
+      });
+
+      if (!targetObject) {
+        console.warn(`❌ Mesh '${targetName}' nie znaleziony w modelu`);
+        return;
+      }
+
+      if (!targetObject.material) {
+        console.warn(`⚠️ Mesh '${targetName}' nie ma materiału.`);
+        return;
+      }
+
+      // Funkcja do bezpiecznego ładowania tekstury (zwraca null, jeśli nie uda się załadować)
+      async function loadTextureSafe(url) {
+        try {
+          const tex = await textureLoader.loadAsync(url);
+          tex.magFilter = THREE.LinearFilter;
+          tex.minFilter = THREE.LinearMipMapLinearFilter;
+          tex.anisotropy = viewer?.renderer?.capabilities?.getMaxAnisotropy?.() || 4;
+          tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+          tex.encoding = THREE.sRGBEncoding;
+          tex.offset.set(0, 0);
+          tex.repeat.set(1, 1);
+          tex.needsUpdate = true;
+          return tex;
+        } catch {
+          return null;
+        }
+      }
+
+      if (isHex) {
+        // Jeśli kolor HEX – podmień od razu (nie ma tekstur)
+        const material = targetObject.material.clone();
+        material.color.set(variant.Color || variant.Wartość);
+        material.map = null;
+        material.normalMap = null;
+        material.roughnessMap = null;
+        material.metalnessMap = null;
+        material.needsUpdate = true;
+        targetObject.material = material;
+        viewer.render?.();
+      } else if (folderPath && !/\.(jpg|jpeg|png|gif)$/i.test(folderPath)) {
+        // --- PROGRESYWNE ŁADOWANIE ---
+
+        // 1. Najpierw załaduj basecolor
+        let baseColorTex = null;
+        try {
+          baseColorTex = await loadTextureSafe(`${folderPath}/basecolor.jpg`);
+        } catch (err) {
+          console.warn("Błąd ładowania basecolor:", err);
         }
 
-        let targetObject = null;
+        // 2. Skopiuj materiał i podepnij basecolor (lub null)
+        const material = targetObject.material.clone();
+        material.map = baseColorTex || null;
+        material.color.set(0xffffff);
+        material.normalMap = null;
+        material.roughnessMap = null;
+        material.metalnessMap = null;
+        material.needsUpdate = true;
 
-        container?.traverse(obj => {
-          if (
-            obj.isMesh &&
-            obj.name &&
-            obj.name.toLowerCase().trim() === targetName.toLowerCase().trim()
-          ) {
-            targetObject = obj;
+        // 3. Metalness i roughness z wariantu
+        function parseValue(val, fallback) {
+          const raw = (val || '')
+            .toString()
+            .trim()
+            .replace(/['"]/g, '')
+            .replace(',', '.');
+          const parsed = parseFloat(raw);
+          return !isNaN(parsed) ? parsed : fallback;
+        }
+        material.metalness = parseValue(variant.Metalness, 0);
+        material.roughness = parseValue(variant.Roughness, 0.814);
+
+        // 4. Podmień materiał dopiero teraz (dopiero po basecolor)
+        targetObject.material = material;
+        if (targetObject.geometry?.computeVertexNormals) {
+          targetObject.geometry.computeVertexNormals();
+        }
+        viewer.render?.();
+
+        // 6. Progresywnie doładowuj pozostałe mapy i podmieniaj "w locie"
+        loadTextureSafe(`${folderPath}/normal.jpg`).then(tex => {
+          if (tex) {
+            tex.encoding = THREE.LinearEncoding;
+            tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+            tex.offset.set(0, 0);
+            tex.repeat.set(1.001, 1.001);
+            material.normalMap = tex;
+            material.needsUpdate = true;
+            targetObject.material = material;
+            viewer.render?.();
           }
         });
 
-        if (!targetObject) {
-          console.warn(`❌ Mesh '${targetName}' nie znaleziony w modelu`);
-          continue;
+        loadTextureSafe(`${folderPath}/roughness.jpg`).then(tex => {
+          if (tex) {
+            tex.encoding = THREE.LinearEncoding;
+            tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+            tex.offset.set(0, 0);
+            tex.repeat.set(1.001, 1.001);
+            material.roughnessMap = tex;
+            material.needsUpdate = true;
+            targetObject.material = material;
+            viewer.render?.();
+          }
+        });
+
+        loadTextureSafe(`${folderPath}/metallic.jpg`).then(tex => {
+          if (tex) {
+            tex.encoding = THREE.LinearEncoding;
+            tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+            tex.offset.set(0, 0);
+            tex.repeat.set(1.001, 1.001);
+            material.metalnessMap = tex;
+            material.needsUpdate = true;
+            targetObject.material = material;
+            viewer.render?.();
+          }
+        });
+
+        console.log(`✅ Progresywne ładowanie tekstur na '${targetName}'`);
+        console.log(`🧪 Metalness=${material.metalness}, Roughness=${material.roughness}`);
+      }
+
+      // Zapamiętanie wyboru i odświeżenie sceny
+      selectedMaterials[targetName] = variant;
+      if (targetName === 'legs' || targetName === 'legs_material') {
+        selectedMaterials['legs_material'] = variant;
+      }
+    });
+
+    await Promise.all(meshPromises); // czekaj aż wszystkie meshe ogarną materiał
+    // Preloader schodzi dopiero tutaj, po wszystkich meshach!
+    hidePreloader();
+
+    // 🗂️ Automatycznie przypisz Folder do eksportu
+    Object.entries(selectedMaterials).forEach(([key, mat]) => {
+      if (!mat.Folder && typeof mat.Wartość === 'string') {
+        const parts = mat.Wartość.split('/');
+        const last = parts[parts.length - 1];
+        if (last && texturesFilesByFolder?.[last]) {
+          mat.Folder = last;
+          console.log(`📁 Dodano Folder='${last}' do '${key}'`);
         }
+      }
+    });
 
-        if (!targetObject.material) {
-          console.warn(`⚠️ Mesh '${targetName}' nie ma materiału.`);
-          continue;
-        }
+    viewer.scene.traverse(obj => {
+      if (obj.isMesh && obj.material) {
+        obj.material.needsUpdate = true;
+      }
+    });
 
-        const material = targetObject.material.clone();
-
-        
-        
-
-        
-        // Funkcja do bezpiecznego ładowania tekstury (zwraca null, jeśli nie uda się załadować)
-  async function loadTextureSafe(url) {
-    try {
-      const tex = await textureLoader.loadAsync(url);
-      tex.magFilter = THREE.LinearFilter;
-      tex.minFilter = THREE.LinearMipMapLinearFilter;
-      tex.anisotropy = viewer?.renderer?.capabilities?.getMaxAnisotropy?.() || 4;
-
-      tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-      tex.encoding = THREE.sRGBEncoding;
-      tex.offset.set(0, 0);            // ← brak przesunięcia
-      tex.repeat.set(1, 1);            // ← domyślne powielenie
-      tex.needsUpdate = true;         // ← odświeżenie
-      return tex;
-    } catch {
-      return null;
+    if (viewer?.camera) {
+      viewer.camera.position.x += 0.00001;
+      viewer.camera.updateProjectionMatrix();
     }
+
+    if (viewer?.render) viewer.render();
+
+    updateSummary();
+  } catch (e) {
+    hidePreloader();
+    console.error("Błąd w applyMaterial:", e);
   }
-
-  if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(variant.Color || variant.Wartość)) {
-    // ⬅️ obsługa koloru
-  } else if (folderPath && !/\.(jpg|jpeg|png|gif)$/i.test(folderPath)) {
-    const baseColorTex = await loadTextureSafe(`${folderPath}/baseColor.jpg`);
-    const normalTex = await loadTextureSafe(`${folderPath}/normal.jpg`);
-    const roughnessTex = await loadTextureSafe(`${folderPath}/roughness.jpg`);
-    const metallicTex = await loadTextureSafe(`${folderPath}/metallic.jpg`);
-
-    // ⬇️ BASE COLOR
-    if (baseColorTex) {
-      baseColorTex.wrapS = THREE.RepeatWrapping;
-      baseColorTex.wrapT = THREE.RepeatWrapping;
-      baseColorTex.offset.set(0, 0);
-      baseColorTex.repeat.set(1.001, 1.001);
-      baseColorTex.encoding = THREE.sRGBEncoding;
-      baseColorTex.magFilter = THREE.LinearFilter;
-      baseColorTex.minFilter = THREE.LinearMipMapLinearFilter;
-      baseColorTex.anisotropy = viewer?.renderer?.capabilities?.getMaxAnisotropy?.() || 4;
-      baseColorTex.needsUpdate = true;
-      material.map = baseColorTex;
-    } else {
-      material.map = null;
-    }
-
-    // ⬇️ NORMAL
-    if (normalTex) {
-      normalTex.wrapS = THREE.RepeatWrapping;
-      normalTex.wrapT = THREE.RepeatWrapping;
-      normalTex.offset.set(0, 0);
-      normalTex.repeat.set(1.001, 1.001);
-      normalTex.encoding = THREE.LinearEncoding;
-      normalTex.magFilter = THREE.LinearFilter;
-      normalTex.minFilter = THREE.LinearMipMapLinearFilter;
-      normalTex.anisotropy = viewer?.renderer?.capabilities?.getMaxAnisotropy?.() || 4;
-      normalTex.needsUpdate = true;
-      material.normalMap = normalTex;
-    } else {
-      material.normalMap = null;
-    }
-
-    // ⬇️ ROUGHNESS
-    if (roughnessTex) {
-      roughnessTex.wrapS = THREE.RepeatWrapping;
-      roughnessTex.wrapT = THREE.RepeatWrapping;
-      roughnessTex.offset.set(0, 0);
-      roughnessTex.repeat.set(1.001, 1.001);
-      roughnessTex.encoding = THREE.LinearEncoding;
-      roughnessTex.magFilter = THREE.LinearFilter;
-      roughnessTex.minFilter = THREE.LinearMipMapLinearFilter;
-      roughnessTex.anisotropy = viewer?.renderer?.capabilities?.getMaxAnisotropy?.() || 4;
-      roughnessTex.needsUpdate = true;
-      material.roughnessMap = roughnessTex;
-    } else {
-      material.roughnessMap = null;
-    }
-
-    // ⬇️ METALLIC
-    if (metallicTex) {
-      metallicTex.wrapS = THREE.RepeatWrapping;
-      metallicTex.wrapT = THREE.RepeatWrapping;
-      metallicTex.offset.set(0, 0);
-      metallicTex.repeat.set(1.001, 1.001);
-      metallicTex.encoding = THREE.LinearEncoding;
-      metallicTex.magFilter = THREE.LinearFilter;
-      metallicTex.minFilter = THREE.LinearMipMapLinearFilter;
-      metallicTex.anisotropy = viewer?.renderer?.capabilities?.getMaxAnisotropy?.() || 4;
-      metallicTex.needsUpdate = true;
-      material.metalnessMap = metallicTex;
-    } else {
-      material.metalnessMap = null;
-    }
-
-    // ⬇️ Metalness / Roughness z arkusza
-    console.log('🧪 Raw Metalness:', variant.Metalness);
-    console.log('🧪 Raw Roughness:', variant.Roughness);
-
-    function parseValue(val, fallback) {
-      const raw = (val || '')
-        .toString()
-        .trim()
-        .replace(/['"]/g, '')
-        .replace(',', '.');
-      const parsed = parseFloat(raw);
-      return !isNaN(parsed) ? parsed : fallback;
-    }
-
-    const metalness = parseValue(variant.Metalness, 0);
-    const roughness = parseValue(variant.Roughness, 0.814);
-
-    material.metalness = metalness;
-    material.roughness = roughness;
-  }
-
-  material.color.set(0xffffff);
-
-  material.needsUpdate = true;
-  targetObject.material = material;
-
-  if (targetObject.geometry?.computeVertexNormals) {
-    targetObject.geometry.computeVertexNormals();
-  }
-
-  viewer.render?.();
-
-
-  console.log(`✅ Załadowano tekstury na '${targetName}'`);
-  console.log(`🧪 Metalness=${material.metalness}, Roughness=${material.roughness}`);
 }
 
+function applyMaterialToSpecificMesh(variant, meshKey) {
+  const clone = { ...variant };
+  clone.TargetMeshOrModel = meshKey;
+  console.log(`🎯 Przypisano '${variant.Nazwa}' tylko do mesh '${meshKey}'`);
+  applyMaterial(clone);
+}
 
-  
-
-
-        // Zapamiętanie wyboru i odświeżenie sceny - możesz tu zostawić swój oryginalny kod
-        targetNames.forEach(targetName => {
-          selectedMaterials[targetName] = variant;
-          if (targetName === 'legs' || targetName === 'legs_material') {
-            selectedMaterials['legs_material'] = variant;
-          }
-        });
-
-        // 🗂️ Automatycznie przypisz Folder do eksportu
-        Object.entries(selectedMaterials).forEach(([key, mat]) => {
-          if (!mat.Folder && typeof mat.Wartość === 'string') {
-            const parts = mat.Wartość.split('/');
-            const last = parts[parts.length - 1];
-            if (last && texturesFilesByFolder?.[last]) {
-              mat.Folder = last;
-              console.log(`📁 Dodano Folder='${last}' do '${key}'`);
-            }
-          }
-        });
-
-        viewer.scene.traverse(obj => {
-          if (obj.isMesh && obj.material) {
-            obj.material.needsUpdate = true;
-          }
-        });
-
-        if (viewer?.camera) {
-          viewer.camera.position.x += 0.00001;
-          viewer.camera.updateProjectionMatrix();
-        }
-
-        if (viewer?.render) viewer.render();
-
-        updateSummary();
-      }
-
-      function applyMaterialToSpecificMesh(variant, meshKey) {
-        const clone = { ...variant };
-        clone.TargetMeshOrModel = meshKey;
-        console.log(`🎯 Przypisano '${variant.Nazwa}' tylko do mesh '${meshKey}'`);
-        applyMaterial(clone);
-      }
-
-      // DOBRE ŁADOWANIE MATERIAŁÓW!!!
+// DOBRE PROGRESYWNE ŁADOWANIE MATERIAŁÓW!!!
 
 
 
