@@ -1036,7 +1036,7 @@
       border: 1px solid #eeeeee;
       border-radius: 8px;
       padding: 8px;
-      display: flex;
+      display: none;
       flex-direction: column;
       gap: 8px;
       z-index: 100;
@@ -1047,6 +1047,10 @@
       display: none;
     }
 
+    .hidden {
+  display: none !important;
+}
+
     .export-btn {
       background-color: #444;
       color: #222222;
@@ -1056,19 +1060,12 @@
       cursor: pointer;
       text-align: left;
       white-space: nowrap;
+      display: none !important;
     }
 
     .export-btn:hover {
       background-color: #555;
     }
-/*Ukrycie przyciku exportu*/
-#export-config {
-  display: none;
-}
-
-#export-panel {
-  display: none;
-}
 
    .collection-icon {
   width: 64px;
@@ -1380,11 +1377,13 @@
       <img src="icons/export_icon.png" alt="Eksport" style="width: 20px; height: 20px;">
     </button>
 
-      <div id="export-panel" class="hidden">
+    
+    <div id="export-panel" class="hidden">
       <button class="export-btn" data-format="fbx">FBX</button>
       <button class="export-btn" data-format="dae">DAE</button>
       <button class="export-btn" data-format="obj">OBJ</button>
     </div>
+  
 
     <button id="qr-button" title="Zobacz na telefonie">
       <img src="icons/qr_icon.png" alt="QR" style="width: 20px; height: 20px;">
@@ -1661,6 +1660,14 @@
       }
     }
 
+    function czyNogaPasujeDoKubełka(nogaVariant, kubelekNazwa) {
+  const zgodneKubełki = (nogaVariant.DlaKubełka || '')
+    .toLowerCase()
+    .split(',')
+    .map(k => k.trim());
+  return zgodneKubełki.includes(kubelekNazwa.toLowerCase());
+}
+
 
     async function init() {
       const canvas = document.getElementById("canvas");
@@ -1837,11 +1844,14 @@ document.getElementById('model-loader').style.display = 'flex';
           currentModelContainer.position.y -= chairBounds.min.y;
 
           // Automatyczne dodanie nóg "Regularne" jeśli istnieją
-          const domyslnaNoga = getDomyslnaNogaDlaKubełka(selectedChair.Nazwa);
-if (domyslnaNoga) {
-  await setLegModel(domyslnaNoga);
-}
+          const legsVariants = allData
+  .filter(d => d.Grupa.toLowerCase() === 'nogi')
+  .filter(noga => czyNogaPasujeDoKubełka(noga, variant.Nazwa));
 
+          const defaultLeg = legsVariants.find(l => l.Nazwa.toLowerCase().includes('regularne')) || legsVariants[0];
+          if (defaultLeg) {
+            await setLegModel(defaultLeg);
+          }
 
           document.getElementById('legs-section').style.display = 'block';
 
@@ -1907,9 +1917,16 @@ if (domyslnaNoga) {
     
     
 
-
     async function setLegModel(variant) {
       userInteracted = true;
+      if (
+  selectedChair?.Grupa?.toLowerCase() === 'kubełek' &&
+  !czyNogaPasujeDoKubełka(variant, selectedChair.Nazwa)
+) {
+  alert(`⚠️ Wariant nóg "${variant.Nazwa}" nie jest dostępny dla kubełka "${selectedChair.Nazwa}".`);
+  return;
+}
+
       console.log("Wywołanie setLegModel dla wariantu:", variant);
       const oldLegs = currentLegModel;
       try {
@@ -1944,20 +1961,16 @@ if (domyslnaNoga) {
 
 
         // Odśwież listę nóg, żeby podświetlić wybrany wariant
-        const legs = allData.filter(d => {
-  if (d.Grupa.toLowerCase() !== 'nogi') return false;
-  if (!selectedChair || selectedChair.Grupa.toLowerCase() !== 'kubełek') return true;
-
-  const zgodneKubełki = (d.DlaKubełka || '').toLowerCase().split(',').map(k => k.trim());
-  return zgodneKubełki.includes(selectedChair.Nazwa.toLowerCase());
+        const legs = allData
+  .filter(d => d.Grupa.toLowerCase() === 'nogi')
+  .filter(noga => {
+    if (!selectedChair || selectedChair.Grupa.toLowerCase() !== 'kubełek') return true;
+    return czyNogaPasujeDoKubełka(noga, selectedChair.Nazwa);
 });
 
-        renderOptions('legs-thumbnails', legs, item => {
-          setLegModel(item);
-        });
-
-        
-
+renderOptions('legs-thumbnails', legs, item => {
+  setLegModel(item);
+});
 
 
         updateSummary();
@@ -2551,14 +2564,12 @@ if (lastOpenedCollection) {
           backContainer.appendChild(btn);
         }
 
-        const legs = allData.filter(d => {
-  if (d.Grupa.toLowerCase() !== 'nogi') return false;
-  if (!selectedChair || selectedChair.Grupa.toLowerCase() !== 'kubełek') return true;
-
-  const zgodneKubełki = (d.DlaKubełka || '').toLowerCase().split(',').map(k => k.trim());
-  return zgodneKubełki.includes(selectedChair.Nazwa.toLowerCase());
-});
-
+        const legs = allData
+  .filter(d => d.Grupa.toLowerCase() === 'nogi')
+  .filter(noga => {
+    if (!selectedChair || selectedChair.Grupa.toLowerCase() !== 'kubełek') return true;
+    return czyNogaPasujeDoKubełka(noga, selectedChair.Nazwa);
+  });
 
         renderPartButtons();
 
@@ -2869,7 +2880,9 @@ if (Array.isArray(mats)) {
 
 
 
-
+//Ukrywanie exportu//
+document.getElementById("export-config").classList.add("hidden");
+document.getElementById("export-panel").classList.add("hidden");
 
 
       const exportButton = document.getElementById("export-config");
@@ -2948,9 +2961,25 @@ if (Array.isArray(mats)) {
         const hdrClose = document.getElementById('hdr-close');
 
         function toggleHDRPanel() {
-          hdrPanel.classList.toggle('hidden');
-          hdrPanel.style.display = hdrPanel.classList.contains('hidden') ? 'none' : 'block';
-        }
+  const hdrPanel = document.getElementById('hdr-panel');
+  const isHidden = hdrPanel.classList.toggle('hidden');
+  hdrPanel.style.display = isHidden ? 'none' : 'block';
+
+  const thumbs = document.querySelectorAll('.thumbnail');
+  thumbs.forEach(thumb => {
+    if (!isHidden) {
+      thumb.setAttribute('data-title', thumb.getAttribute('title'));
+      thumb.removeAttribute('title'); // usuń tooltip
+    } else {
+      const saved = thumb.getAttribute('data-title');
+      if (saved) {
+        thumb.setAttribute('title', saved); // przywróć tooltip
+        thumb.removeAttribute('data-title');
+      }
+    }
+  });
+}
+
 
         hdrToggle?.addEventListener('click', (e) => {
           e.stopPropagation();
