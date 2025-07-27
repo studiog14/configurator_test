@@ -2321,9 +2321,7 @@ async function applyMaterial(variant) {
     });
 
     await Promise.all(meshPromises); // czekaj aż wszystkie meshe ogarną materiał
-    // Preloader schodzi dopiero tutaj, po wszystkich meshach!
-    hidePreloader();
-
+hidePreloader();
     // 🗂️ Automatycznie przypisz Folder do eksportu
     Object.entries(selectedMaterials).forEach(([key, mat]) => {
       if (!mat.Folder && typeof mat.Wartość === 'string') {
