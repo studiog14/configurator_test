@@ -2235,9 +2235,9 @@ async function applyMaterial(variant) {
         // 1. Najpierw załaduj basecolor
         let baseColorTex = null;
         try {
-          baseColorTex = await loadTextureSafe(`${folderPath}/basecolor.jpg`);
+          baseColorTex = await loadTextureSafe(`${folderPath}/baseColor.jpg`);
         } catch (err) {
-          console.warn("Błąd ładowania basecolor:", err);
+          console.warn("Błąd ładowania baseColor:", err);
         }
 
         // 2. Skopiuj materiał i podepnij basecolor (lub null)
