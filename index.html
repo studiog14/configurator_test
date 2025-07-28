@@ -1242,8 +1242,8 @@
 }
 #material-preloader {
   display: none;
-  position: absolute; /* fixed zamiast absolute - zawsze na środku okna */
-  transform: translateX(-10%);
+  position: fixed; /* fixed zamiast absolute - zawsze na środku okna */
+ 
   z-index: 10000;
   left: 0; top: 0; right: 0; bottom: 0;
   width: 100vw; height: 100vh;
@@ -1255,6 +1255,7 @@
 #material-preloader .preloader-box {
   text-align: center;
   background: rgba(255,255,255,0.97);
+   transform: translateX(-10%);
   border-radius: 24px;
   padding: 48px 64px;
   box-shadow: 0 0 24px #0003;
