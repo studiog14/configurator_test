@@ -1517,7 +1517,7 @@
 
   <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
   <script>
-    emailjs.init('y6_uovUeRS8M7gZ1H');
+    emailjs.init('tjw0wCwxn3xsnfNV5');
 
     function generateSummaryText() {
       let text = "";
@@ -1570,7 +1570,7 @@
       }
       configTextInput.value = summary.text;
 
-      emailjs.sendForm('service_h3otax9', 'template_aykvcls', emailForm)
+      emailjs.sendForm('service_iqzcwli', 'template_qgq7htg', emailForm)
         .then(() => {
           document.getElementById('emailModal')?.classList.add('hidden');
 
@@ -1768,9 +1768,7 @@
           successMessage.classList.remove('hidden');
 
           // Po 0.5s otwórz mailto, by dać czas na pokazanie komunikatu
-          setTimeout(() => {
-            window.location.href = `mailto:${emailAddress}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-          }, 500);
+          
 
           // Ukryj komunikat po 3 sekundach
           setTimeout(() => {
