@@ -1,5 +1,5 @@
 @echo off
-REM Skrypt do automatycznego commit i push do GitHub z wyborem repo
+REM Skrypt do automatycznego commit i push do GitHub z wyborem repo + rozmiar folderu
 
 REM === MENU WYBORU ===
 echo.
@@ -22,6 +22,11 @@ if "%choice%"=="1" (
 REM === PRZEJŚCIE DO FOLDERU PROJEKTU ===
 cd /d E:\FK_Configurator\FK_Configurator
 
+REM === OBLICZANIE ROZMIARU FOLDERU ===
+for /f "tokens=3" %%a in ('dir /s ^| find "File(s)"') do set folderSize=%%a
+set /a folderMB=%folderSize% / 1048576
+echo 📁 Rozmiar folderu: ~ %folderMB% MB
+
 REM === USTAWIENIE REMOTE ORIGIN ===
 git remote set-url origin %repoURL%
 
@@ -30,7 +35,7 @@ git add .
 for /f "tokens=1-4 delims=/:. " %%a in ("%date% %time%") do (
   set datetime=%%d-%%b-%%c_%%a%%e
 )
-git commit -m "Auto commit: %datetime%"
+git commit -m "Auto commit: %datetime% (%folderMB% MB)"
 
 REM === PUSH NA BRANCH MAIN ===
 git push origin main
