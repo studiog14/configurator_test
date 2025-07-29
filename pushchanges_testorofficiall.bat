@@ -19,13 +19,15 @@ if "%choice%"=="1" (
     exit /b
 )
 
-REM === PRZEJŚCIE DO FOLDERU PROJEKTU ===
-cd /d E:\FK_Configurator\FK_Configurator
-
-REM === OBLICZANIE ROZMIARU FOLDERU ===
-for /f "tokens=3" %%a in ('dir /s ^| find "File(s)"') do set folderSize=%%a
+REM === OBLICZANIE ROZMIARU FOLDERU E:\configurator_fk ===
+echo.
+echo 🔍 Obliczam rozmiar folderu E:\configurator_fk...
+for /f "tokens=3" %%a in ('dir "E:\configurator_fk" /s ^| find "File(s)"') do set folderSize=%%a
 set /a folderMB=%folderSize% / 1048576
 echo 📁 Rozmiar folderu: ~ %folderMB% MB
+
+REM === PRZEJŚCIE DO FOLDERU PROJEKTU ===
+cd /d E:\configurator_fk
 
 REM === USTAWIENIE REMOTE ORIGIN ===
 git remote set-url origin %repoURL%
