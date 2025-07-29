@@ -22,13 +22,13 @@ if "%choice%"=="1" (
 REM === OBLICZANIE ROZMIARU FOLDERU PROJEKTU ===
 echo.
 echo 📂 Obliczam rozmiar folderu projektu...
-for /f "tokens=3" %%a in ('dir "E:\configurator_fk" /s /a-d ^| find "File(s)"') do set folderSize=%%a
+for /f %%a in ('powershell -command "(Get-ChildItem 'E:\configurator_fk' -Recurse -File | Measure-Object -Property Length -Sum).Sum"') do set folderSize=%%a
 set /a folderMB=%folderSize% / 1048576
 
 REM === OBLICZANIE ROZMIARU FOLDERU .git ===
 echo.
 echo 🧠 Obliczam rozmiar folderu .git...
-for /f "tokens=3" %%a in ('dir "E:\configurator_fk\.git" /s /a-d ^| find "File(s)"') do set gitSize=%%a
+for /f %%a in ('powershell -command "(Get-ChildItem 'E:\configurator_fk\.git' -Recurse -File | Measure-Object -Property Length -Sum).Sum"') do set gitSize=%%a
 set /a gitMB=%gitSize% / 1048576
 
 REM === SUMA ROZMIARÓW ===
