@@ -771,12 +771,23 @@
   justify-content: center !important;
   align-items: center !important;
   flex-direction: column !important;
-  gap: 12px !important;
-  background: #5a0053;
-  color: #fff;
-  font-family: sans-serif;
-  padding: 60px 20px !important;
-  outline: 2px dashed lime;
+  gap: 30px !important;
+  background: #666;
+  color: white;
+  font-family: 'Arial', 'Helvetica', sans-serif;
+  padding: 0 !important;
+  text-align: center !important;
+}
+
+.rotate-icon {
+  font-size: 120px !important;
+  line-height: 1 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: block !important;
+  text-align: center !important;
+  width: 100% !important;
+  color: white !important;
 }
 
 #rotate-message p {
@@ -784,8 +795,10 @@
   text-align: center !important;
   max-width: 90vw;
   font-size: 22px !important;
-  line-height: 1.6 !important;
-  font-weight: bold;
+  line-height: 1.3 !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.5px !important;
+  color: white !important;
 }
 
 
@@ -986,75 +999,7 @@
       z-index: 1001;
     }
 
-    #hdr-toggle {
-      position: relative;
-    }
-
-    #hdr-panel {
-      position: absolute;
-      bottom: 100%;
-      left: 50%;
-      transform: translateX(-50%) translateY(-8px);
-      background: #fff;
-      border-radius: 12px;
-      padding: 12px 16px;
-      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15);
-      z-index: 9999;
-      min-width: 240px;
-      display: none;
-      padding-top: 30px;
-    }
-
-    #hdr-panel.hidden {
-      display: none;
-    }
-
-    #hdr-close {
-      position: absolute;
-      top: 5px;
-      right: 5px;
-      background: none;
-      border: none;
-      font-size: 20px;
-      cursor: pointer;
-      color: #111111;
-      z-index: 1000;
-    }
-
-    #hdr-options {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      justify-content: center;
-      padding-top: 10px;
-    }
-
-    #hdr-options .thumbnail {
-      width: 72px;
-      height: 72px;
-    }
-
-    #hdr-options .thumbnail img {
-      max-width: 100%;
-      max-height: 100%;
-    }
-
-    .hdr-close-btn {
-      position: absolute;
-      top: 8px;
-      right: 10px;
-      background: none;
-      border: none;
-      font-size: 22px;
-      font-weight: bold;
-      cursor: pointer;
-      color: #555;
-      z-index: 10000;
-    }
-
-    .hdr-close-btn:hover {
-      color: #000;
-    }
+    
 
     #export-panel {
       position: absolute;
@@ -1305,6 +1250,60 @@
   100% { transform: rotate(360deg);}
 }
 
+#brightness-control {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: white;
+  padding: 12px 16px;
+  border-radius: 8px;
+  align-items: center;
+  gap: 12px;
+  z-index: 2001;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  white-space: nowrap;
+  flex-direction: row;
+}
+
+#brightness-control label {
+  font-size: 14px;
+  color: #333;
+  font-weight: bold;
+  margin: 0;
+}
+
+#brightness-control input[type="range"] {
+  width: 120px;
+  height: 6px;
+  background: #666;
+  border-radius: 3px;
+  outline: none;
+  -webkit-appearance: none;
+}
+
+#brightness-control input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  background: #444;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+#brightness-control input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  background: #444;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
 
   </style>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1314,9 +1313,9 @@
 <body>
 
   <div id="rotate-message">
-  <p>🔄 Obróć urządzenie poziomo,</p>
-  <p>aby kontynuować konfigurację</p>
-</div>
+    <div class="rotate-icon">↻</div>
+    <p>Obróć urządzenie poziomo</p>
+  </div>
 
 
 
@@ -1443,14 +1442,41 @@
   <div id="bottom-toolbar" style="display: none;">
 
     <!-- Przycisk HDR -->
-    <button id="hdr-toggle" title="Zmień HDR">
-      <img src="icons/bulb_icon.png" alt="HDR" style="width: 20px; height: 20px;">
+    <div style="position: relative;">
+      <button id="hdr-toggle" title="Zmień jasność">
+        <img src="icons/bulb_icon.png" alt="Jasność" class="bulb-icon" style="width: 20px; height: 20px;">
+      </button>
+      
+      <!-- Kontrola jasności - bezpośrednio nad przyciskiem HDR -->
+      <div id="brightness-control" style="display: none;">
+        <label for="brightness-slider">Jasność:</label>
+        <input type="range" id="brightness-slider" min="0.1" max="3" step="0.1" value="1">
+      </div>
+    </div>
+
+    <button id="ar-button" title="AR">
+      <img src="icons/AR_icon.png" alt="AR" style="width: 30px; height: 30px;">
     </button>
 
-    <div id="hdr-panel" class="hidden">
-      <button id="hdr-close" class="hdr-close-btn">×</button>
-      <div id="hdr-options" class="options-grid"></div>
+    <button id="dimensions-show" title="Wymiary modelu">
+      <img src="icons/dimmension_icon.png" alt="Wymiary" style="width: 20px; height: 20px;">
+    </button>
+
+    <button id="export-config" title="Pobierz konfigurację">
+      <img src="icons/export_icon.png" alt="Eksport" style="width: 20px; height: 20px;">
+    </button>
+
+      <div id="export-panel" class="hidden">
+      <button class="export-btn" data-format="fbx">FBX</button>
+      <button class="export-btn" data-format="dae">DAE</button>
+      <button class="export-btn" data-format="obj">OBJ</button>
     </div>
+
+    <button id="qr-button" title="Zobacz na telefonie">
+      <img src="icons/qr_icon.png" alt="QR" style="width: 20px; height: 20px;">
+    </button>
+
+</div>
 
 
 
@@ -3699,9 +3725,9 @@ function setDefaultMaterialsFromSheet() {
   if (typeof window.selectedMaterials !== 'object') window.selectedMaterials = {};
 
   allData.forEach(row => {
-    const modelMatch = row.Default?.trim().toLowerCase();
-    const targetRaw = row.TargetMeshOrObiect?.trim().toLowerCase();
-    const name = row.Nazwa?.trim();
+    const modelMatch = row.Default?.trim()?.toLowerCase(); // <-- DODAJEMY ?.
+    const targetRaw = row.TargetMeshOrObiect?.trim()?.toLowerCase(); // <-- DODAJEMY ?.
+    const name = row.Nazwa?.trim(); // <-- DODAJEMY ?.
     const price = parseFloat(row.Cena) || 0;
     const image = row.Obrazek || row.Image || '';
 
@@ -3720,7 +3746,57 @@ function setDefaultMaterialsFromSheet() {
 
 
 
+const hdrToggle = document.getElementById('hdr-toggle');
+const brightnessControl = document.getElementById('brightness-control');
 
+if (hdrToggle && brightnessControl) {
+  hdrToggle.addEventListener('click', (e) => {
+    e.stopPropagation(); // zatrzymaj propagację kliknięcia
+    brightnessControl.style.display = brightnessControl.style.display === 'none' ? 'flex' : 'none';
+  });
+
+  // Obsługa suwaka jasności
+  const brightnessSlider = document.getElementById('brightness-slider');
+  if (brightnessSlider) {
+    brightnessSlider.addEventListener('input', (e) => {
+      const intensity = parseFloat(e.target.value);
+      
+      // Próbuj różne sposoby ustawienia jasności środowiska
+      if (viewer && viewer.scene) {
+        // Metoda 1: Ustawienie intensywności środowiska bezpośrednio
+        if (viewer.scene.environment && viewer.scene.environment.intensity !== undefined) {
+          viewer.scene.environment.intensity = intensity;
+        }
+        
+        // Metoda 2: Ustawienie intensywności poprzez scene
+        if (viewer.scene.environmentIntensity !== undefined) {
+          viewer.scene.environmentIntensity = intensity;
+        }
+        
+        // Metoda 3: Ustawienie intensywności wszystkich świateł środowiska
+        if (viewer.scene.children) {
+          viewer.scene.children.forEach(child => {
+            if (child.isLight && child.intensity !== undefined) {
+              child.intensity = intensity;
+            }
+          });
+        }
+        
+        // Metoda 4: WebGI specific - może mieć własne API
+        if (viewer.setEnvironmentIntensity) {
+          viewer.setEnvironmentIntensity(intensity);
+        }
+        
+        console.log('Ustawiono jasność na:', intensity);
+      }
+    });
+  }
+
+  // Opcjonalnie: ukryj suwak, gdy klikniesz poza lampką
+  document.addEventListener('click', () => {
+    brightnessControl.style.display = 'none';
+  });
+}
 
 
 
