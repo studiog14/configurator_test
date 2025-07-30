@@ -1281,6 +1281,7 @@
   border-radius: 3px;
   outline: none;
   -webkit-appearance: none;
+  appearance: none;
 }
 
 #brightness-control input[type="range"]::-webkit-slider-thumb {
@@ -1803,48 +1804,49 @@
       const collapseBtn = document.getElementById('collapse-btn');
       const overviewPanel = document.getElementById('config-overview');
 
-      collapseBtn.onclick = () => {
-        overviewPanel.classList.toggle('collapsed');
-        collapseBtn.textContent = overviewPanel.classList.contains('collapsed') ? '+' : '−';
-      };
+      if (collapseBtn && overviewPanel) {
+        collapseBtn.onclick = () => {
+          overviewPanel.classList.toggle('collapsed');
+          collapseBtn.textContent = overviewPanel.classList.contains('collapsed') ? '+' : '−';
+        };
+      }
 
+      const buyButton = document.getElementById('buy-button');
+      if (buyButton) {
+        buyButton.innerHTML = '<span class="cart-icon">🛒</span>Zapytaj o produkt';
 
-      document.getElementById('buy-button').innerHTML = '<span class="cart-icon">🛒</span>Zapytaj o produkt';
+        buyButton.onclick = () => {
+          const summary = generateSummaryText();
+          const emailAddress = 'mrpeter@o2.pl'; // adres docelowy
 
-      document.getElementById('buy-button').onclick = () => {
-        const summary = generateSummaryText();
-        const emailAddress = 'mrpeter@o2.pl'; // adres docelowy
+          const subject = `Zapytanie o wycenę: ${selectedChair.Nazwa}`;
+          const body = `Dzień dobry,\n\nProszę o wycenę poniższej konfiguracji:\n\n${summary.text}\n-------------------\nSuma: ${summary.totalPrice.toFixed(2)} PLN\n\nPozdrawiam,\n[Imię i nazwisko]`;
 
-        const subject = `Zapytanie o wycenę: ${selectedChair.Nazwa}`;
-        const body = `Dzień dobry,\n\nProszę o wycenę poniższej konfiguracji:\n\n${summary.text}\n-------------------\nSuma: ${summary.totalPrice.toFixed(2)} PLN\n\nPozdrawiam,\n[Imię i nazwisko]`;
+          console.log("Symulowana wysyłka wiadomości:");
+          console.log("Temat:", subject);
+          console.log("Treść:", body);
 
-        console.log("Symulowana wysyłka wiadomości:");
-        console.log("Temat:", subject);
-        console.log("Treść:", body);
+          // Zamknij modal jeśli otwarty
+          const modal = document.getElementById('emailModal');
+          if (modal) modal.classList.add('hidden');
 
-        // Zamknij modal jeśli otwarty
-        const modal = document.getElementById('emailModal');
-        if (modal) modal.classList.add('hidden');
+          // Pokaż komunikat sukcesu (dodaj klasę visible i usuń hidden)
+          const successMessage = document.getElementById('success-message');
+          if (successMessage) {
+            successMessage.classList.add('visible');
+            successMessage.classList.remove('hidden');
 
-        // Pokaż komunikat sukcesu (dodaj klasę visible i usuń hidden)
-        const successMessage = document.getElementById('success-message');
-        if (successMessage) {
-          successMessage.classList.add('visible');
-          successMessage.classList.remove('hidden');
-
-          // Po 0.5s otwórz mailto, by dać czas na pokazanie komunikatu
-          
-
-          // Ukryj komunikat po 3 sekundach
-          setTimeout(() => {
-            successMessage.classList.remove('visible');
-            successMessage.classList.add('hidden');
-          }, 3500);
-        } else {
-          // Jeżeli brak komunikatu, to od razu wywołaj mailto
-          window.location.href = `mailto:${emailAddress}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-        }
-      };
+            // Ukryj komunikat po 3 sekundach
+            setTimeout(() => {
+              successMessage.classList.remove('visible');
+              successMessage.classList.add('hidden');
+            }, 3500);
+          } else {
+            // Jeżeli brak komunikatu, to od razu wywołaj mailto
+            window.location.href = `mailto:${emailAddress}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+          }
+        };
+      }
 
 
 
@@ -3098,14 +3100,20 @@ if (Array.isArray(mats)) {
         });
 
         document.addEventListener('click', () => {
-          hdrPanel?.classList.add('hidden');
-          hdrPanel.style.display = 'none';
+          const hdrPanel = document.getElementById('hdr-panel');
+          if (hdrPanel) {
+            hdrPanel.classList.add('hidden');
+            hdrPanel.style.display = 'none';
+          }
         });
 
         hdrClose?.addEventListener('click', (e) => {
           e.stopPropagation();
-          hdrPanel?.classList.add('hidden');
-          hdrPanel.style.display = 'none';
+          const hdrPanel = document.getElementById('hdr-panel');
+          if (hdrPanel) {
+            hdrPanel.classList.add('hidden');
+            hdrPanel.style.display = 'none';
+          }
         });
       });
 
@@ -3218,7 +3226,10 @@ if (Array.isArray(mats)) {
 
 
       document.addEventListener('click', () => {
-        hdrPanel.classList.add('hidden');
+        const hdrPanel = document.getElementById('hdr-panel');
+        if (hdrPanel) {
+          hdrPanel.classList.add('hidden');
+        }
       });
 
 
