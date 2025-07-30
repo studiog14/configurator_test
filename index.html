@@ -1276,7 +1276,6 @@
 }
 
 
-
   </style>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
@@ -1391,11 +1390,10 @@
 
 
   <!-- KOMUNIKAT obrotu -->
-  <div id="rotate-message" style="display: none;">
-  🔄 Obróć urządzenie poziomo
+<div id="rotate-message" style="display: none; flex-direction: column; align-items: center; justify-content: center; position: fixed; top:0; left:0; right:0; bottom:0; background: #000; color: #fff; z-index: 99999; font-size: 2em; text-align: center;">
+  <div style="font-size: 3em; margin-bottom: 18px;">🔄</div>
+  <div>Obróć ekran, aby korzystać z konfiguratora</div>
 </div>
-
-
 
   <!-- KOMUNIKAT SUKCESU -->
   <div id="success-message" class="hidden">✅ Dziękujemy! Formularz został wysłany.</div>
@@ -1794,9 +1792,6 @@
       window.addEventListener("resize", resizeCanvas);
       resizeCanvas();
       await loadDataFromSheet();
-      document.getElementById("app").classList.add("visible");
-checkOrientation(); // pokaż UI jeśli landscape
-
     }
 
     function setCameraView(targetPosition) {
@@ -1927,7 +1922,7 @@ setTimeout(() => {
     document.getElementById('materials-section').style.display = 'block';
 
     // Wyrenderuj kafelki materiałów nóg
-    const legsMaterials = allData.filter(d => d.Grupa.toLowerCase() === 'nogi');
+    const legsMaterials = allData.filter(d => d.Grupa.toLowercase() === 'nogi');
     renderOptions('materials-thumbnails', legsMaterials, (item) => {
       setLegMaterial(item);
     });
@@ -3640,27 +3635,19 @@ window.addEventListener('load', updateRotateMessage);
 
 function checkOrientation() {
   const rotateMsg = document.getElementById('rotate-message');
-  const app = document.getElementById('app');
+  if (!rotateMsg) return;
+
   const isLandscape = window.innerWidth > window.innerHeight;
-
-  if (!rotateMsg || !app) return;
-
-  if (isLandscape) {
-    rotateMsg.style.display = 'none';
-    // tylko jeśli dane są załadowane — pokazujemy UI
-    if (app.classList.contains('visible')) {
-      app.style.display = 'block';
-    }
-  } else {
-    rotateMsg.style.display = 'flex';
-    app.style.display = 'none';
-  }
+  rotateMsg.style.display = isLandscape ? 'none' : 'flex';
 }
-
 window.addEventListener('load', checkOrientation);
 window.addEventListener('resize', checkOrientation);
-window.addEventListener('orientationchange', () => {
-  setTimeout(checkOrientation, 300); // daj przeglądarce czas na dostosowanie
+
+
+
+window.addEventListener('DOMContentLoaded', () => {
+  // przygotowanie canvas i kontenerów
+  
 });
 
 
