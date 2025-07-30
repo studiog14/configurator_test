@@ -1899,6 +1899,9 @@ setDefaultControls(viewer.controls);
       window.addEventListener("resize", resizeCanvas);
       resizeCanvas();
       await loadDataFromSheet();
+      document.getElementById("app").classList.add("visible");
+document.getElementById("custom-loader").style.display = "none";
+
     }
 
     function setCameraView(targetPosition) {
@@ -2832,6 +2835,7 @@ if (avaVariant) {
   selectedChair = avaVariant;
   console.log("selectedChair =", selectedChair);
   renderPartButtons();
+  
   updateSummary();
 }
 
