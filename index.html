@@ -1899,9 +1899,7 @@ setDefaultControls(viewer.controls);
       window.addEventListener("resize", resizeCanvas);
       resizeCanvas();
       await loadDataFromSheet();
-      document.getElementById("app").classList.add("visible");
-document.getElementById("custom-loader").style.display = "none";
-
+      
     }
 
     function setCameraView(targetPosition) {
@@ -3805,6 +3803,8 @@ function setDefaultMaterialsFromSheet() {
 
 
 
+document.getElementById("custom-loader").style.display = "none";
+document.getElementById("app").classList.add("visible");
 
 
 
