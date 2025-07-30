@@ -803,6 +803,9 @@
 
 
   #export-config,
+  #ar-button,
+  #qr-button,
+  #qr-popup,
   .export-trigger,
   .toolbar-btn[data-action="export"] {
     display: none !important;
@@ -843,6 +846,30 @@
 
   #bottom-toolbar #qr-button {
     display: none !important;
+  }
+
+  /* Ukryj dodatkowe przyciski w mobile - bezpośrednio po ID */
+  #ar-button,
+  #export-config,
+  #export-panel,
+  #qr-button,
+  #qr-popup,
+  button[title="AR"],
+  button[title="Pobierz konfigurację"],
+  button[title="Zobacz na telefonie"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+
+  /* ✅ ZOSTAW TYLKO JASNOŚĆ I WYMIARY */
+  #hdr-toggle,
+  #dimensions-show,
+  #brightness-control,
+  button[title="Wymiary modelu"] {
+    display: block !important;
+    visibility: visible !important;
   }
 
   #part-tabs {
@@ -984,6 +1011,35 @@
 @media (min-width: 821px) {
   #rotate-message {
     display: none !important;
+  }
+}
+
+/* 📱 GLOBALNE UKRYWANIE NA MOBILE - wszystkie orientacje */
+@media (max-width: 820px) {
+  #ar-button,
+  #export-config,
+  #export-panel,
+  #qr-button,
+  #qr-popup,
+  #qr-close-btn,
+  button[title="AR"],
+  button[title="Pobierz konfigurację"],
+  button[title="Zobacz na telefonie"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+
+  /* ✅ WYMUŚ WIDOCZNOŚĆ TYLKO DLA JASNOŚCI I WYMIARÓW */
+  #hdr-toggle,
+  #dimensions-show,
+  #brightness-control,
+  button[title="Wymiary modelu"] {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
   }
 }
 
@@ -1785,13 +1841,53 @@
 
 
     async function init() {
+      // ✅ SPRAWDZANIE WEBGL DLA IPHONE
       const canvas = document.getElementById("canvas");
+      
+      // Sprawdź czy WebGL jest dostępne
+      let gl;
+      try {
+        gl = canvas.getContext('webgl2') || canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+      } catch (e) {
+        console.error('WebGL nie jest dostępne:', e);
+      }
+      
+      if (!gl) {
+        console.error('❌ WebGL nie jest obsługiwane przez tę przeglądarkę/urządzenie');
+        document.getElementById('custom-loader').innerHTML = `
+          <img src="icons/FK_Logo.jpg" alt="Fajne Krzesła" />
+          <p style="color: red; text-align: center; margin-top: 20px;">
+            Twoja przeglądarka nie obsługuje WebGL.<br>
+            Spróbuj zaktualizować przeglądarkę lub użyj innego urządzenia.
+          </p>
+        `;
+        return;
+      }
+      
+      console.log('✅ WebGL jest dostępne:', gl.getParameter(gl.VERSION));
 
-      viewer = new ThreeViewer({
-        canvas: canvas,
-        plugins: [ GBufferPlugin, SSAAPlugin, SSReflectionPlugin, BloomPlugin],
-        rendererSettings: { antialias: true }
-      });
+      try {
+        viewer = new ThreeViewer({
+          canvas: canvas,
+          plugins: [ GBufferPlugin, SSAAPlugin, SSReflectionPlugin, BloomPlugin],
+          rendererSettings: { 
+            antialias: true,
+            alpha: true,
+            premultipliedAlpha: false,
+            preserveDrawingBuffer: false,
+            powerPreference: "high-performance"
+          }
+        });
+      } catch (e) {
+        console.error('❌ Błąd inicjalizacji ThreeViewer:', e);
+        document.getElementById('custom-loader').innerHTML = `
+          <img src="icons/FK_Logo.jpg" alt="Fajne Krzesła" />
+          <p style="color: red; text-align: center; margin-top: 20px;">
+            Błąd inicjalizacji 3D:<br>${e.message}
+          </p>
+        `;
+        return;
+      }
       if (viewer.controls) {
         viewer.controls.minDistance = MIN_ZOOM_DISTANCE;
         viewer.controls.maxDistance = MAX_ZOOM_DISTANCE;
@@ -1852,13 +1948,48 @@
 
 
       try {
-        await viewer.setEnvironmentMap("hdr/hamburg_hbf_1k.hdr", { isHDR: true });
-      } catch (e) { console.error("Błąd ładowania HDR:", e); }
+        // ✅ TIMEOUT dla ładowania HDR na iPhone
+        const hdrPromise = viewer.setEnvironmentMap("hdr/hamburg_hbf_1k.hdr", { isHDR: true });
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('HDR loading timeout')), 10000)
+        );
+        
+        await Promise.race([hdrPromise, timeoutPromise]);
+        console.log('✅ HDR załadowane pomyślnie');
+      } catch (e) { 
+        console.warn("⚠️ Błąd ładowania HDR (kontynuujemy bez HDR):", e);
+        // Nie przerywamy ładowania - kontynuujemy bez HDR
+      }
 
-      await loadCameraTarget();
-      window.addEventListener("resize", resizeCanvas);
-      resizeCanvas();
-      await loadDataFromSheet();
+      try {
+        await loadCameraTarget();
+        console.log('✅ Camera target załadowany');
+      } catch (e) {
+        console.warn("⚠️ Błąd ładowania camera target:", e);
+      }
+
+      try {
+        window.addEventListener("resize", resizeCanvas);
+        resizeCanvas();
+        console.log('✅ Canvas resize zainicjalizowany');
+      } catch (e) {
+        console.warn("⚠️ Błąd inicjalizacji resize:", e);
+      }
+
+      try {
+        await loadDataFromSheet();
+        console.log('✅ Dane z arkusza załadowane');
+      } catch (e) {
+        console.error("❌ Krytyczny błąd ładowania danych:", e);
+        document.getElementById('custom-loader').innerHTML = `
+          <img src="icons/FK_Logo.jpg" alt="Fajne Krzesła" />
+          <p style="color: red; text-align: center; margin-top: 20px;">
+            Błąd ładowania danych konfiguracji.<br>
+            Sprawdź połączenie z internetem i odśwież stronę.
+          </p>
+        `;
+        return;
+      }
     }
 
     function setCameraView(targetPosition) {
@@ -2746,18 +2877,39 @@ renderOptions('legs-thumbnails', legs, item => {
       async function loadDataFromSheet() {
         const sheetId = '1vCs6YeHgKqlYwg8rvJOqVzNRnXeATJCBuK-zh3NNj78';
         const sheetURL = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=Dane&v=${new Date().getTime()}`;
+        
         try {
-          const response = await fetch(sheetURL + '?nocache=' + Date.now(), { cache: 'no-store' });
+          console.log('🔄 Ładowanie danych z arkusza...');
+          
+          // ✅ TIMEOUT dla fetch na iPhone
+          const fetchPromise = fetch(sheetURL + '?nocache=' + Date.now(), { 
+            cache: 'no-store',
+            headers: {
+              'Cache-Control': 'no-cache'
+            }
+          });
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Fetch timeout')), 15000)
+          );
+          
+          const response = await Promise.race([fetchPromise, timeoutPromise]);
+          
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
 
           const csvText = await response.text();
           const rows = csvText.trim().split('\n');
           const headers = rows.shift().split(',').map(h => h.trim().replace(/"/g, ''));
+          
           allData = rows.map(row => {
             const values = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
             const obj = {};
             headers.forEach((header, index) => obj[header] = values[index]?.trim().replace(/"/g, '') || '');
             return obj;
           }).filter(item => item.Visible?.toLowerCase() !== 'false');
+
+          console.log('✅ Dane załadowane:', allData.length, 'elementów');
 
           const mainModels = allData.filter(d => ['krzesło', 'kubełek'].includes(d.Grupa.toLowerCase()));
           renderOptions('model-thumbnails', mainModels, item => loadModel(item));
@@ -2766,49 +2918,37 @@ renderOptions('legs-thumbnails', legs, item => {
           const hdrEntries = allData.filter(d => d.HDR && d.HDRIcon);
           renderHDROptions(hdrEntries);
 
+          // ✅ UKRYJ LOADER PO ZAŁADOWANIU DANYCH (nie ładuj domyślnego modelu)
+          console.log('🎯 Ukrywanie loadera...');
+          document.getElementById('custom-loader').classList.add('fade-out');
+          setTimeout(() => {
+            document.getElementById('custom-loader').style.display = 'none';
+            document.getElementById('app').style.visibility = 'visible';
+            document.getElementById('app').classList.add('visible');
+            console.log('✅ Loader ukryty, aplikacja widoczna');
+          }, 500);
 
+          // Pokaż toolbar
+          const toolbar = document.getElementById('bottom-toolbar');
+          if (toolbar) {
+            toolbar.style.display = 'flex';
+            toolbar.classList.add('visible');
+          }
 
-
-
-          // Pokaż loader
-document.getElementById('custom-loader').style.display = 'flex';
-document.getElementById('app').style.visibility = 'hidden';
-
-// Usuń poprzedni model
-if (currentModelContainer) {
-  viewer.scene.remove(currentModelContainer);
-  if (typeof currentModelContainer.dispose === 'function') currentModelContainer.dispose();
-}
-
-// Załaduj nowy model
-currentModelContainer = await viewer.load('chairs/Ava.glb', { autoCenter: true });
-setCameraView(new Vector3(0, 0, 0));
-
-// Resetuj wybory
-selectedChair = null;
-selectedLeg = null;
-selectedMaterials = {};
-userInteracted = false;
-
-// Zaktualizuj podsumowanie
-updateSummary();
-
-// Pokaż scenę i ukryj loader
-document.getElementById('custom-loader').classList.add('fade-out');
-setTimeout(() => {
-  document.getElementById('custom-loader').style.display = 'none';
-  document.getElementById('app').style.visibility = 'visible';
-}, 500);
-
-// Pokaż toolbar
-const toolbar = document.getElementById('bottom-toolbar');
-if (toolbar) {
-  toolbar.style.display = 'flex';
-  toolbar.classList.add('visible');
-}
-
-
-        } catch (e) { console.error("Błąd ładowania danych:", e); document.body.innerHTML = `Błąd ładowania danych: ${e.message}`; }
+        } catch (e) { 
+          console.error("❌ Błąd ładowania danych:", e); 
+          // Nie zastępuj całego body - pokaż błąd w loaderze
+          document.getElementById('custom-loader').innerHTML = `
+            <img src="icons/FK_Logo.jpg" alt="Fajne Krzesła" />
+            <p style="color: red; text-align: center; margin-top: 20px;">
+              Błąd ładowania danych: ${e.message}<br>
+              <button onclick="location.reload()" style="margin-top: 10px; padding: 8px 16px; background: #000; color: #fff; border: none; border-radius: 4px; cursor: pointer;">
+                Spróbuj ponownie
+              </button>
+            </p>
+          `;
+          throw e; // Przekaż błąd wyżej
+        }
       }
 
       document.getElementById('hdr-toggle')?.addEventListener('click', (e) => {
