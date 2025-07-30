@@ -49,25 +49,176 @@
       flex: 1 1 0;
       width: 100%;
       height: 100%;
-      display: block;
+      display: none; /* 🚫 Ukryj 3D na start */
       background: #ededed15;
+      outline: none;
+      cursor: grab;
     }
-
-    body {
+    
+    #canvas:active {
+      cursor: grabbing;
+    }
+    
+    #canvas.visible {
+      display: block; /* ✅ Pokaż po wyborze krzesła */
+    }
+    
+    /* 🎯 EKRAN STARTOWY - WYBIERZ KRZESŁO */
+    #welcome-screen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 460px; /* 🔧 Zostaw miejsce na sidebar */
+      height: 100%;
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 50; /* 🔧 Niższy z-index niż loader, ale wyższy niż canvas */
+      transition: opacity 0.5s ease;
+    }
+    
+    #welcome-screen.hidden {
+      opacity: 0;
+      pointer-events: none;
+      display: none;
+    }
+    
+    #welcome-screen h1 {
+      font-size: 2.5em;
+      color: #333;
+      margin-bottom: 20px;
+      text-align: center;
+      font-weight: 300;
+    }
+    
+    #welcome-screen p {
+      font-size: 1.2em;
+      color: #666;
+      text-align: center;
+      margin-bottom: 40px;
+      max-width: 400px;
+      line-height: 1.6;
+    }
+    
+      #welcome-logo {
+        width: 120px;
+        height: auto;
+        margin-bottom: 30px;
+        opacity: 0.9;
+      }
+      
+      /* 📱 RESPONSIVE WELCOME SCREEN */
+      @media (max-width: 768px) {
+        #welcome-screen {
+          right: 220px; /* 🔧 Zostaw miejsce na mniejszy sidebar na mobile */
+        }
+        
+        #welcome-screen h1 {
+          font-size: 2em;
+          margin-bottom: 15px;
+        }
+        
+        #welcome-screen p {
+          font-size: 1.1em;
+          margin-bottom: 30px;
+          padding: 0 20px;
+        }
+        
+        #welcome-logo {
+          width: 100px;
+          margin-bottom: 20px;
+        }
+        
+        #theme-toggle {
+          width: 40px;
+          height: 40px;
+          top: 15px;
+          right: 15px;
+          font-size: 16px;
+        }
+      }    body {
       background: #ededed80;
       /* przezroczyste tło, lepszy blur */
     }
+    
+    /* 🌙 DARK MODE / LIGHT MODE */
+    body.dark-mode {
+      background: #1a1a1a;
+      color: #ffffff;
+    }
+    
+    body.dark-mode #sidebar {
+      background: #2d2d2d !important;
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 4px 32px rgba(0, 0, 0, 0.5);
+    }
+    
+    body.dark-mode #config-overview {
+      background: #2d2d2d;
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 4px 32px rgba(0, 0, 0, 0.5);
+    }
+    
+    body.dark-mode #welcome-screen {
+      background: #1a1a1a;
+      color: #ffffff;
+    }
+    
+    body.dark-mode #bottom-toolbar {
+      background: #2d2d2d;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+    }
+    
+    body.dark-mode .thumbnail {
+      background: #3d3d3d;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    body.dark-mode .thumbnail:hover {
+      background: #4d4d4d;
+    }
+    
+    /* 🔄 TOGGLE BUTTON */
+    #theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: #fff;
+      border: 2px solid #ddd;
+      cursor: pointer;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    #theme-toggle:hover {
+      transform: scale(1.1);
+    }
+    
+    body.dark-mode #theme-toggle {
+      background: #2d2d2d;
+      border-color: #555;
+      color: #fff;
+    }
 
     /* Panele UI: identyczna przezroczystość i blur obu paneli */
-    #sidebar,
-    #config-overview {
-      background: #fff;
+    #sidebar {
+      background: #fff !important;
       border-radius: 16px;
       box-shadow: 0 4px 32px rgba(0, 0, 0, 0.10);
       border: 1px solid rgba(0, 0, 0, 0.08);
-    }
-
-    #sidebar {
       flex: 0 0 460px;
       min-width: 460px;
       max-width: 540px;
@@ -78,7 +229,19 @@
       height: 100vh;
       box-sizing: border-box;
       overflow-y: auto;
-      /* NIE dodawaj background! */
+      /* Sidebar zawsze widoczny - żeby można było wybierać krzesła */
+    }
+    
+    #config-overview {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 32px rgba(0, 0, 0, 0.10);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      display: none; /* 🚫 Ukryj tylko panel podsumowania na start */
+    }
+    
+    #config-overview.visible {
+      display: block; /* ✅ Pokaż po wyborze krzesła */
     }
 
     #sidebar-content {
@@ -542,7 +705,7 @@
       border: 1.5px solid #ccc;
       border-radius: 12px;
       padding: 8px 14px;
-      display: flex;
+      display: none; /* 🚫 Ukryj toolbar na start */
       gap: 16px;
       z-index: 2000;
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
@@ -563,6 +726,7 @@
     }
 
     #bottom-toolbar.visible {
+      display: flex; /* ✅ Pokaż toolbar po wyborze krzesła */
       opacity: 1;
     }
 
@@ -1399,6 +1563,9 @@
 
   <div id="app">
 
+  <!-- 🌙 PRZYCISK DARK/LIGHT MODE -->
+  <button id="theme-toggle" title="Przełącz motyw">🌙</button>
+
 <div id="material-preloader" style="display:none;">
   <div class="preloader-box">
     <span class="loader"></span>
@@ -1407,6 +1574,14 @@
 </div>
 
     <canvas id="canvas"></canvas>
+    
+    <!-- 🎯 EKRAN STARTOWY - WYBIERZ KRZESŁO -->
+    <div id="welcome-screen">
+      <img id="welcome-logo" src="icons/FK_Logo.jpg" alt="Fajne Krzesła">
+      <h1>Konfigurator Krzeseł</h1>
+      <p>Wybierz model krzesła z bocznego panelu, aby rozpocząć konfigurację w 3D</p>
+    </div>
+    
     <div id="config-overview" class="collapsed hidden">
       <div class="overview-header">
         <button id="collapse-btn">+</button>
@@ -2098,23 +2273,66 @@
       updateSummary();
       
     }
+    
+    // 🎯 FUNKCJA POKAZUJĄCA UI PO PIERWSZYM WYBORZE KRZESŁA
+    function showAfterFirstSelection() {
+      console.log('🎯 Pokazuję interfejs po wyborze krzesła...');
+      
+      // Ukryj welcome screen
+      const welcomeScreen = document.getElementById('welcome-screen');
+      if (welcomeScreen && !welcomeScreen.classList.contains('hidden')) {
+        welcomeScreen.classList.add('hidden');
+        console.log('✅ Welcome screen ukryty');
+      }
+      
+      // Pokaż canvas 3D
+      const canvas = document.getElementById('canvas');
+      if (canvas && !canvas.classList.contains('visible')) {
+        canvas.classList.add('visible');
+        console.log('✅ Canvas 3D pokazany');
+      }
+      
+      // Sidebar już jest widoczny - nie trzeba go pokazywać
+      console.log('✅ Sidebar już widoczny');
+      
+      // Pokaż panel podsumowania
+      const configOverview = document.getElementById('config-overview');
+      if (configOverview && !configOverview.classList.contains('visible')) {
+        configOverview.classList.add('visible');
+        configOverview.classList.remove('hidden'); // usuń także hidden
+        console.log('✅ Panel podsumowania pokazany');
+      }
+      
+      // Pokaż dolny toolbar
+      const bottomToolbar = document.getElementById('bottom-toolbar');
+      if (bottomToolbar && !bottomToolbar.classList.contains('visible')) {
+        bottomToolbar.classList.add('visible');
+        console.log('✅ Dolny toolbar pokazany');
+      }
+      
+      console.log('🎉 Interfejs w pełni widoczny!');
+    }
 
     async function loadModel(variant) {
-  console.log("loadModel() wywołane!");
-  if (currentModelContainer) {
-    viewer.scene.remove(currentModelContainer);
-    if (typeof currentModelContainer.dispose === 'function') currentModelContainer.dispose();
-  }
-  if (currentLegModel) {
-    viewer.scene.remove(currentLegModel);
-    if (typeof currentLegModel.dispose === 'function') currentLegModel.dispose();
-  }
-  currentModelContainer = null;
-  currentLegModel = null;
-  selectedLeg = null;
-  selectedMaterials = {};
+      console.log("loadModel() wywołane!");
+      
+      // 🎯 POKAŻ WIDOK 3D PO PIERWSZYM WYBORZE KRZESŁA
+      showAfterFirstSelection();
+      
+      if (currentModelContainer) {
+        viewer.scene.remove(currentModelContainer);
+        if (typeof currentModelContainer.dispose === 'function') currentModelContainer.dispose();
+      }
+      if (currentLegModel) {
+        viewer.scene.remove(currentLegModel);
+        if (typeof currentLegModel.dispose === 'function') currentLegModel.dispose();
+      }
+      currentModelContainer = null;
+      currentLegModel = null;
+      selectedLeg = null;
+      selectedMaterials = {};
 
-  document.getElementById('model-loader').style.display = 'flex';
+      document.getElementById('model-loader').style.display = 'flex';
 
   try {
     const modelPath = `chairs/${variant.Nazwa}.glb`;
@@ -2614,10 +2832,16 @@ function applyMaterialToSpecificMesh(variant, meshKey) {
 
 
       function renderOptions(containerId, items, onSelect, isInteractive = true) {
+        console.log(`🔄 renderOptions wywołane dla ${containerId} z ${items.length} elementami`);
         const container = document.getElementById(containerId);
-        if (!container) return;
+        if (!container) {
+          console.error(`❌ Kontener ${containerId} nie istnieje!`);
+          return;
+        }
+        console.log(`✅ Kontener ${containerId} znaleziony`);
         container.innerHTML = '';
         items.forEach((item, index) => {
+          console.log(`🔄 Tworzenie elementu ${index}: ${item.Nazwa || 'Brak nazwy'}`, item);
           const wrapper = document.createElement('div');
           wrapper.className = 'thumbnail-wrapper';
           const button = document.createElement('div');
@@ -2646,8 +2870,11 @@ function applyMaterialToSpecificMesh(variant, meshKey) {
             });
           }
           const img = document.createElement('img');
-          img.src = item.Obrazek && item.Obrazek.length > 4 ? item.Obrazek : 'icons/placeholder.svg';
-          img.alt = item.Nazwa;
+          // 🔧 Obsługa różnych nazw kolumn dla obrazków
+          const imageSrc = item.Obrazek || item.Image || item.icon || item.Icon || 'icons/placeholder.svg';
+          img.src = imageSrc && imageSrc.length > 4 ? imageSrc : 'icons/placeholder.svg';
+          img.alt = item.Nazwa || item.Name || 'Bez nazwy';
+          console.log(`🖼️ Tworzenie obrazka dla ${img.alt}: ${img.src}`);
           button.appendChild(img);
           const caption = document.createElement('div');
           caption.className = 'thumbnail-caption';
@@ -3025,6 +3252,8 @@ renderOptions('legs-thumbnails', legs, item => {
               }).filter(item => item.Visible?.toLowerCase() !== 'false');
 
               console.log('✅ Dane załadowane:', allData.length, 'elementów');
+          console.log('📊 Przykładowe dane:', allData.slice(0, 2));
+          console.log('📊 Wszystkie kolumny w pierwszym elemencie:', Object.keys(allData[0] || {}));
               break; // Wyjdź z pętli - sukces!
               
             } catch (attemptError) {
@@ -3042,46 +3271,90 @@ renderOptions('legs-thumbnails', legs, item => {
             }
           }
 
-          const mainModels = allData.filter(d => ['krzesło', 'kubełek'].includes(d.Grupa.toLowerCase()));
+          const mainModels = allData.filter(d => {
+            const grupa = (d.Grupa || d.Group || d.grupa || '').toLowerCase();
+            const typ = (d.Typ || d.Type || d.typ || '').toLowerCase();
+            const kategoria = (d.Kategoria || d.Category || d.kategoria || '').toLowerCase();
+            
+            return ['krzesło', 'kubełek', 'chair', 'bucket'].some(term => 
+              grupa.includes(term) || typ.includes(term) || kategoria.includes(term)
+            );
+          });
           console.log('🪑 Modele główne:', mainModels.length);
+          console.log('🪑 Przykładowe modele:', mainModels.slice(0, 3));
           
-          renderOptions('model-thumbnails', mainModels, item => loadModel(item));
+          // Jeśli nie ma głównych modeli, pokaż wszystkie dane dla debugowania
+          if (mainModels.length === 0) {
+            console.warn('⚠️ Nie znaleziono głównych modeli! Pokazuję wszystkie dane dla debugowania:');
+            console.log('📊 Wszystkie dane:', allData.slice(0, 5));
+            console.log('📊 Dostępne grupy:', [...new Set(allData.map(d => d.Grupa).filter(Boolean))]);
+          }
+          
+          // 🪑 UTWÓRZ PRZYCISKI KRZESEŁ (prosta metoda)
+          const modelContainer = document.getElementById('model-thumbnails');
+          if (modelContainer) {
+            modelContainer.innerHTML = ''; // Wyczyść kontener
+            
+            // Jeśli mamy dane, utwórz przyciski
+            if (mainModels.length > 0) {
+              console.log('🪑 Tworzenie przycisków dla krzeseł...');
+              mainModels.forEach((model, index) => {
+                console.log(`🪑 Krzesło ${index + 1}:`, model.Nazwa, model);
+                
+                const button = document.createElement('div');
+                button.className = 'thumbnail-wrapper';
+                button.innerHTML = `
+                  <div class="thumbnail" title="${model.Nazwa || 'Krzesło'}">
+                    <img src="${model.Obrazek || model.Image || 'icons/placeholder.svg'}" 
+                         alt="${model.Nazwa || 'Krzesło'}" 
+                         onerror="this.src='icons/placeholder.svg'">
+                  </div>
+                  <div class="thumbnail-caption">${model.Nazwa || 'Krzesło'}</div>
+                `;
+                
+                // Dodaj kliknięcie
+                button.querySelector('.thumbnail').onclick = () => {
+                  console.log('🖱️ Kliknięto krzesło:', model.Nazwa);
+                  loadModel(model);
+                };
+                
+                modelContainer.appendChild(button);
+              });
+              console.log(`✅ Utworzono ${mainModels.length} przycisków krzeseł`);
+            } else {
+              console.warn('⚠️ Brak modeli krzeseł do wyświetlenia');
+              modelContainer.innerHTML = '<p style="color: #999; text-align: center;">Brak dostępnych krzeseł</p>';
+            }
+          } else {
+            console.error('❌ Nie znaleziono kontenera model-thumbnails');
+          }
+          
+          // Zamiast renderOptions - używamy prostej metody powyżej
+          // renderOptions('model-thumbnails', mainModels, item => loadModel(item));
+          console.log('✅ Przyciski krzeseł utworzone');
           showScreen('models');
 
           const hdrEntries = allData.filter(d => d.HDR && d.HDRIcon);
           renderHDROptions(hdrEntries);
 
-          // ✅ ZAŁADUJ DOMYŚLNY MODEL Default.glb
-          try {
-            console.log('🪑 Ładowanie domyślnego modelu...');
-            currentModelContainer = await loadModelWithFreshness('chairs/Default.glb', viewer, { autoCenter: true });
-            setCameraView(new Vector3(0, 0, 0));
-            console.log('✅ Domyślny model załadowany');
-          } catch (modelError) {
-            console.warn('⚠️ Nie udało się załadować domyślnego modelu:', modelError);
-            // Pokaż placeholder lub ukryj canvas
-            const canvas = document.getElementById('canvas');
-            if (canvas) {
-              canvas.style.background = '#f5f5f5 url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 200 200\'%3E%3Ctext x=\'50%\' y=\'50%\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%23999\' font-size=\'16\' font-family=\'Arial\'%3EWybierz krzesło%3C/text%3E%3C/svg%3E") center center no-repeat';
-            }
-          }
+          // 🚫 NIE ŁADUJ DOMYŚLNEGO MODELU - pokaże się po wyborze krzesła
+          console.log('✅ Dane załadowane, oczekuję na wybór krzesła...');
 
-          // ✅ UKRYJ LOADER PO ZAŁADOWANIU WSZYSTKIEGO
-          console.log('🎯 Ukrywanie loadera...');
+          // ✅ UKRYJ LOADER I POKAŻ WELCOME SCREEN
+          console.log('🎯 Ukrywanie loadera, pokazuję welcome screen...');
           document.getElementById('custom-loader').classList.add('fade-out');
           setTimeout(() => {
             document.getElementById('custom-loader').style.display = 'none';
             document.getElementById('app').style.visibility = 'visible';
             document.getElementById('app').classList.add('visible');
-            console.log('✅ Loader ukryty, aplikacja widoczna');
+            
+            // Sidebar już jest widoczny dzięki CSS - nie trzeba go pokazywać
+            console.log('✅ Sidebar już widoczny - można wybierać krzesła');
+            
+            console.log('✅ Loader ukryty, welcome screen widoczny');
           }, 500);
 
-          // Pokaż toolbar
-          const toolbar = document.getElementById('bottom-toolbar');
-          if (toolbar) {
-            toolbar.style.display = 'flex';
-            toolbar.classList.add('visible');
-          }
+          // 🚫 NIE POKAZUJ TOOLBAR NA START - pokaże się po wyborze krzesła
 
         } catch (e) { 
           console.error("❌ Błąd ładowania danych:", e); 
@@ -3167,22 +3440,8 @@ renderOptions('legs-thumbnails', legs, item => {
             </div>
           `;
           
-          // Spróbuj załadować domyślny model mimo błędu danych
-          try {
-            console.log('🆘 Próba załadowania domyślnego modelu mimo błędu danych...');
-            currentModelContainer = await loadModelWithFreshness('chairs/Default.glb', viewer, { autoCenter: true });
-            setCameraView(new Vector3(0, 0, 0));
-            console.log('✅ Domyślny model załadowany jako fallback');
-            
-            // Pokaż aplikację z domyślnym modelem
-            setTimeout(() => {
-              document.getElementById('app').style.visibility = 'visible';
-              document.getElementById('app').classList.add('visible');
-            }, 1000);
-            
-          } catch (modelError) {
-            console.error('❌ Błąd ładowania domyślnego modelu:', modelError);
-          }
+          // 🚫 NIE ŁADUJ FALLBACK MODELU - pokaż tylko welcome screen
+          console.log('❌ Błąd ładowania danych - pokazuję welcome screen');
           
           throw e; // Przekaż błąd wyżej
         }
@@ -3199,6 +3458,40 @@ renderOptions('legs-thumbnails', legs, item => {
 
 setDefaultMaterialsFromSheet();
 updateSummary();
+
+// 🌙 DARK/LIGHT MODE FUNCTIONALITY
+function initThemeToggle() {
+  const themeToggle = document.getElementById('theme-toggle');
+  
+  // Sprawdź zapisany motyw lub ustaw domyślny
+  const savedTheme = localStorage.getItem('theme') || 'light';
+  if (savedTheme === 'dark') {
+    document.body.classList.add('dark-mode');
+    themeToggle.textContent = '☀️';
+  } else {
+    themeToggle.textContent = '🌙';
+  }
+  
+  // Obsługa kliknięcia
+  themeToggle.addEventListener('click', () => {
+    const isDark = document.body.classList.toggle('dark-mode');
+    
+    if (isDark) {
+      themeToggle.textContent = '☀️';
+      localStorage.setItem('theme', 'dark');
+      console.log('🌙 Przełączono na dark mode');
+    } else {
+      themeToggle.textContent = '🌙';
+      localStorage.setItem('theme', 'light');
+      console.log('☀️ Przełączono na light mode');
+    }
+  });
+  
+  console.log('✅ Theme toggle zainicjalizowany');
+}
+
+// Inicjalizuj theme toggle po załadowaniu DOM
+document.addEventListener('DOMContentLoaded', initThemeToggle);
 
 
 
