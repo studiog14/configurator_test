@@ -1885,6 +1885,7 @@
   try {
     const modelPath = `chairs/${variant.Nazwa}.glb`;
     selectedChair = variant;
+    renderPartButtons();
 
     // Załaduj kubełek
     currentModelContainer = await loadModelWithFreshness(modelPath, viewer, { autoCenter: true });
@@ -1926,7 +1927,7 @@ setTimeout(() => {
     toolbar.classList.add('visible');
     toolbar.style.display = 'flex';
 
-    renderPartButtons();
+    
     userInteracted = true;
     hideDimensions();
 
