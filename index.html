@@ -28,8 +28,7 @@
       padding: 0;
       width: 100%;
       height: 100%;
-      overflow-x: hidden;
-      overflow-y: auto;
+      overflow: hidden;
       font-family: 'Poppins', sans-serif;
     }
 
@@ -731,55 +730,44 @@
       margin: 0;
     }
 
-   /* 📱 Tryb PIONOWY — ukryj aplikację i loader, pokaż komunikat */
-@media screen and (orientation: portrait) {
-  .rotate-warning {
-    display: block !important;
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: #f3f3f3;
-    padding: 20px;
-    font-size: 16px;
-    font-weight: bold;
-    border-radius: 12px;
-    z-index: 99999;
-    text-align: center;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-  }
-
+   /* 📱 Tryb PIONOWY — ukryj aplikację, pokaż komunikat */
+@media (max-width: 820px) and (orientation: portrait) {
   #app,
-  #custom-loader {
-    all: unset;
+  #bottom-toolbar,
+  #sidebar,
+  .dimension-panel,
+  .dimension-label,
+  #qr-button {
     display: none !important;
   }
 
-  body {
-    overflow: hidden !important;
-    background: #3d3d3d !important; /* ten sam kolor co komunikat */
-  }
-}
-
-/* 📺 Tryb POZIOMY — pokaż aplikację i loader, ukryj komunikat */
-@media screen and (orientation: landscape) {
-  .rotate-warning {
-    display: none !important;
-  }
-
-  #app,
-  #custom-loader {
+  #rotate-message {
     display: flex !important;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 40px;
+    font-size: 18px;
+    background: #000;
+    color: #fff;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2000;
   }
 
-  body {
-    overflow: auto !important;
-    background: #fff !important;
+   #export-panel {
+    display: none !important;
   }
 }
 
-
-
+/* 🤖 Tryb POZIOMY — pokazujemy UI */
+@media (max-width: 820px) and (orientation: landscape) {
+  #rotate-message {
+    display: none !important;
+  }
 
   canvas {
   touch-action: manipulation;
@@ -954,7 +942,7 @@
   #config-overview .overview-title {
     display: none;
   }
-
+}
 
 
 
@@ -1287,41 +1275,12 @@
   100% { transform: rotate(360deg);}
 }
 
-.spinner {
-  width: 60px;
-  height: 60px;
-  border: 6px solid #ddd;
-  border-top: 6px solid #333;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* === Fixy mobilne === */
-img, iframe {
-  max-width: 100%;
-  height: auto;
-}
-
-body {
-  overflow-x: hidden;
-}
-
 
   </style>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
 <body>
-  <div class="rotate-warning" style="display:none;">
-  🔄 Obróć urządzenie, by korzystać z konfiguratora!
-</div>
   <div id="custom-loader">
   <img src="icons/FK_Logo.jpg" alt="Fajne Krzesła" />
   
@@ -1336,21 +1295,6 @@ body {
   <p>Loading...</p>
 </div>
 
-<div id="loading-screen" style="
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  display: none;
-  justify-content: center;
-  align-items: center;
-  background: rgba(255,255,255,0.99);
-  z-index: 9999;
-  flex-direction: column;
-  gap: 20px;
-">
-  <div class="spinner"></div>
-  <div style="font-size: 1.4em; font-weight: 500;">Ładowanie...</div>
-</div>
-
 
 
   <div id="app">
@@ -1361,23 +1305,6 @@ body {
     <div style="margin-top: 16px; font-size: 2em;">Ładowanie materiału...</div>
   </div>
 </div>
-
-
-<button id="back-to-sidebar" style="
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  z-index: 10;
-  padding: 8px 12px;
-  font-size: 14px;
-  background-color: rgba(0,0,0,0.6);
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-">
-  ← Powrót do konfiguratora
-</button>
 
     <canvas id="canvas"></canvas>
     <div id="config-overview" class="collapsed hidden">
@@ -1425,8 +1352,6 @@ body {
   <div id="collection-icons" style="display: flex; flex-direction: column; gap: 14px; width: 88px;"></div>
   <div id="material-panel-viewer" class="options-grid" style="flex-grow: 1;"></div>
 </div>
-
-
 
 
 
@@ -1556,27 +1481,10 @@ body {
     border-radius: 6px;
     cursor: pointer;
   ">Zamknij</button>
-
-   <button id="room-viewer-btn" style="
-    margin-top: 8px;
-    background: #141414;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 6px;
-    cursor: pointer;
-  ">Zobacz w interaktywnej scenie</button>
-</div>
   </div>
 
 
-<div id="room-viewer-container" style="display:none;">
-  <canvas id="room-canvas"></canvas>
-  
-</button>
 
-
-</div>
 
 
 
@@ -1811,36 +1719,22 @@ body {
 
 
 
-    
-import {
-  setViewer,
-  setDefaultCamera,
-  setDefaultControls
-} from './viewerInstance.js';
+    async function init() {
+      const canvas = document.getElementById("canvas");
 
-async function init() {
-  const canvas = document.getElementById("canvas");
-
-  viewer = new ThreeViewer({
-    canvas: canvas,
-    plugins: [ GBufferPlugin, SSAAPlugin, SSReflectionPlugin, BloomPlugin],
-    rendererSettings: { antialias: true }
-  });
-
-  // 🔐 Przechowujemy instancję
-  setViewer(viewer);
-setDefaultCamera(viewer.scene.activeCamera);
-setDefaultControls(viewer.controls);
-
-  if (viewer.controls) {
-    viewer.controls.minDistance = MIN_ZOOM_DISTANCE;
-    viewer.controls.maxDistance = MAX_ZOOM_DISTANCE;
-    viewer.controls.dampingFactor = 0.1;
-    viewer.controls.enableDamping = true;
-    viewer.controls.addEventListener('change', clampCameraDistance);
-  }
-
-
+      viewer = new ThreeViewer({
+        canvas: canvas,
+        plugins: [ GBufferPlugin, SSAAPlugin, SSReflectionPlugin, BloomPlugin],
+        rendererSettings: { antialias: true }
+      });
+      if (viewer.controls) {
+        viewer.controls.minDistance = MIN_ZOOM_DISTANCE;
+        viewer.controls.maxDistance = MAX_ZOOM_DISTANCE;
+        viewer.controls.dampingFactor = 0.1;
+        viewer.controls.enableDamping = true;
+        // Dodaj nasłuchiwanie TUTAJ, po utworzeniu viewer i controls:
+        viewer.controls.addEventListener('change', clampCameraDistance);
+      }
 
       const collapseBtn = document.getElementById('collapse-btn');
       const overviewPanel = document.getElementById('config-overview');
@@ -1899,7 +1793,6 @@ setDefaultControls(viewer.controls);
       window.addEventListener("resize", resizeCanvas);
       resizeCanvas();
       await loadDataFromSheet();
-      
     }
 
     function setCameraView(targetPosition) {
@@ -2812,47 +2705,31 @@ renderOptions('legs-thumbnails', legs, item => {
 document.getElementById('custom-loader').style.display = 'flex';
 document.getElementById('app').style.visibility = 'hidden';
 
-// Usuń poprzedni model (jeśli istnieje)
+// Usuń poprzedni model
 if (currentModelContainer) {
   viewer.scene.remove(currentModelContainer);
-  if (typeof currentModelContainer.dispose === 'function') {
-    currentModelContainer.dispose();
-  }
+  if (typeof currentModelContainer.dispose === 'function') currentModelContainer.dispose();
 }
 
-// Załaduj model
+// Załaduj nowy model
 currentModelContainer = await viewer.load('chairs/Ava.glb', { autoCenter: true });
 setCameraView(new Vector3(0, 0, 0));
 
-// ✅ Poczekaj na minimalne przetworzenie rendera (zwłaszcza na iOS)
-await new Promise(resolve => setTimeout(resolve, 100)); // 100ms "oddechu"
+// Resetuj wybory
+selectedChair = null;
+selectedLeg = null;
+selectedMaterials = {};
+userInteracted = false;
 
-// 🔍 Znajdź wariant dopiero po załadunku modelu
-const avaVariant = allData.find(item => item.Nazwa?.trim() === 'Ava');
-if (avaVariant) {
-  selectedChair = avaVariant;
-  console.log("selectedChair =", selectedChair);
-  renderPartButtons();
-  
-  updateSummary();
-}
+// Zaktualizuj podsumowanie
+updateSummary();
 
-// 💡 Zadbaj o widoczność sceny i efekt wyłączenia loadera
-const loader = document.getElementById('custom-loader');
-const app = document.getElementById('app');
-
-loader.classList.add('fade-out');
+// Pokaż scenę i ukryj loader
+document.getElementById('custom-loader').classList.add('fade-out');
 setTimeout(() => {
-  loader.style.display = 'none';
-  app.style.visibility = 'visible';
-
-  // Resetuj stan — ale dopiero po wyświetleniu wszystkiego
-  selectedChair = null;
-  selectedLeg = null;
-  selectedMaterials = {};
-  userInteracted = false;
+  document.getElementById('custom-loader').style.display = 'none';
+  document.getElementById('app').style.visibility = 'visible';
 }, 500);
-
 
 // Pokaż toolbar
 const toolbar = document.getElementById('bottom-toolbar');
@@ -2860,7 +2737,6 @@ if (toolbar) {
   toolbar.style.display = 'flex';
   toolbar.classList.add('visible');
 }
-
 
 
         } catch (e) { console.error("Błąd ładowania danych:", e); document.body.innerHTML = `Błąd ładowania danych: ${e.message}`; }
@@ -3803,8 +3679,6 @@ function setDefaultMaterialsFromSheet() {
 
 
 
-document.getElementById("custom-loader").style.display = "none";
-document.getElementById("app").classList.add("visible");
 
 
 
@@ -3814,31 +3688,7 @@ document.getElementById("app").classList.add("visible");
 
       init();
 
-      init().catch(e => {
-  console.error("Błąd inicjalizacji konfiguratora:", e);
-  document.getElementById("custom-loader").style.display = "none";
-  alert("Nie udało się załadować konfiguratora.");
-});
-
-
-      document.getElementById('back-to-sidebar').style.display = 'none';
-
-  
-
-     // ⬇️ Tu możesz dopisać obsługę przycisku
-  document.getElementById('room-viewer-btn').addEventListener('click', () => {
-    document.getElementById('ar-popup').style.display = 'none';
-
-    import('./room-viewer.js').then(module => {
-      module.initRoomScene(); // przykładowa funkcja exportowana z room-viewer.js
-    });
-
-    // Opcjonalnie ładujesz styl
-    const css = document.createElement('link');
-    css.rel = 'stylesheet';
-    css.href = 'room-viewer.css';
-    document.head.appendChild(css);
-  });
+    
 
 
 
