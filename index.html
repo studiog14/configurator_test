@@ -2819,33 +2819,38 @@ if (currentModelContainer) {
   }
 }
 
-// Załaduj nowy model
+// Załaduj model
 currentModelContainer = await viewer.load('chairs/Ava.glb', { autoCenter: true });
 setCameraView(new Vector3(0, 0, 0));
 
-// 🎯 Ustaw Ava jako wybrany model i wygeneruj UI
+// ✅ Poczekaj na minimalne przetworzenie rendera (zwłaszcza na iOS)
+await new Promise(resolve => setTimeout(resolve, 100)); // 100ms "oddechu"
+
+// 🔍 Znajdź wariant dopiero po załadunku modelu
 const avaVariant = allData.find(item => item.Nazwa?.trim() === 'Ava');
 if (avaVariant) {
   selectedChair = avaVariant;
   console.log("selectedChair =", selectedChair);
   renderPartButtons();
+  updateSummary();
 }
 
-// Zaktualizuj podsumowanie
-updateSummary();
+// 💡 Zadbaj o widoczność sceny i efekt wyłączenia loadera
+const loader = document.getElementById('custom-loader');
+const app = document.getElementById('app');
 
-// Pokaż scenę i ukryj loader
-document.getElementById('custom-loader').classList.add('fade-out');
+loader.classList.add('fade-out');
 setTimeout(() => {
-  document.getElementById('custom-loader').style.display = 'none';
-  document.getElementById('app').style.visibility = 'visible';
+  loader.style.display = 'none';
+  app.style.visibility = 'visible';
 
-  // ✅ Dopiero teraz resetuj wybory
+  // Resetuj stan — ale dopiero po wyświetleniu wszystkiego
   selectedChair = null;
   selectedLeg = null;
   selectedMaterials = {};
   userInteracted = false;
 }, 500);
+
 
 // Pokaż toolbar
 const toolbar = document.getElementById('bottom-toolbar');
