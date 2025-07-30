@@ -1390,7 +1390,7 @@
 
 
   <!-- KOMUNIKAT obrotu -->
-<div id="rotate-message" style="display: none; flex-direction: column; align-items: center; justify-content: center; position: fixed; top:0; left:0; right:0; bottom:0; background: #000; color: #fff; z-index: 99999; font-size: 2em; text-align: center;">
+  <div id="rotate-message" style="display: none; flex-direction: column; align-items: center; justify-content: center; position: fixed; top:0; left:0; right:0; bottom:0; background: #000; color: #fff; z-index: 99999; font-size: 2em; text-align: center;">
   <div style="font-size: 3em; margin-bottom: 18px;">🔄</div>
   <div>Obróć ekran, aby korzystać z konfiguratora</div>
 </div>
@@ -3596,47 +3596,34 @@ function renderMaterialsInPanel(materiały, targetMesh) {
 
 
  window.addEventListener('orientationchange', () => {
-    const rotateMsg = document.getElementById('rotate-message');
-    if (!rotateMsg) return;
-
-    // ✅ Jeśli poziomo — chowaj komunikat
-    if (window.innerWidth > window.innerHeight) {
-      rotateMsg.style.display = 'none';
-    } else {
-      rotateMsg.style.display = 'flex';
-    }
-  });
-
-  // ✅ Dodatkowy test przy starcie — gdy strona ładuje się w pionie
-  window.addEventListener('load', () => {
-    const rotateMsg = document.getElementById('rotate-message');
-    if (!rotateMsg) return;
-
-    if (window.innerWidth > window.innerHeight) {
-      rotateMsg.style.display = 'none';
-    } else {
-      rotateMsg.style.display = 'flex';
-    }
-  });
-
-
-function updateRotateMessage() {
   const rotateMsg = document.getElementById('rotate-message');
   if (!rotateMsg) return;
+  if (window.innerWidth > window.innerHeight) {
+    rotateMsg.style.display = 'none';
+  } else {
+    rotateMsg.style.display = 'flex';
+  }
+});
 
-  const isLandscape = window.innerWidth > window.innerHeight;
-  rotateMsg.style.display = isLandscape ? 'none' : 'flex';
-}
+window.addEventListener('load', () => {
+  const rotateMsg = document.getElementById('rotate-message');
+  if (!rotateMsg) return;
+  if (window.innerWidth > window.innerHeight) {
+    rotateMsg.style.display = 'none';
+  } else {
+    rotateMsg.style.display = 'flex';
+  }
+});
+
+
 
 window.addEventListener('orientationchange', updateRotateMessage);
 window.addEventListener('resize', updateRotateMessage);
 window.addEventListener('load', updateRotateMessage);
 
-
 function checkOrientation() {
   const rotateMsg = document.getElementById('rotate-message');
   if (!rotateMsg) return;
-
   const isLandscape = window.innerWidth > window.innerHeight;
   rotateMsg.style.display = isLandscape ? 'none' : 'flex';
 }
@@ -3765,7 +3752,15 @@ function setDefaultMaterialsFromSheet() {
         });
       });
 
-
+function updateRotateMessage() {
+  const rotateMsg = document.getElementById('rotate-message');
+  if (!rotateMsg) return;
+  const isLandscape = window.innerWidth > window.innerHeight;
+  rotateMsg.style.display = isLandscape ? 'none' : 'flex';
+}
+window.addEventListener('orientationchange', updateRotateMessage);
+window.addEventListener('resize', updateRotateMessage);
+window.addEventListener('load', updateRotateMessage);
 
   </script>
 </body>
