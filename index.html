@@ -1848,6 +1848,14 @@
       // ✅ SPRAWDZANIE WEBGL DLA IPHONE
       const canvas = document.getElementById("canvas");
       
+      console.log('📱 Device info:', {
+        userAgent: navigator.userAgent,
+        platform: navigator.platform,
+        language: navigator.language,
+        onLine: navigator.onLine,
+        cookieEnabled: navigator.cookieEnabled
+      });
+      
       // Sprawdź czy WebGL jest dostępne
       let gl;
       try {
@@ -1869,8 +1877,41 @@
       }
       
       console.log('✅ WebGL jest dostępne:', gl.getParameter(gl.VERSION));
+      console.log('🎮 WebGL info:', {
+        vendor: gl.getParameter(gl.VENDOR),
+        renderer: gl.getParameter(gl.RENDERER),
+        version: gl.getParameter(gl.VERSION),
+        shadingLanguageVersion: gl.getParameter(gl.SHADING_LANGUAGE_VERSION)
+      });
+      
+      // 📱 Sprawdź specjalne przypadki dla iOS Safari
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
+      
+      if (isIOS) {
+        console.log('📱 Wykryto urządzenie iOS - zastosowanie optymalizacji...');
+        
+        // Sprawdź ograniczenia iOS
+        const maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+        const maxRenderbufferSize = gl.getParameter(gl.MAX_RENDERBUFFER_SIZE);
+        const maxViewportDims = gl.getParameter(gl.MAX_VIEWPORT_DIMS);
+        
+        console.log('📱 iOS limits:', {
+          maxTextureSize,
+          maxRenderbufferSize,
+          maxViewportDims,
+          memoryInfo: performance.memory || 'not available'
+        });
+        
+        // Dostosuj canvas dla iOS
+        const canvas = document.getElementById("canvas");
+        canvas.style.touchAction = 'none'; // Zapobiegaj scroll na touch
+        canvas.style.webkitTouchCallout = 'none'; // Wyłącz menu kontekstowe
+        canvas.style.webkitUserSelect = 'none'; // Wyłącz selekcję tekstu
+      }
 
       try {
+        console.log('🚀 Inicjalizacja ThreeViewer...');
         viewer = new ThreeViewer({
           canvas: canvas,
           plugins: [ GBufferPlugin, SSAAPlugin, SSReflectionPlugin, BloomPlugin],
@@ -1882,12 +1923,14 @@
             powerPreference: "high-performance"
           }
         });
+        console.log('✅ ThreeViewer zainicjalizowany');
       } catch (e) {
         console.error('❌ Błąd inicjalizacji ThreeViewer:', e);
         document.getElementById('custom-loader').innerHTML = `
           <img src="icons/FK_Logo.jpg" alt="Fajne Krzesła" />
           <p style="color: red; text-align: center; margin-top: 20px;">
-            Błąd inicjalizacji 3D:<br>${e.message}
+            Błąd inicjalizacji 3D:<br>${e.message}<br><br>
+            Spróbuj odświeżyć stronę
           </p>
         `;
         return;
@@ -2878,51 +2921,152 @@ renderOptions('legs-thumbnails', legs, item => {
       );
 
 
+      // ✅ FUNKCJE POMOCNICZE DLA DEBUGOWANIA
+      
+      // Funkcja sprawdzająca łączność sieciową
+      async function checkNetworkConnectivity() {
+        console.log('🌐 Sprawdzanie łączności sieciowej...');
+        
+        const testUrls = [
+          'https://www.google.com/favicon.ico',
+          'https://httpbin.org/get',
+          'https://jsonplaceholder.typicode.com/posts/1'
+        ];
+        
+        for (const url of testUrls) {
+          try {
+            const start = Date.now();
+            const response = await fetch(url, { 
+              method: 'HEAD', 
+              mode: 'no-cors',
+              cache: 'no-cache'
+            });
+            const duration = Date.now() - start;
+            console.log(`✅ ${url}: ${duration}ms`);
+            return true;
+          } catch (error) {
+            console.log(`❌ ${url}: ${error.message}`);
+          }
+        }
+        return false;
+      }
+      
+      // Sprawdź łączność przed głównym ładowaniem
+      const hasNetwork = await checkNetworkConnectivity();
+      if (!hasNetwork && !navigator.onLine) {
+        console.warn('⚠️ Problemy z łącznością sieciową wykryte');
+        document.getElementById('custom-loader').innerHTML = `
+          <img src="icons/FK_Logo.jpg" alt="Fajne Krzesła" />
+          <div style="color: orange; text-align: center; margin-top: 20px; font-size: 14px;">
+            <p>⚠️ Słabe połączenie internetowe</p>
+            <p>Ładowanie może być wolniejsze...</p>
+            <div style="margin-top: 15px;">
+              <div style="display: inline-block; width: 30px; height: 30px; border: 3px solid #f3f3f3; border-top: 3px solid #e3242b; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+            </div>
+          </div>
+        `;
+      }
+      
       async function loadDataFromSheet() {
         const sheetId = '1vCs6YeHgKqlYwg8rvJOqVzNRnXeATJCBuK-zh3NNj78';
         const sheetURL = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=Dane&v=${new Date().getTime()}`;
         
         try {
           console.log('🔄 Ładowanie danych z arkusza...');
+          console.log('📱 User agent:', navigator.userAgent);
+          console.log('📡 URL:', sheetURL);
           
-          // ✅ TIMEOUT dla fetch na iPhone
-          const fetchPromise = fetch(sheetURL + '?nocache=' + Date.now(), { 
-            cache: 'no-store',
-            headers: {
-              'Cache-Control': 'no-cache'
+          let attemptCount = 0;
+          const maxAttempts = 3;
+          let lastError;
+          
+          while (attemptCount < maxAttempts) {
+            attemptCount++;
+            console.log(`🔄 Próba ${attemptCount}/${maxAttempts}...`);
+            
+            try {
+              // ✅ TIMEOUT dla fetch na iPhone - zwiększony czas
+              const fetchPromise = fetch(sheetURL + '?nocache=' + Date.now(), { 
+                cache: 'no-store',
+                mode: 'cors',
+                headers: {
+                  'Cache-Control': 'no-cache',
+                  'Pragma': 'no-cache',
+                  'Accept': 'text/csv,*/*'
+                }
+              });
+              const timeoutPromise = new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Fetch timeout - sprawdź połączenie')), 15000 + (attemptCount * 5000))
+              );
+              
+              const response = await Promise.race([fetchPromise, timeoutPromise]);
+              console.log('📡 Response status:', response.status, response.statusText);
+              
+              if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+              }
+
+              const csvText = await response.text();
+              console.log('📄 CSV length:', csvText.length);
+              
+              if (csvText.length < 100) {
+                throw new Error('CSV data too short - możliwe problemy z połączeniem');
+              }
+              
+              // Sukces - dane załadowane
+              const rows = csvText.trim().split('\n');
+              const headers = rows.shift().split(',').map(h => h.trim().replace(/"/g, ''));
+              
+              allData = rows.map(row => {
+                const values = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
+                const obj = {};
+                headers.forEach((header, index) => obj[header] = values[index]?.trim().replace(/"/g, '') || '');
+                return obj;
+              }).filter(item => item.Visible?.toLowerCase() !== 'false');
+
+              console.log('✅ Dane załadowane:', allData.length, 'elementów');
+              break; // Wyjdź z pętli - sukces!
+              
+            } catch (attemptError) {
+              lastError = attemptError;
+              console.error(`❌ Próba ${attemptCount} nieudana:`, attemptError.message);
+              
+              if (attemptCount >= maxAttempts) {
+                throw lastError; // Rzuć ostatni błąd
+              }
+              
+              // Czekaj przed kolejną próbą
+              const waitTime = attemptCount * 2000; // 2s, 4s, 6s
+              console.log(`⏱️ Czekam ${waitTime/1000}s przed kolejną próbą...`);
+              await new Promise(resolve => setTimeout(resolve, waitTime));
             }
-          });
-          const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Fetch timeout')), 15000)
-          );
-          
-          const response = await Promise.race([fetchPromise, timeoutPromise]);
-          
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
           }
 
-          const csvText = await response.text();
-          const rows = csvText.trim().split('\n');
-          const headers = rows.shift().split(',').map(h => h.trim().replace(/"/g, ''));
-          
-          allData = rows.map(row => {
-            const values = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
-            const obj = {};
-            headers.forEach((header, index) => obj[header] = values[index]?.trim().replace(/"/g, '') || '');
-            return obj;
-          }).filter(item => item.Visible?.toLowerCase() !== 'false');
-
-          console.log('✅ Dane załadowane:', allData.length, 'elementów');
-
           const mainModels = allData.filter(d => ['krzesło', 'kubełek'].includes(d.Grupa.toLowerCase()));
+          console.log('🪑 Modele główne:', mainModels.length);
+          
           renderOptions('model-thumbnails', mainModels, item => loadModel(item));
           showScreen('models');
 
           const hdrEntries = allData.filter(d => d.HDR && d.HDRIcon);
           renderHDROptions(hdrEntries);
 
-          // ✅ UKRYJ LOADER PO ZAŁADOWANIU DANYCH (nie ładuj domyślnego modelu)
+          // ✅ ZAŁADUJ DOMYŚLNY MODEL Default.glb
+          try {
+            console.log('🪑 Ładowanie domyślnego modelu...');
+            currentModelContainer = await loadModelWithFreshness('chairs/Default.glb', viewer, { autoCenter: true });
+            setCameraView(new Vector3(0, 0, 0));
+            console.log('✅ Domyślny model załadowany');
+          } catch (modelError) {
+            console.warn('⚠️ Nie udało się załadować domyślnego modelu:', modelError);
+            // Pokaż placeholder lub ukryj canvas
+            const canvas = document.getElementById('canvas');
+            if (canvas) {
+              canvas.style.background = '#f5f5f5 url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 200 200\'%3E%3Ctext x=\'50%\' y=\'50%\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%23999\' font-size=\'16\' font-family=\'Arial\'%3EWybierz krzesło%3C/text%3E%3C/svg%3E") center center no-repeat';
+            }
+          }
+
+          // ✅ UKRYJ LOADER PO ZAŁADOWANIU WSZYSTKIEGO
           console.log('🎯 Ukrywanie loadera...');
           document.getElementById('custom-loader').classList.add('fade-out');
           setTimeout(() => {
@@ -2941,16 +3085,105 @@ renderOptions('legs-thumbnails', legs, item => {
 
         } catch (e) { 
           console.error("❌ Błąd ładowania danych:", e); 
-          // Nie zastępuj całego body - pokaż błąd w loaderze
+          console.error("❌ Stack trace:", e.stack);
+          console.error("🌐 Stan połączenia:", {
+            online: navigator.onLine,
+            userAgent: navigator.userAgent,
+            language: navigator.language,
+            platform: navigator.platform
+          });
+          
+          // Sprawdź typ błędu i dostosuj komunikat
+          let errorMessage = e.message;
+          let troubleshootingTips = '';
+          
+          const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+          const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
+          
+          if (e.message.includes('timeout') || e.message.includes('network')) {
+            errorMessage = isIOS ? 'Przekroczono czas ładowania' : e.message;
+            troubleshootingTips = isIOS ? `
+              <br><small style="color: #666; font-size: 12px;">
+                🍎 <strong>Porady dla iPhone:</strong><br>
+                • Zamknij inne karty w Safari<br>
+                • Sprawdź czy masz dobre WiFi/LTE<br>
+                • Spróbuj tryb samolotowy ON/OFF<br>
+                • Odczekaj 30s i spróbuj ponownie
+              </small>
+            ` : `
+              <br><small style="color: #666; font-size: 12px;">
+                • Sprawdź połączenie Wi-Fi/komórkowe<br>
+                • Spróbuj wyłączyć/włączyć WiFi<br>
+                • Przeładuj stronę po 30 sekundach
+              </small>
+            `;
+          } else if (e.message.includes('CORS') || e.message.includes('Access-Control')) {
+            errorMessage = isIOS ? 'Problem z zabezpieczeniami Safari' : e.message;
+            troubleshootingTips = isIOS ? `
+              <br><small style="color: #666; font-size: 12px;">
+                🍎 <strong>Rozwiązanie dla iPhone:</strong><br>
+                • Otwórz Ustawienia → Safari<br>
+                • Wyłącz "Zapobiegaj śledzeniu między witrynami"<br>
+                • Spróbuj odświeżyć stronę<br>
+                • Lub użyj Chrome zamiast Safari
+              </small>
+            ` : `
+              <br><small style="color: #666; font-size: 12px;">
+                • Problemem może być blokada zabezpieczeń<br>
+                • Spróbuj odświeżyć stronę<br>
+                • Sprawdź czy Safari nie blokuje treści
+              </small>
+            `;
+          } else if (!navigator.onLine) {
+            errorMessage = 'Brak połączenia z internetem';
+            troubleshootingTips = isIOS ? `
+              <br><small style="color: #666; font-size: 12px;">
+                🍎 <strong>Sprawdź na iPhone:</strong><br>
+                • Ustawienia → WiFi (czy jesteś połączony)<br>
+                • Ustawienia → Komórkowe → Dane komórkowe<br>
+                • Centrum kontroli → sprawdź tryb samolotowy<br>
+                • Spróbuj inne WiFi lub LTE
+              </small>
+            ` : `
+              <br><small style="color: #666; font-size: 12px;">
+                • Sprawdź połączenie Wi-Fi<br>
+                • Sprawdź połączenie komórkowe<br>
+                • Spróbuj ponownie gdy połączenie wróci
+              </small>
+            `;
+          }
+          
+          // Pokaż szczegółowy błąd w loaderze
           document.getElementById('custom-loader').innerHTML = `
             <img src="icons/FK_Logo.jpg" alt="Fajne Krzesła" />
-            <p style="color: red; text-align: center; margin-top: 20px;">
-              Błąd ładowania danych: ${e.message}<br>
-              <button onclick="location.reload()" style="margin-top: 10px; padding: 8px 16px; background: #000; color: #fff; border: none; border-radius: 4px; cursor: pointer;">
-                Spróbuj ponownie
+            <div style="color: red; text-align: center; margin-top: 20px; font-size: 14px; max-width: 300px; margin-left: auto; margin-right: auto;">
+              <p>❌ Problem z ładowaniem:</p>
+              <p><strong>${errorMessage}</strong></p>
+              ${troubleshootingTips}
+              <br>
+              <button onclick="location.reload()" style="margin-top: 15px; padding: 10px 20px; background: #e3242b; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 14px;">
+                🔄 Spróbuj ponownie
               </button>
-            </p>
+            </div>
           `;
+          
+          // Spróbuj załadować domyślny model mimo błędu danych
+          try {
+            console.log('🆘 Próba załadowania domyślnego modelu mimo błędu danych...');
+            currentModelContainer = await loadModelWithFreshness('chairs/Default.glb', viewer, { autoCenter: true });
+            setCameraView(new Vector3(0, 0, 0));
+            console.log('✅ Domyślny model załadowany jako fallback');
+            
+            // Pokaż aplikację z domyślnym modelem
+            setTimeout(() => {
+              document.getElementById('app').style.visibility = 'visible';
+              document.getElementById('app').classList.add('visible');
+            }, 1000);
+            
+          } catch (modelError) {
+            console.error('❌ Błąd ładowania domyślnego modelu:', modelError);
+          }
+          
           throw e; // Przekaż błąd wyżej
         }
       }
