@@ -3814,6 +3814,13 @@ document.getElementById("app").classList.add("visible");
 
       init();
 
+      init().catch(e => {
+  console.error("Błąd inicjalizacji konfiguratora:", e);
+  document.getElementById("custom-loader").style.display = "none";
+  alert("Nie udało się załadować konfiguratora.");
+});
+
+
       document.getElementById('back-to-sidebar').style.display = 'none';
 
   
