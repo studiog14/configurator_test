@@ -69,7 +69,7 @@
       position: absolute;
       top: 0;
       left: 0;
-      right: 460px; /* 🔧 Zostaw miejsce na sidebar po prawej */
+      right: 460px; /* 🔧 Przywrócone na desktop */
       height: 100%;
       background: #ffffff;
       display: flex;
@@ -87,7 +87,7 @@
     }
     
     #welcome-screen h1 {
-      font-size: 2.5em;
+      font-size: 2em; /* 🔧 Zmniejszony z 2.5em - porównywalny do logo */
       color: #333;
       margin-bottom: 20px;
       text-align: center;
@@ -104,7 +104,7 @@
     }
     
       #welcome-logo {
-        width: 120px;
+        width: 150px; /* 🔧 Większe logo - z 120px na 150px */
         height: auto;
         margin-bottom: 30px;
         opacity: 0.9;
@@ -113,36 +113,38 @@
       /* 📱 RESPONSIVE WELCOME SCREEN */
       @media (max-width: 768px) {
         #welcome-screen {
-          right: 220px; /* 🔧 Zostaw miejsce na mniejszy sidebar na mobile */
+          right: 140px !important; /* 🔧 Dopasuj do jeszcze mniejszego sidebar */
+          z-index: 60 !important; /* 🔧 Wyższy z-index niż sidebar na mobile */
         }
         
         #welcome-screen h1 {
-          font-size: 2em;
-          margin-bottom: 15px;
+          font-size: 1.4em; /* 🔧 Mniejszy tytuł na mobile */
+          margin-bottom: 8px;
         }
         
         #welcome-screen p {
-          font-size: 1.1em;
-          margin-bottom: 30px;
-          padding: 0 20px;
+          font-size: 0.8em;
+          margin-bottom: 15px;
+          padding: 0 8px;
         }
         
         #welcome-logo {
-          width: 100px;
-          margin-bottom: 20px;
+          width: 60px; /* 🔧 Mniejsze logo na mobile */
+          margin-bottom: 10px;
         }
         
         /* 🌙 Dark mode logo na mobile */
         body.dark-mode #welcome-logo {
-          padding: 8px;
+          padding: 3px;
         }
         
         #theme-toggle {
-          width: 40px;
-          height: 40px;
-          top: 15px;
-          right: 15px;
-          font-size: 16px;
+          width: 32px;
+          height: 32px;
+          top: 6px;
+          right: 6px;
+          font-size: 12px;
+          z-index: 1003 !important; /* 🔧 Najwyższy z-index */
         }
       }    body {
       background: #ededed80;
@@ -205,7 +207,7 @@
       color: #e0e0e0; /* 🔧 Jaśniejsze napisy pod obrazkami */
     }
     
-    /* 🔄 TOGGLE BUTTON */
+    /* 🔄 TOGGLE BUTTON - CZARNO-BIAŁE IKONY */
     #theme-toggle {
       position: fixed;
       top: 20px;
@@ -216,13 +218,14 @@
       background: #fff;
       border: 2px solid #ddd;
       cursor: pointer;
-      z-index: 1000;
+      z-index: 1002; /* 🔧 Wyższy z-index niż sidebar */
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 20px;
       transition: all 0.3s ease;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      color: #333; /* 🔧 Czarna ikona w light mode */
     }
     
     #theme-toggle:hover {
@@ -232,7 +235,7 @@
     body.dark-mode #theme-toggle {
       background: #2d2d2d;
       border-color: #555;
-      color: #fff;
+      color: #fff; /* 🔧 Biała ikona w dark mode */
     }
 
     /* Panele UI: identyczna przezroczystość i blur obu paneli */
@@ -241,11 +244,11 @@
       border-radius: 16px;
       box-shadow: 0 4px 32px rgba(0, 0, 0, 0.10);
       border: 1px solid rgba(0, 0, 0, 0.08);
-      width: 460px;
+      width: 460px; /* 🔧 Przywrócone na desktop */
       min-width: 460px;
-      max-width: 540px;
-      padding: 32px 24px 24px 24px;
-      z-index: 200; /* 🔧 Wyższy z-index niż welcome screen (50) */
+      max-width: 460px;
+      padding: 32px 24px 24px 24px; /* 🔧 Przywrócony padding na desktop */
+      z-index: 40; /* 🔧 Niższy z-index niż welcome screen (50) */
       display: flex;
       flex-direction: column;
       height: 100vh;
@@ -341,7 +344,8 @@
     .options-grid {
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
+      gap: 10px; /* 🔧 Przywrócone na desktop */
+      justify-content: flex-start; /* 🔧 Wyrównaj do lewej */
     }
 
     .thumbnail-wrapper {
@@ -349,10 +353,11 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      /* 🔧 Bez szerokości na desktop - naturalny flex wrap */
     }
 
     .thumbnail {
-      width: 80px;
+      width: 80px; /* 🔧 Przywrócone na desktop */
       height: 80px;
       object-fit: contain;
       cursor: pointer;
@@ -367,7 +372,6 @@
       padding: 4px;
       box-sizing: border-box;
       opacity: 1;
-      /* Ikonki w pełni widoczne */
     }
 
     .thumbnail:hover {
@@ -389,11 +393,12 @@
     }
 
     .thumbnail-caption {
-      font-size: 15px;
+      font-size: 15px; /* 🔧 Przywrócone na desktop */
       color: #555;
-      margin-top: 6px;
+      margin-top: 6px; /* 🔧 Przywrócone na desktop */
       font-weight: 500;
       opacity: 1;
+      line-height: 1.2; /* 🔧 Ściślejsze linie */
     }
 
     #overview-icons img {
@@ -574,16 +579,15 @@
     #model-image-container img {
       width: 100%;
       max-width: 100%;
-      height: 220px;
-      /* większa wysokość, dopasuj do UI */
+      height: 220px; /* 🔧 Przywrócone na desktop */
       object-fit: contain;
       display: block;
-      margin: 0 auto 18px auto;
+      margin: 0 auto 18px auto; /* 🔧 Przywrócone marginesy */
       background: #fff;
-      border-radius: 16px;
+      border-radius: 16px; /* 🔧 Przywrócone zaokrąglenie */
       border: 1.5px solid #ddd;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-      padding: 12px 0;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12); /* 🔧 Przywrócony cień */
+      padding: 12px 0; /* 🔧 Przywrócony padding */
       transition: box-shadow 0.2s;
     }
 
@@ -1025,21 +1029,29 @@
     display: block;
   }
 
+  /* 📱 MOBILE STYLES - Ultra kompaktowy UI */
   #sidebar {
-    width: 220px;
+    width: 140px; /* 🔧 Jeszcze mniejszy sidebar na mobile */
     box-sizing: border-box;
     overflow-y: auto;
-    padding: 6px;
+    padding: 4px; /* 🔧 Mniejszy padding */
     position: fixed; /* 🔧 Fixed także na mobile */
     right: 0; /* 🔧 Po prawej także na mobile */
     top: 0;
     height: 100vh;
-    z-index: 1000; /* 🔧 Wysoki z-index dla mobile */
+    z-index: 35; /* 🔧 Niższy z-index niż welcome screen (50) */
+    background: #fff !important;
+    border-radius: 4px 0 0 4px; /* 🔧 Zaokrąglenie tylko z lewej strony */
+  }
+
+  /* 🔧 Welcome screen musi mieć więcej miejsca na mobile */
+  #welcome-screen {
+    right: 140px !important; /* 🔧 Zostaw miejsce na mniejszy sidebar */
   }
 
   /* 🔧 Dodaj specjalne ustawienia viewera dla mobile */
   #viewer {
-    width: calc(100vw - 220px); /* 🔧 Zostaw miejsce na sidebar */
+    width: calc(100vw - 140px); /* 🔧 Model 3D bliżej centrum */
     position: relative;
   }
 
@@ -1048,6 +1060,72 @@
     padding: 0;
     display: flex;
     flex-direction: row; /* 🔧 Wymuś row layout na mobile */
+  }
+
+  /* 🔧 Canvas 3D na mobile - bliżej centrum */
+  canvas {
+    width: calc(100vw - 140px) !important; /* 🔧 Model 3D bliżej centrum */
+    height: 100vh !important;
+  }
+
+  /* 🔧 Kontrolki w sidebar - bardzo małe na mobile */
+  .control-section {
+    padding: 1px;
+    margin: 1px 0;
+  }
+
+  .control-section h3 {
+    font-size: 10px;
+    margin: 2px 0 1px 0;
+  }
+
+  .thumbnail {
+    width: 25px !important; /* 🔧 Jeszcze mniejsze thumbnails */
+    height: 25px !important;
+  }
+
+  .thumbnail-caption {
+    font-size: 7px;
+    margin-top: 1px;
+    line-height: 1;
+  }
+
+  /* 🔧 3 ikonki w rzędzie na mobile */
+  .thumbnail-wrapper {
+    width: calc(33.333% - 2px) !important;
+  }
+
+  /* 🔧 Kolekcje ikon również mniejsze */
+  .collection-icon {
+    width: 25px !important;
+    height: 25px !important;
+  }
+
+  /* 🔧 Model image container na mobile */
+  #model-image-container img {
+    height: 60px !important; /* 🔧 Jeszcze mniejszy */
+    margin-bottom: 4px !important;
+  }
+
+  /* 🔧 Przyciski dolne na mobile */
+  #bottom-toolbar button {
+    width: 35px;
+    height: 35px;
+    font-size: 12px;
+  }
+
+  /* 🌙 Dark mode na mobile */
+  body.dark-mode #sidebar {
+    background: #2d2d2d !important;
+    color: #e0e0e0;
+  }
+
+  body.dark-mode .control-section h3 {
+    color: #e0e0e0;
+  }
+
+  body.dark-mode .thumbnail-caption {
+    color: #b0b0b0;
   }
 
   #bottom-toolbar #qr-button {
@@ -1214,6 +1292,48 @@
 
   #config-overview .overview-title {
     display: none;
+  }
+}
+
+/* 🖥️ DESKTOP STYLES - Duży UI dla większych ekranów */
+@media (min-width: 821px) {
+  #sidebar {
+    width: 460px !important; /* 🔧 Duży sidebar na desktop */
+    min-width: 460px !important;
+    max-width: 460px !important;
+    padding: 32px 24px 24px 24px !important; /* 🔧 Duży padding na desktop */
+    border-radius: 16px !important;
+    background: #fff !important;
+    box-shadow: 0 4px 32px rgba(0, 0, 0, 0.10) !important;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  }
+
+  /* Welcome screen dla desktop */
+  #welcome-screen {
+    right: 460px !important; /* 🔧 Zostaw miejsce na duży sidebar */
+  }
+
+  /* Duże thumbnails na desktop */
+  .thumbnail,
+  #overview-icons img,
+  .back-to-model-btn {
+    width: 80px !important;
+    height: 80px !important;
+  }
+
+  .model-image {
+    width: 80px !important;
+    height: 80px !important;
+  }
+
+  #part-tabs img {
+    width: 48px !important;
+    height: 48px !important;
+  }
+
+  .thumbnail-caption {
+    font-size: 14px !important;
+    margin-top: 4px !important;
   }
 }
 
@@ -1642,7 +1762,6 @@
     </div>
 
     <div id="sidebar">
-      <div id="selected-chair-name">Wybrany model: Brak</div>
       <div id="model-image-container"></div> <!-- DODAJ TO TUTAJ -->
       <hr />
       <div id="model-section">
@@ -2063,6 +2182,11 @@
 
 
     async function init() {
+      console.log('🍎 iPhone debug - ROZPOCZĘCIE FUNKCJI INIT');
+      console.log('🍎 iPhone debug - URL:', window.location.href);
+      console.log('🍎 iPhone debug - User Agent:', navigator.userAgent);
+      console.log('🍎 iPhone debug - Online:', navigator.onLine);
+      
       // 🌙 INICJALIZUJ THEME TOGGLE NA POCZĄTKU
       initThemeToggle();
       
@@ -3241,6 +3365,11 @@ renderOptions('legs-thumbnails', legs, item => {
       }
       
       async function loadDataFromSheet() {
+        console.log('🍎 iPhone debug - ROZPOCZĘCIE loadDataFromSheet');
+        console.log('🍎 iPhone debug - navigator.userAgent:', navigator.userAgent);
+        console.log('🍎 iPhone debug - window.location:', window.location.href);
+        console.log('🍎 iPhone debug - document.readyState:', document.readyState);
+        
         const sheetId = '1vCs6YeHgKqlYwg8rvJOqVzNRnXeATJCBuK-zh3NNj78';
         const sheetURL = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=Dane&v=${new Date().getTime()}`;
         
@@ -3248,6 +3377,7 @@ renderOptions('legs-thumbnails', legs, item => {
           console.log('🔄 Ładowanie danych z arkusza...');
           console.log('📱 User agent:', navigator.userAgent);
           console.log('📡 URL:', sheetURL);
+          console.log('🍎 iPhone debug - rozpoczęcie pobierania danych...');
           
           let attemptCount = 0;
           const maxAttempts = 3;
@@ -3338,41 +3468,50 @@ renderOptions('legs-thumbnails', legs, item => {
           
           // 🪑 UTWÓRZ PRZYCISKI KRZESEŁ (prosta metoda)
           const modelContainer = document.getElementById('model-thumbnails');
+          console.log('🍎 iPhone debug - model container:', modelContainer);
           if (modelContainer) {
             modelContainer.innerHTML = ''; // Wyczyść kontener
             
             // Jeśli mamy dane, utwórz przyciski
             if (mainModels.length > 0) {
               console.log('🪑 Tworzenie przycisków dla krzeseł...');
+              console.log('🍎 iPhone debug - będzie tworzonych', mainModels.length, 'przycisków');
               mainModels.forEach((model, index) => {
                 console.log(`🪑 Krzesło ${index + 1}:`, model.Nazwa, model);
                 
-                const button = document.createElement('div');
-                button.className = 'thumbnail-wrapper';
-                button.innerHTML = `
-                  <div class="thumbnail" title="${model.Nazwa || 'Krzesło'}">
-                    <img src="${model.Obrazek || model.Image || 'icons/placeholder.svg'}" 
-                         alt="${model.Nazwa || 'Krzesło'}" 
-                         onerror="this.src='icons/placeholder.svg'">
-                  </div>
-                  <div class="thumbnail-caption">${model.Nazwa || 'Krzesło'}</div>
-                `;
-                
-                // Dodaj kliknięcie
-                button.querySelector('.thumbnail').onclick = () => {
-                  console.log('🖱️ Kliknięto krzesło:', model.Nazwa);
-                  loadModel(model);
-                };
-                
-                modelContainer.appendChild(button);
+                try {
+                  const button = document.createElement('div');
+                  button.className = 'thumbnail-wrapper';
+                  button.innerHTML = `
+                    <div class="thumbnail" title="${model.Nazwa || 'Krzesło'}">
+                      <img src="${model.Obrazek || model.Image || 'icons/placeholder.svg'}" 
+                           alt="${model.Nazwa || 'Krzesło'}" 
+                           onerror="this.src='icons/placeholder.svg'">
+                    </div>
+                    <div class="thumbnail-caption">${model.Nazwa || 'Krzesło'}</div>
+                  `;
+                  
+                  // Dodaj kliknięcie
+                  button.querySelector('.thumbnail').onclick = () => {
+                    console.log('🖱️ Kliknięto krzesło:', model.Nazwa);
+                    loadModel(model);
+                  };
+                  
+                  modelContainer.appendChild(button);
+                  console.log('🍎 iPhone debug - przycisk', index + 1, 'dodany');
+                } catch (buttonError) {
+                  console.error('❌ iPhone debug - błąd tworzenia przycisku', index + 1, ':', buttonError);
+                }
               });
               console.log(`✅ Utworzono ${mainModels.length} przycisków krzeseł`);
+              console.log('🍎 iPhone debug - wszystkie przyciski utworzone');
             } else {
               console.warn('⚠️ Brak modeli krzeseł do wyświetlenia');
               modelContainer.innerHTML = '<p style="color: #999; text-align: center;">Brak dostępnych krzeseł</p>';
             }
           } else {
             console.error('❌ Nie znaleziono kontenera model-thumbnails');
+            console.error('🍎 iPhone debug - kontener model-thumbnails nie istnieje!');
           }
           
           // Zamiast renderOptions - używamy prostej metody powyżej
@@ -3388,16 +3527,84 @@ renderOptions('legs-thumbnails', legs, item => {
 
           // ✅ UKRYJ LOADER I POKAŻ WELCOME SCREEN
           console.log('🎯 Ukrywanie loadera, pokazuję welcome screen...');
-          document.getElementById('custom-loader').classList.add('fade-out');
+          console.log('🍎 iPhone debug - przed ukryciem loadera:', {
+            loader: document.getElementById('custom-loader'),
+            app: document.getElementById('app'),
+            welcomeScreen: document.getElementById('welcome-screen'),
+            sidebar: document.getElementById('sidebar')
+          });
+          
+          // Sprawdź czy elementy istnieją
+          const loader = document.getElementById('custom-loader');
+          const app = document.getElementById('app');
+          const welcomeScreen = document.getElementById('welcome-screen');
+          
+          if (!loader) console.error('❌ Brak custom-loader');
+          if (!app) console.error('❌ Brak app');
+          if (!welcomeScreen) console.error('❌ Brak welcome-screen');
+          
+          if (loader) {
+            loader.classList.add('fade-out');
+            console.log('🍎 iPhone debug - dodano fade-out do loadera');
+          }
+          
           setTimeout(() => {
-            document.getElementById('custom-loader').style.display = 'none';
-            document.getElementById('app').style.visibility = 'visible';
-            document.getElementById('app').classList.add('visible');
+            console.log('🍎 iPhone debug - setTimeout callback wykonany');
+            if (loader) {
+              loader.style.display = 'none';
+              console.log('🍎 iPhone debug - loader ukryty');
+            }
+            if (app) {
+              app.style.visibility = 'visible';
+              app.classList.add('visible');
+              console.log('🍎 iPhone debug - app pokazany');
+            }
             
             // Sidebar już jest widoczny dzięki CSS - nie trzeba go pokazywać
             console.log('✅ Sidebar już widoczny - można wybierać krzesła');
             
             console.log('✅ Loader ukryty, welcome screen widoczny');
+            
+            // DODAJ SZCZEGÓŁOWE LOGOWANIE STANU KOŃCOWEGO DLA IPHONE
+            console.log('🍎 iPhone debug - STAN KOŃCOWY:');
+            const finalLoader = document.getElementById('custom-loader');
+            const finalApp = document.getElementById('app');
+            const finalWelcome = document.getElementById('welcome-screen');
+            const finalSidebar = document.getElementById('sidebar');
+            
+            console.log('🍎 iPhone debug - finalLoader:', finalLoader);
+            console.log('🍎 iPhone debug - finalLoader display:', finalLoader?.style.display);
+            console.log('🍎 iPhone debug - finalLoader classList:', finalLoader?.classList.toString());
+            
+            console.log('🍎 iPhone debug - finalApp:', finalApp);
+            console.log('🍎 iPhone debug - finalApp visibility:', finalApp?.style.visibility);
+            console.log('🍎 iPhone debug - finalApp classList:', finalApp?.classList.toString());
+            
+            console.log('🍎 iPhone debug - finalWelcome:', finalWelcome);
+            console.log('🍎 iPhone debug - finalWelcome style:', finalWelcome?.style.cssText);
+            
+            console.log('🍎 iPhone debug - finalSidebar:', finalSidebar);
+            console.log('🍎 iPhone debug - finalSidebar style:', finalSidebar?.style.cssText);
+            console.log('🍎 iPhone debug - finalSidebar classList:', finalSidebar?.classList.toString());
+            
+            // Sprawdź czy loader jest rzeczywiście niewidoczny
+            if (finalLoader) {
+              const loaderComputedStyle = window.getComputedStyle(finalLoader);
+              console.log('🍎 iPhone debug - loader computed display:', loaderComputedStyle.display);
+              console.log('🍎 iPhone debug - loader computed visibility:', loaderComputedStyle.visibility);
+              console.log('🍎 iPhone debug - loader computed opacity:', loaderComputedStyle.opacity);
+            }
+            
+            // Sprawdź czy welcome screen jest widoczny
+            if (finalWelcome) {
+              const welcomeComputedStyle = window.getComputedStyle(finalWelcome);
+              console.log('🍎 iPhone debug - welcome computed display:', welcomeComputedStyle.display);
+              console.log('🍎 iPhone debug - welcome computed visibility:', welcomeComputedStyle.visibility);
+              console.log('🍎 iPhone debug - welcome computed opacity:', welcomeComputedStyle.opacity);
+              console.log('🍎 iPhone debug - welcome computed z-index:', welcomeComputedStyle.zIndex);
+            }
+            
+            console.log('🍎 iPhone debug - KONIEC DEBUGOWANIA');
           }, 500);
 
           // 🚫 NIE POKAZUJ TOOLBAR NA START - pokaże się po wyborze krzesła
@@ -3505,7 +3712,7 @@ renderOptions('legs-thumbnails', legs, item => {
 setDefaultMaterialsFromSheet();
 updateSummary();
 
-// 🌙 DARK/LIGHT MODE FUNCTIONALITY
+// 🌙 DARK/LIGHT MODE FUNCTIONALITY - PRAWDZIWE CZARNO-BIAŁE IKONY
 function initThemeToggle() {
   const themeToggle = document.getElementById('theme-toggle');
   if (!themeToggle) {
@@ -3517,9 +3724,9 @@ function initThemeToggle() {
   const savedTheme = localStorage.getItem('theme') || 'light';
   if (savedTheme === 'dark') {
     document.body.classList.add('dark-mode');
-    themeToggle.textContent = '☀️';
+    themeToggle.textContent = '☀︎'; // 🔧 Unicode czarno-białe słońce dla dark mode
   } else {
-    themeToggle.textContent = '🌙';
+    themeToggle.textContent = '☽'; // 🔧 Unicode czarno-biały księżyc dla light mode
   }
   
   // Obsługa kliknięcia
@@ -3527,11 +3734,11 @@ function initThemeToggle() {
     const isDark = document.body.classList.toggle('dark-mode');
     
     if (isDark) {
-      themeToggle.textContent = '☀️';
+      themeToggle.textContent = '☀︎'; // 🔧 Unicode czarno-białe słońce
       localStorage.setItem('theme', 'dark');
       console.log('🌙 Przełączono na dark mode');
     } else {
-      themeToggle.textContent = '🌙';
+      themeToggle.textContent = '☽'; // 🔧 Unicode czarno-biały księżyc
       localStorage.setItem('theme', 'light');
       console.log('☀️ Przełączono na light mode');
     }
@@ -3555,7 +3762,6 @@ function initThemeToggle() {
 
         // Jeśli nie było interakcji, nie pokazuj szczegółów
         if (!userInteracted) {
-          document.getElementById("selected-chair-name").textContent = `Wybrany model: Brak`;
           overviewPanel.style.display = 'block';
           return;
         }
@@ -3643,7 +3849,6 @@ if (Array.isArray(mats)) {
         overviewDetailsDiv.appendChild(hr);
 
         overviewTotalPriceSpan.textContent = `${totalPrice.toFixed(2)} PLN`;
-        document.getElementById("selected-chair-name").textContent = `Wybrany model: ${selectedChair ? selectedChair.Nazwa : "Brak"}`;
 
 
 
@@ -4534,6 +4739,9 @@ if (hdrToggle && brightnessControl) {
 
 
 
+      console.log('🍎 iPhone debug - WYWOŁANIE INIT()');
+      console.log('🍎 iPhone debug - DOM ready state:', document.readyState);
+      console.log('🍎 iPhone debug - Window loaded:', document.readyState === 'complete');
       init();
 
     
