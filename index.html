@@ -2790,18 +2790,7 @@ if (currentModelContainer) {
   if (typeof currentModelContainer.dispose === 'function') currentModelContainer.dispose();
 }
 
-// Załaduj nowy model
-currentModelContainer = await viewer.load('icons/favicon.jpg', { autoCenter: true });
-setCameraView(new Vector3(0, 0, 0));
 
-// 🎯 Ustaw Ava jako wybrany model
-const avaVariant = allData.find(item => item.Nazwa?.trim() === 'Ava');
-if (avaVariant) {
-  selectedChair = avaVariant;
-  renderPartButtons();
-}
-
-console.log("selectedChair =", selectedChair);
 
 // Resetuj wybory
 selectedChair = null;
