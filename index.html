@@ -750,25 +750,35 @@
     visibility: hidden !important;
   }
 
-  #rotate-message {
-    display: flex !important;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    padding: 40px;
-    font-size: 18px;
-    background: #d4d1d1;
-    color: #fff;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 99999;
-    font-family: sans-serif;
-    line-height: 1.4;
-    opacity: 1;
-  }
+  html, body {
+  margin: 0 !important;
+  padding: 0 !important;
+  height: 100% !important;
+  background: #000 !important;
+  overflow: hidden !important;
+}
+
+#rotate-message {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 100vh;
+  width: 100vw;
+  z-index: 999999 !important;
+  display: flex !important;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  background: #5a0053;
+  color: #fff;
+  font-size: 18px;
+  font-family: sans-serif;
+  padding: 40px;
+  line-height: 1.4;
+}
+
 
   #export-config,
   .export-trigger,
@@ -948,6 +958,12 @@
   }
 }
 
+/* 🖥️ Ukryj komunikat na desktopach */
+@media (min-width: 821px) {
+  #rotate-message {
+    display: none !important;
+  }
+}
 
 
 
