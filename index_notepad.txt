@@ -28,7 +28,8 @@
       padding: 0;
       width: 100%;
       height: 100%;
-      overflow: hidden;
+      overflow-x: hidden;
+      overflow-y: auto;
       font-family: 'Poppins', sans-serif;
     }
 
@@ -731,43 +732,40 @@
     }
 
    /* 📱 Tryb PIONOWY — ukryj aplikację, pokaż komunikat */
-@media (max-width: 820px) and (orientation: portrait) {
-  #app,
-  #bottom-toolbar,
-  #sidebar,
-  .dimension-panel,
-  .dimension-label,
-  #qr-button {
-    display: none !important;
-  }
-
-  #rotate-message {
-    display: flex !important;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    padding: 40px;
-    font-size: 18px;
-    background: #000;
-    color: #fff;
+@media screen and (orientation: portrait) {
+  .rotate-warning {
+    display: block !important;
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 2000;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #ffcc00;
+    padding: 20px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 12px;
+    z-index: 99999;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
   }
 
-   #export-panel {
+  #app {
     display: none !important;
   }
 }
 
-/* 🤖 Tryb POZIOMY — pokazujemy UI */
-@media (max-width: 820px) and (orientation: landscape) {
-  #rotate-message {
+@media screen and (orientation: landscape) {
+  .rotate-warning {
     display: none !important;
   }
+
+   #app,
+  #custom-loader {
+    display: flex !important;
+  }
+}
+
+
 
   canvas {
   touch-action: manipulation;
@@ -942,7 +940,7 @@
   #config-overview .overview-title {
     display: none;
   }
-}
+
 
 
 
@@ -1290,15 +1288,26 @@
   }
 }
 
+/* === Fixy mobilne === */
+img, iframe {
+  max-width: 100%;
+  height: auto;
+}
 
-
+body {
+  overflow-x: hidden;
+}
 
 
   </style>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
 </head>
 
 <body>
+  <div class="rotate-warning" style="display:none;">
+  🔄 Obróć urządzenie, by korzystać z konfiguratora!
+</div>
   <div id="custom-loader">
   <img src="icons/FK_Logo.jpg" alt="Fajne Krzesła" />
   
@@ -1319,13 +1328,13 @@
   display: none;
   justify-content: center;
   align-items: center;
-  background: rgba(255,255,255,0.95);
+  background: rgba(255,255,255,0.99);
   z-index: 9999;
   flex-direction: column;
   gap: 20px;
 ">
   <div class="spinner"></div>
-  <div style="font-size: 1.4em; font-weight: 500;">Ładowanie pokoju...</div>
+  <div style="font-size: 1.4em; font-weight: 500;">Ładowanie...</div>
 </div>
 
 
@@ -1397,25 +1406,13 @@
           <h3>Wybierz materiał:</h3>
           <div id="material-options" style="display: none;"></div>
 
-<div id="room-viewer-container" style="width: 100%; height: 600px;"></div>
-<div id="camera-controls" style="position: fixed; bottom: 20px; left: 20px; z-index: 10;">
-  <button id="move-left">←</button>
-  <button id="move-right">→</button>
-  <button id="move-up">↑</button>
-  <button id="move-down">↓</button>
-</div>
-
-<button id="back-to-sidebar" style="display:none; position: fixed; top: 20px; left: 20px; z-index: 10;">
-  Powrót
-</button>
-
-          <!-- PANEL KOLEKCJI + MATERIAŁY -->
-
-
+<!-- PANEL KOLEKCJI + MATERIAŁY -->
 <div id="collection-container" style="display: flex; gap: 24px; margin-top: 20px;">
   <div id="collection-icons" style="display: flex; flex-direction: column; gap: 14px; width: 88px;"></div>
   <div id="material-panel-viewer" class="options-grid" style="flex-grow: 1;"></div>
 </div>
+
+
 
 
 
@@ -1559,7 +1556,10 @@
   </div>
 
 
-
+<div id="room-viewer-container" style="display:none;">
+  <canvas id="room-canvas"></canvas>
+  
+</button>
 
 
 </div>
@@ -2806,6 +2806,15 @@ if (currentModelContainer) {
 // Załaduj nowy model
 currentModelContainer = await viewer.load('chairs/Ava.glb', { autoCenter: true });
 setCameraView(new Vector3(0, 0, 0));
+
+// 🎯 Ustaw Ava jako wybrany model
+const avaVariant = allData.find(item => item.Nazwa?.trim() === 'Ava');
+if (avaVariant) {
+  selectedChair = avaVariant;
+  renderPartButtons();
+}
+
+console.log("selectedChair =", selectedChair);
 
 // Resetuj wybory
 selectedChair = null;

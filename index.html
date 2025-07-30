@@ -731,7 +731,7 @@
       margin: 0;
     }
 
-   /* 📱 Tryb PIONOWY — ukryj aplikację, pokaż komunikat */
+   /* 📱 Tryb PIONOWY — ukryj aplikację i loader, pokaż komunikat */
 @media screen and (orientation: portrait) {
   .rotate-warning {
     display: block !important;
@@ -749,21 +749,35 @@
     box-shadow: 0 4px 12px rgba(0,0,0,0.2);
   }
 
-  #app {
+  #app,
+  #custom-loader {
+    all: unset;
     display: none !important;
+  }
+
+  body {
+    overflow: hidden !important;
+    background: #ffcc00 !important; /* ten sam kolor co komunikat */
   }
 }
 
+/* 📺 Tryb POZIOMY — pokaż aplikację i loader, ukryj komunikat */
 @media screen and (orientation: landscape) {
   .rotate-warning {
     display: none !important;
   }
 
-   #app,
+  #app,
   #custom-loader {
     display: flex !important;
   }
+
+  body {
+    overflow: auto !important;
+    background: #fff !important;
+  }
 }
+
 
 
 
