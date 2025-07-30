@@ -2811,30 +2811,25 @@ renderOptions('legs-thumbnails', legs, item => {
 document.getElementById('custom-loader').style.display = 'flex';
 document.getElementById('app').style.visibility = 'hidden';
 
-// Usuń poprzedni model
+// Usuń poprzedni model (jeśli istnieje)
 if (currentModelContainer) {
   viewer.scene.remove(currentModelContainer);
-  if (typeof currentModelContainer.dispose === 'function') currentModelContainer.dispose();
+  if (typeof currentModelContainer.dispose === 'function') {
+    currentModelContainer.dispose();
+  }
 }
 
 // Załaduj nowy model
 currentModelContainer = await viewer.load('chairs/Ava.glb', { autoCenter: true });
 setCameraView(new Vector3(0, 0, 0));
 
-// 🎯 Ustaw Ava jako wybrany model
+// 🎯 Ustaw Ava jako wybrany model i wygeneruj UI
 const avaVariant = allData.find(item => item.Nazwa?.trim() === 'Ava');
 if (avaVariant) {
   selectedChair = avaVariant;
+  console.log("selectedChair =", selectedChair);
   renderPartButtons();
 }
-
-console.log("selectedChair =", selectedChair);
-
-// Resetuj wybory
-selectedChair = null;
-selectedLeg = null;
-selectedMaterials = {};
-userInteracted = false;
 
 // Zaktualizuj podsumowanie
 updateSummary();
@@ -2844,6 +2839,12 @@ document.getElementById('custom-loader').classList.add('fade-out');
 setTimeout(() => {
   document.getElementById('custom-loader').style.display = 'none';
   document.getElementById('app').style.visibility = 'visible';
+
+  // ✅ Dopiero teraz resetuj wybory
+  selectedChair = null;
+  selectedLeg = null;
+  selectedMaterials = {};
+  userInteracted = false;
 }, 500);
 
 // Pokaż toolbar
@@ -2852,6 +2853,7 @@ if (toolbar) {
   toolbar.style.display = 'flex';
   toolbar.classList.add('visible');
 }
+
 
 
         } catch (e) { console.error("Błąd ładowania danych:", e); document.body.innerHTML = `Błąd ładowania danych: ${e.message}`; }
