@@ -1867,6 +1867,7 @@
     }
 
     async function loadModel(variant) {
+  console.log("loadModel() wywołane!");
   if (currentModelContainer) {
     viewer.scene.remove(currentModelContainer);
     if (typeof currentModelContainer.dispose === 'function') currentModelContainer.dispose();
@@ -1885,10 +1886,11 @@
   try {
     const modelPath = `chairs/${variant.Nazwa}.glb`;
     selectedChair = variant;
-    renderPartButtons();
 
     // Załaduj kubełek
     currentModelContainer = await loadModelWithFreshness(modelPath, viewer, { autoCenter: true });
+
+    renderPartButtons(); // <-- PRZENIEŚ TUTAJ!
 
     // Jeśli kubełek, to ewentualnie załaduj domyślne nogi
     if (selectedChair.Grupa && selectedChair.Grupa.toLowerCase() === 'kubełek') {
@@ -1915,11 +1917,11 @@
 
     // ✅ Dopiero teraz chowamy loader
     // ✅ Eleganckie ukrycie z fade-out
-document.getElementById('model-loader').classList.add('fade-out');
-setTimeout(() => {
-  document.getElementById('model-loader').style.display = 'none';
-  document.getElementById('model-loader').classList.remove('fade-out');
-}, 500);
+    document.getElementById('model-loader').classList.add('fade-out');
+    setTimeout(() => {
+      document.getElementById('model-loader').style.display = 'none';
+      document.getElementById('model-loader').classList.remove('fade-out');
+    }, 500);
 
 
     // Pokaż dolny pasek narzędzi
@@ -1927,7 +1929,7 @@ setTimeout(() => {
     toolbar.classList.add('visible');
     toolbar.style.display = 'flex';
 
-    
+
     userInteracted = true;
     hideDimensions();
 
