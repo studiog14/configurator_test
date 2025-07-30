@@ -732,13 +732,22 @@
 
    /* 📱 Tryb PIONOWY — ukryj aplikację, pokaż komunikat */
 @media (max-width: 820px) and (orientation: portrait) {
+  body {
+    background: #000 !important;
+    overflow: hidden !important;
+  }
+
   #app,
   #bottom-toolbar,
   #sidebar,
   .dimension-panel,
   .dimension-label,
-  #qr-button {
+  #qr-button,
+  #export-panel,
+  #custom-loader {
+    all: unset;
     display: none !important;
+    visibility: hidden !important;
   }
 
   #rotate-message {
@@ -755,131 +764,128 @@
     left: 0;
     right: 0;
     bottom: 0;
-    z-index: 2000;
+    z-index: 99999;
+    font-family: sans-serif;
+    line-height: 1.4;
+    opacity: 1;
   }
 
-   #export-panel {
+  #export-config,
+  .export-trigger,
+  .toolbar-btn[data-action="export"] {
     display: none !important;
   }
 }
 
-/* 🤖 Tryb POZIOMY — pokazujemy UI */
+/* 🤖 Tryb POZIOMY — pokaż UI, ukryj komunikat */
 @media (max-width: 820px) and (orientation: landscape) {
+  body {
+    background: #fff !important;
+    overflow: auto !important;
+  }
+
   #rotate-message {
     display: none !important;
   }
 
+  #app,
+  #custom-loader {
+    display: flex !important;
+    visibility: visible !important;
+  }
+
   canvas {
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-  width: 100%;
-  height: 100vh;
-  display: block;
-}
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    width: 100%;
+    height: 100vh;
+    display: block;
+  }
 
- #sidebar {
-  width: 280px; /* stała szerokość panelu UI */
-  max-width: 280px;
-  min-width: 280px;
-  box-sizing: border-box;
-  overflow-y: auto;
-  padding: 8px;
-}
+  #sidebar {
+    width: 280px;
+    box-sizing: border-box;
+    overflow-y: auto;
+    padding: 8px;
+  }
 
-#bottom-toolbar #qr-button {
-  display: none !important;
-}
+  #bottom-toolbar #qr-button {
+    display: none !important;
+  }
 
-#part-tabs {
-  display: flex;
-  flex-wrap: nowrap; /* 🔒 nie zawijaj w nowe linie */
-  overflow-x: auto;  /* 🔄 pozwól na przesuwanie */
-  gap: 8px;
-  padding: 8px;
-  justify-content: flex-start;
-}
+  #part-tabs {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 8px;
+    padding: 8px;
+    justify-content: flex-start;
+  }
 
-/* Styl dla pojedynczej ikonki */
-#part-tabs button,
-#part-tabs .part-btn {
-  width: 56px;
-  height: 56px;
-  font-size: 11px;
-  padding: 6px;
-  flex: 0 0 auto; /* 🔐 stała szerokość */
-  border-radius: 6px;
-  box-sizing: border-box;
-}
+  #part-tabs button,
+  #part-tabs .part-btn {
+    width: 56px;
+    height: 56px;
+    font-size: 11px;
+    padding: 6px;
+    flex: 0 0 auto;
+    border-radius: 6px;
+    box-sizing: border-box;
+  }
 
-/* Jeśli ikonka ma obrazek */
-#part-tabs img {
-  width: 32px;
-  height: 32px;
-}
+  #part-tabs img {
+    width: 32px;
+    height: 32px;
+  }
 
+  #bottom-toolbar {
+    left: 50%;
+    transform: translateX(-125%);
+    bottom: 12px;
+    padding: 10px 16px;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
 
-#bottom-toolbar {
-  left: 50%;
-  transform: translateX(-125%);
-  bottom: 12px;
-  padding: 10px 16px;
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 8px; /* opcjonalny odstęp między przyciskami */
-}
+  .dimension-panel {
+    position: fixed !important;
+    bottom: 150px !important;
+    left: 200px !important;
+    font-size: 12px !important;
+    padding: 6px 8px !important;
+    max-width: 90% !important;
+    z-index: 2147483647 !important;
+    background: white !important;
+    border: 1px solid #ccc !important;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
+    border-radius: 6px !important;
+  }
 
-.dimension-panel {
-  position: fixed !important;
-  top: auto !important;       /* lub np. top: 80px */
-  bottom: 150px !important;   /* odległość od dołu */
-  left: 200px !important;      /* odległość od lewej krawędzi */
-  right: auto !important;     /* lub np. right: 20px */
-  transform: none !important;
-
-  font-size: 12px !important;
-  padding: 6px 8px !important;
-  width: auto !important;
-  max-width: 90% !important;
-  z-index: 2147483647 !important;
-  background: white !important;
-  border: 1px solid #ccc !important;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2) !important;
-  border-radius: 6px !important;
-}
-
-#export-panel {
+  #export-panel {
     display: none !important;
     visibility: hidden;
     pointer-events: none;
   }
 
-   #export-config,
-  .export-trigger,
-  .toolbar-btn[data-action="export"] {
-    display: none !important;
+  #model-image-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 12px;
   }
 
-  /* 🔧 Układ 3 modeli w rzędzie */
-  #model-image-container {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-start;
-  gap: 12px;
-}
-
   .model-image {
-  width: 80px; /* sztywny wymiar kafelka */
-  height: 80px;
-  flex: 0 0 auto;
-  box-sizing: border-box;
-}
+    width: 80px;
+    height: 80px;
+    flex: 0 0 auto;
+    box-sizing: border-box;
+  }
 
-
-   #model-image-container .model-image {
+  #model-image-container .model-image {
     width: calc(33.33% - 12px);
     max-width: 100px;
-    box-sizing: border-box;
     margin-bottom: 12px;
   }
 
@@ -904,23 +910,21 @@
   }
 
   #config-overview {
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 150px; /* szerokość bocznego panelu */
-  height: 100vh; /* pełna wysokość */
-  padding: 16px;
-  background: rgba(245, 245, 245, 0.95);
-  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
-  border-radius: 0 8px 8px 0;
-  z-index: 999;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-}
-
-
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 150px;
+    height: 100vh;
+    padding: 16px;
+    background: rgba(245,245,245,0.95);
+    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+    border-radius: 0 8px 8px 0;
+    z-index: 999;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
 
   #config-overview h2 {
     font-size: 6px !important;
@@ -943,6 +947,7 @@
     display: none;
   }
 }
+
 
 
 
@@ -1281,6 +1286,13 @@
 </head>
 
 <body>
+
+  <!-- KOMUNIKAT obrotu -->
+ <div id="rotate-message">
+  🔄 Obróć urządzenie poziomo, aby kontynuować konfigurację
+</div>
+
+
   <div id="custom-loader">
   <img src="icons/FK_Logo.jpg" alt="Fajne Krzesła" />
   
@@ -1389,11 +1401,10 @@
 
 
 
-  <!-- KOMUNIKAT obrotu -->
-  <div id="rotate-message" style="display: none; flex-direction: column; align-items: center; justify-content: center; position: fixed; top:0; left:0; right:0; bottom:0; background: #000; color: #fff; z-index: 99999; font-size: 2em; text-align: center;">
-  <div style="font-size: 3em; margin-bottom: 18px;">🔄</div>
-  <div>Obróć ekran, aby korzystać z konfiguratora</div>
-</div>
+  
+
+
+
 
   <!-- KOMUNIKAT SUKCESU -->
   <div id="success-message" class="hidden">✅ Dziękujemy! Formularz został wysłany.</div>
@@ -1922,7 +1933,7 @@ setTimeout(() => {
     document.getElementById('materials-section').style.display = 'block';
 
     // Wyrenderuj kafelki materiałów nóg
-    const legsMaterials = allData.filter(d => d.Grupa.toLowercase() === 'nogi');
+    const legsMaterials = allData.filter(d => d.Grupa.toLowerCase() === 'nogi');
     renderOptions('materials-thumbnails', legsMaterials, (item) => {
       setLegMaterial(item);
     });
@@ -3596,34 +3607,47 @@ function renderMaterialsInPanel(materiały, targetMesh) {
 
 
  window.addEventListener('orientationchange', () => {
+    const rotateMsg = document.getElementById('rotate-message');
+    if (!rotateMsg) return;
+
+    // ✅ Jeśli poziomo — chowaj komunikat
+    if (window.innerWidth > window.innerHeight) {
+      rotateMsg.style.display = 'none';
+    } else {
+      rotateMsg.style.display = 'flex';
+    }
+  });
+
+  // ✅ Dodatkowy test przy starcie — gdy strona ładuje się w pionie
+  window.addEventListener('load', () => {
+    const rotateMsg = document.getElementById('rotate-message');
+    if (!rotateMsg) return;
+
+    if (window.innerWidth > window.innerHeight) {
+      rotateMsg.style.display = 'none';
+    } else {
+      rotateMsg.style.display = 'flex';
+    }
+  });
+
+
+function updateRotateMessage() {
   const rotateMsg = document.getElementById('rotate-message');
   if (!rotateMsg) return;
-  if (window.innerWidth > window.innerHeight) {
-    rotateMsg.style.display = 'none';
-  } else {
-    rotateMsg.style.display = 'flex';
-  }
-});
 
-window.addEventListener('load', () => {
-  const rotateMsg = document.getElementById('rotate-message');
-  if (!rotateMsg) return;
-  if (window.innerWidth > window.innerHeight) {
-    rotateMsg.style.display = 'none';
-  } else {
-    rotateMsg.style.display = 'flex';
-  }
-});
-
-
+  const isLandscape = window.innerWidth > window.innerHeight;
+  rotateMsg.style.display = isLandscape ? 'none' : 'flex';
+}
 
 window.addEventListener('orientationchange', updateRotateMessage);
 window.addEventListener('resize', updateRotateMessage);
 window.addEventListener('load', updateRotateMessage);
 
+
 function checkOrientation() {
   const rotateMsg = document.getElementById('rotate-message');
   if (!rotateMsg) return;
+
   const isLandscape = window.innerWidth > window.innerHeight;
   rotateMsg.style.display = isLandscape ? 'none' : 'flex';
 }
@@ -3752,15 +3776,7 @@ function setDefaultMaterialsFromSheet() {
         });
       });
 
-function updateRotateMessage() {
-  const rotateMsg = document.getElementById('rotate-message');
-  if (!rotateMsg) return;
-  const isLandscape = window.innerWidth > window.innerHeight;
-  rotateMsg.style.display = isLandscape ? 'none' : 'flex';
-}
-window.addEventListener('orientationchange', updateRotateMessage);
-window.addEventListener('resize', updateRotateMessage);
-window.addEventListener('load', updateRotateMessage);
+
 
   </script>
 </body>
