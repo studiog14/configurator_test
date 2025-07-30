@@ -768,15 +768,24 @@
   width: 100vw;
   z-index: 999999 !important;
   display: flex !important;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
+  justify-content: center !important;
+  align-items: center !important;
+  flex-direction: column !important;
+  gap: 12px !important;
   background: #5a0053;
   color: #fff;
-  font-size: 18px;
   font-family: sans-serif;
-  padding: 40px;
-  line-height: 1.4;
+  padding: 60px 20px !important;
+  outline: 2px dashed lime;
+}
+
+#rotate-message p {
+  margin: 0 auto !important;
+  text-align: center !important;
+  max-width: 90vw;
+  font-size: 22px !important;
+  line-height: 1.6 !important;
+  font-weight: bold;
 }
 
 
@@ -1304,10 +1313,12 @@
 
 <body>
 
-  <!-- KOMUNIKAT obrotu -->
- <div id="rotate-message">
-  🔄 Obróć urządzenie poziomo, aby kontynuować konfigurację
+  <div id="rotate-message">
+  <p>🔄 Obróć urządzenie poziomo,</p>
+  <p>aby kontynuować konfigurację</p>
 </div>
+
+
 
 
   <div id="custom-loader">
