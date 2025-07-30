@@ -34,6 +34,7 @@
 
     #app {
       display: flex;
+      flex-direction: row; /* 🔧 Wracamy do normalnego flex */
       height: 100vh;
       width: 100vw;
       position: relative;
@@ -68,7 +69,7 @@
       position: absolute;
       top: 0;
       left: 0;
-      right: 460px; /* 🔧 Zostaw miejsce na sidebar */
+      right: 460px; /* 🔧 Zostaw miejsce na sidebar po prawej */
       height: 100%;
       background: #ffffff;
       display: flex;
@@ -131,6 +132,11 @@
           margin-bottom: 20px;
         }
         
+        /* 🌙 Dark mode logo na mobile */
+        body.dark-mode #welcome-logo {
+          padding: 8px;
+        }
+        
         #theme-toggle {
           width: 40px;
           height: 40px;
@@ -146,19 +152,23 @@
     /* 🌙 DARK MODE / LIGHT MODE */
     body.dark-mode {
       background: #1a1a1a;
-      color: #ffffff;
+      color: #e0e0e0; /* 🔧 Jaśniejsza czcionka */
     }
     
     body.dark-mode #sidebar {
       background: #2d2d2d !important;
-      color: #ffffff;
+      color: #e0e0e0; /* 🔧 Jaśniejsza czcionka */
       border: 1px solid rgba(255, 255, 255, 0.1);
       box-shadow: 0 4px 32px rgba(0, 0, 0, 0.5);
     }
     
+    body.dark-mode #sidebar h3 {
+      color: #ffffff; /* 🔧 Białe nagłówki */
+    }
+    
     body.dark-mode #config-overview {
       background: #2d2d2d;
-      color: #ffffff;
+      color: #e0e0e0; /* 🔧 Jaśniejsza czcionka */
       border: 1px solid rgba(255, 255, 255, 0.1);
       box-shadow: 0 4px 32px rgba(0, 0, 0, 0.5);
     }
@@ -166,6 +176,14 @@
     body.dark-mode #welcome-screen {
       background: #1a1a1a;
       color: #ffffff;
+    }
+    
+    /* 🔧 LOGO DARK MODE - dodaj ciemne tło */
+    body.dark-mode #welcome-logo {
+      background: #2d2d2d;
+      border-radius: 12px;
+      padding: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     }
     
     body.dark-mode #bottom-toolbar {
@@ -181,6 +199,10 @@
     
     body.dark-mode .thumbnail:hover {
       background: #4d4d4d;
+    }
+    
+    body.dark-mode .thumbnail-caption {
+      color: #e0e0e0; /* 🔧 Jaśniejsze napisy pod obrazkami */
     }
     
     /* 🔄 TOGGLE BUTTON */
@@ -219,16 +241,19 @@
       border-radius: 16px;
       box-shadow: 0 4px 32px rgba(0, 0, 0, 0.10);
       border: 1px solid rgba(0, 0, 0, 0.08);
-      flex: 0 0 460px;
+      width: 460px;
       min-width: 460px;
       max-width: 540px;
       padding: 32px 24px 24px 24px;
-      z-index: 20;
+      z-index: 200; /* 🔧 Wyższy z-index niż welcome screen (50) */
       display: flex;
       flex-direction: column;
       height: 100vh;
       box-sizing: border-box;
       overflow-y: auto;
+      position: fixed; /* 🔧 Fixed position */
+      right: 0; /* 🔧 Zawsze po prawej stronie */
+      top: 0; /* 🔧 Od góry */
       /* Sidebar zawsze widoczny - żeby można było wybierać krzesła */
     }
     
@@ -1005,6 +1030,24 @@
     box-sizing: border-box;
     overflow-y: auto;
     padding: 6px;
+    position: fixed; /* 🔧 Fixed także na mobile */
+    right: 0; /* 🔧 Po prawej także na mobile */
+    top: 0;
+    height: 100vh;
+    z-index: 1000; /* 🔧 Wysoki z-index dla mobile */
+  }
+
+  /* 🔧 Dodaj specjalne ustawienia viewera dla mobile */
+  #viewer {
+    width: calc(100vw - 220px); /* 🔧 Zostaw miejsce na sidebar */
+    position: relative;
+  }
+
+  #app {
+    height: 100vh;
+    padding: 0;
+    display: flex;
+    flex-direction: row; /* 🔧 Wymuś row layout na mobile */
   }
 
   #bottom-toolbar #qr-button {
@@ -2020,6 +2063,9 @@
 
 
     async function init() {
+      // 🌙 INICJALIZUJ THEME TOGGLE NA POCZĄTKU
+      initThemeToggle();
+      
       // ✅ SPRAWDZANIE WEBGL DLA IPHONE
       const canvas = document.getElementById("canvas");
       
@@ -3462,6 +3508,10 @@ updateSummary();
 // 🌙 DARK/LIGHT MODE FUNCTIONALITY
 function initThemeToggle() {
   const themeToggle = document.getElementById('theme-toggle');
+  if (!themeToggle) {
+    console.error('❌ Theme toggle button nie znaleziony');
+    return;
+  }
   
   // Sprawdź zapisany motyw lub ustaw domyślny
   const savedTheme = localStorage.getItem('theme') || 'light';
@@ -3489,9 +3539,6 @@ function initThemeToggle() {
   
   console.log('✅ Theme toggle zainicjalizowany');
 }
-
-// Inicjalizuj theme toggle po załadowaniu DOM
-document.addEventListener('DOMContentLoaded', initThemeToggle);
 
 
 
