@@ -1276,6 +1276,7 @@
 }
 
 
+
   </style>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
@@ -1793,6 +1794,9 @@
       window.addEventListener("resize", resizeCanvas);
       resizeCanvas();
       await loadDataFromSheet();
+      document.getElementById("app").classList.add("visible");
+checkOrientation(); // pokaż UI jeśli landscape
+
     }
 
     function setCameraView(targetPosition) {
@@ -3636,19 +3640,27 @@ window.addEventListener('load', updateRotateMessage);
 
 function checkOrientation() {
   const rotateMsg = document.getElementById('rotate-message');
-  if (!rotateMsg) return;
-
+  const app = document.getElementById('app');
   const isLandscape = window.innerWidth > window.innerHeight;
-  rotateMsg.style.display = isLandscape ? 'none' : 'flex';
+
+  if (!rotateMsg || !app) return;
+
+  if (isLandscape) {
+    rotateMsg.style.display = 'none';
+    // tylko jeśli dane są załadowane — pokazujemy UI
+    if (app.classList.contains('visible')) {
+      app.style.display = 'block';
+    }
+  } else {
+    rotateMsg.style.display = 'flex';
+    app.style.display = 'none';
+  }
 }
+
 window.addEventListener('load', checkOrientation);
 window.addEventListener('resize', checkOrientation);
-
-
-
-window.addEventListener('DOMContentLoaded', () => {
-  // przygotowanie canvas i kontenerów
-  
+window.addEventListener('orientationchange', () => {
+  setTimeout(checkOrientation, 300); // daj przeglądarce czas na dostosowanie
 });
 
 
