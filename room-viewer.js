@@ -105,4 +105,50 @@ export async function initRoomScene() {
 
     console.log('↩️ Powrót zakończony');
   };
+
+  // QR CODE FUNCTIONALITY
+  const qrBtn = document.getElementById('qr-button');
+  const qrPopup = document.getElementById('qr-popup');
+  const qrCloseBtn = document.getElementById('qr-close-btn');
+
+  if (qrBtn) {
+    qrBtn.addEventListener('click', () => {
+      const currentUrl = window.location.href;
+      
+      // Clear previous QR code
+      const qrcodeDiv = document.getElementById('qrcode');
+      qrcodeDiv.innerHTML = '';
+      
+      // Generate new QR code
+      if (typeof QRCode !== 'undefined') {
+        new QRCode(qrcodeDiv, {
+          text: currentUrl,
+          width: 200,
+          height: 200,
+          colorDark: '#000000',
+          colorLight: '#ffffff'
+        });
+      } else {
+        console.warn('QRCode library not loaded');
+        qrcodeDiv.innerHTML = '<p>QR Code library not available</p>';
+      }
+      
+      qrPopup.style.display = 'flex';
+    });
+  }
+
+  if (qrCloseBtn) {
+    qrCloseBtn.addEventListener('click', () => {
+      qrPopup.style.display = 'none';
+    });
+  }
+
+  // Close popup when clicking outside
+  if (qrPopup) {
+    qrPopup.addEventListener('click', (e) => {
+      if (e.target === qrPopup) {
+        qrPopup.style.display = 'none';
+      }
+    });
+  }
 }
