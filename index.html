@@ -1035,7 +1035,7 @@
   }
 }
 
-/* 🤖 Tryb POZIOMY — pokaż UI, ukryj komunikat */
+/* 🤖 Tryb POZIOMY — pokaż UI, ukryj komunikat - SKOPIOWANE Z DESKTOP */
 @media (max-width: 820px) and (orientation: landscape) {
   body {
     background: #fff !important;
@@ -1049,296 +1049,383 @@
   #app,
   #custom-loader {
     display: flex !important;
-    visibility: visible !important;
+  }
+
+  /* 📱 MOBILE LAYOUT - 60% canvas + 40% sidebar jak desktop */
+  #app {
+    height: 100vh;
+    padding: 0;
+    display: flex !important;
+    flex-direction: row !important; /* 🔧 Poziomy układ jak desktop */
+  }
+
+  /* 📱 CANVAS 3D - 60% szerokości (kopiowane z desktop) */
+  #viewer {
+    width: 60vw !important; /* 🔧 60% dla 3D canvas */
+    height: 100vh !important;
+    position: relative;
   }
 
   canvas {
+    width: 60vw !important; /* 🔧 60% szerokości dla 3D */
+    height: 100vh !important;
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
-    width: 100%;
-    height: 100vh;
     display: block;
   }
 
-  /* 📱 MOBILE STYLES - Ultra kompaktowy UI */
-  
-  /* Ukryj loading screen na mobile */
-  #custom-loader {
-    display: none !important;
-  }
-  
-  /* 📱 UKRYJ DESKTOP SIDEBAR NA MOBILE */
+  /* 📱 SIDEBAR - 40% szerokości (kopiowane z desktop, zmniejszone) */
   #sidebar {
-    display: none !important; /* 🔧 Ukryj desktop sidebar całkowicie */
-    visibility: hidden !important;
-  }
-
-  /* 📱 NOWY DEDYKOWANY MOBILE SIDEBAR - tylko na mobile landscape */
-  #mobile-sidebar {
-    display: none !important; /* 🔧 Domyślnie ukryty */
-  }
-
-  /* 🔧 POKAŻ TYLKO NA MOBILE LANDSCAPE */
-  @media (max-width: 820px) and (orientation: landscape) {
-    #mobile-sidebar {
-      position: fixed;
-      right: 0;
-      top: 0;
-      width: 40vw !important; /* 🔧 40% szerokości */
-      height: 100vh;
-      background: rgba(255, 255, 255, 0.95) !important;
-      backdrop-filter: blur(10px);
-      border-left: 1px solid #ddd;
-      border-radius: 8px 0 0 8px;
-      box-shadow: -2px 0 10px rgba(0,0,0,0.1);
-      z-index: 100;
-      padding: 12px 8px;
-      box-sizing: border-box;
-      overflow-y: auto;
-      display: block !important; /* 🔧 Pokaż tylko na mobile */
-      visibility: visible !important;
-    }
-  }
-
-  /* 📱 MOBILE CHAIRS SECTION - BEZ NAPISÓW, tylko na mobile */
-  #mobile-chairs-section {
-    margin-bottom: 20px;
-  }
-
-  #mobile-chairs-section h3 {
-    display: none !important; /* 🔧 Ukryj napisy */
-  }
-
-  /* 📱 MOBILE CHAIRS GRID - kopiuj z desktop */
-  #mobile-chairs-grid {
-    display: grid !important;
-    grid-template-columns: repeat(4, 1fr) !important; /* 🔧 4 jak desktop */
-    gap: 8px !important;
-    justify-items: center;
-    padding: 0 8px;
-  }
-
-  .mobile-chair-item {
-    width: 100% !important;
-    aspect-ratio: 1 !important; /* 🔧 Kwadrat jak desktop */
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    background: #fff;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 4px;
-    box-sizing: border-box;
-  }
-
-  .mobile-chair-item:hover {
-    border-color: #007bff;
-    transform: scale(1.05);
-    box-shadow: 0 2px 8px rgba(0,123,255,0.3);
-  }
-
-  .mobile-chair-item.selected {
-    border: 2px solid #007bff !important;
-    background: rgba(0,123,255,0.1);
-  }
-
-  .mobile-chair-item img {
-    width: 100% !important;
-    height: 100% !important;
-    object-fit: contain;
-    border-radius: 4px;
-  }
-
-  /* 📱 MOBILE LEGS SECTION - BEZ NAPISÓW */
-  #mobile-legs-section {
-    margin-bottom: 20px;
-    display: none; /* 🔧 Ukryj na start, pokaże się po wyborze krzesła */
-  }
-
-  #mobile-legs-section h3 {
-    display: none !important; /* 🔧 Ukryj napisy jak na desktopie */
-  }
-
-  #mobile-legs-grid {
-    display: grid !important;
-    grid-template-columns: repeat(4, 1fr) !important; /* 🔧 4 w rzędzie jak desktop */
-    gap: 8px !important;
-    justify-items: center;
-    padding: 0 8px;
-  }
-
-  .mobile-leg-item {
-    width: 100% !important;
-    aspect-ratio: 1 !important; /* 🔧 Kwadratowe jak na desktopie */
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    background: #fff;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 6px;
-    box-sizing: border-box;
-  }
-
-  .mobile-leg-item:hover {
-    border-color: #007bff;
-    transform: scale(1.05);
-  }
-
-  .mobile-leg-item.selected {
-    border: 2px solid #007bff !important;
-    background: rgba(0,123,255,0.1);
-  }
-
-  .mobile-leg-item img {
-    width: 100% !important;
-    height: 100% !important;
-    object-fit: contain;
-  }
-
-  body.dark-mode #mobile-sidebar {
-    background: rgba(45, 45, 45, 0.95) !important;
-    border-left: 1px solid #444 !important;
-  }
-
-  body.dark-mode .mobile-chair-item,
-  body.dark-mode .mobile-leg-item {
-    background: #3a3a3a !important;
-    border-color: #555 !important;
-  }
-
-  body.dark-mode .mobile-chair-item:hover,
-  body.dark-mode .mobile-leg-item:hover {
-    border-color: #007bff !important;
-  }
-
-  body.dark-mode .mobile-chair-item.selected,
-  body.dark-mode .mobile-leg-item.selected {
-    background: rgba(0,123,255,0.2) !important;
-    border-color: #007bff !important;
-  }
-  
-  /* 🔧 Force show model section i thumbnails */
-  #model-section {
+    position: fixed !important;
+    right: 0 !important;
+    top: 0 !important;
+    width: 40vw !important; /* 🔧 40% szerokości dla UI */
+    min-width: 40vw !important;
+    max-width: 40vw !important;
+    height: 100vh !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(10px) !important;
+    border-left: 1px solid #ddd !important;
+    border-radius: 8px 0 0 8px !important;
+    box-shadow: -2px 0 10px rgba(0,0,0,0.1) !important;
+    z-index: 100 !important;
+    padding: 16px 12px !important; /* 🔧 Mniejszy padding niż desktop */
+    box-sizing: border-box !important;
+    overflow-y: auto !important;
     display: block !important;
+    visibility: visible !important;
   }
 
-  /* 📱 CHAIRS GRID W SIDEBAR - max 3 w rzędzie, mniejsze odstępy */
-  #chairs-grid {
-    display: grid !important;
-    grid-template-columns: repeat(3, 1fr) !important; /* 🔧 Max 3 kolumny */
-    gap: 1px !important; /* 🔧 Bardzo mały gap */
+  /* 📱 WELCOME SCREEN - w obszarze canvas (kopiowane z desktop) */
+  #welcome-screen {
+    position: fixed !important;
+    top: 50% !important;
+    left: 30% !important; /* 🔧 W środku canvas (60% / 2 = 30%) */
+    right: auto !important;
+    transform: translate(-50%, -50%) !important;
+    width: 280px !important; /* 🔧 Mniejsze niż desktop */
+    height: auto !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(15px) !important;
+    padding: 24px 16px !important; /* 🔧 Mniejszy padding */
+    border-radius: 12px !important;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1) !important;
+    text-align: center !important;
+    z-index: 1000 !important;
   }
 
-  .chair-thumbnail {
-    width: 22px !important; /* 🔧 Trochę większe ikony w wąskim sidebar */
-    height: 22px !important;
-    border-radius: 3px !important;
-    cursor: pointer;
-    transition: all 0.2s ease;
+  /* 📱 THUMBNAILS - średnie rozmiary (między mobile a desktop) */
+  .thumbnail,
+  #overview-icons img,
+  .back-to-model-btn {
+    width: 60px !important; /* 🔧 Średnie między mobile (48px) a desktop (80px) */
+    height: 60px !important;
   }
 
-  .chair-thumbnail:hover {
-    transform: scale(1.05);
+  .model-image {
+    width: 60px !important;
+    height: 60px !important;
   }
 
-  .chair-thumbnail.selected {
-    border: 2px solid #1976d2 !important;
+  .thumbnail-caption {
+    font-size: 11px !important; /* 🔧 Średni font */
+    margin-top: 3px !important;
+    text-align: center;
+    line-height: 1.2 !important;
   }
 
-  /* 📱 LEGS GRID W SIDEBAR - max 3 w rzędzie, mniejsze odstępy */
+  /* 📱 CONTROL SECTIONS - skopiowane z desktop */
+  .control-section {
+    padding: 8px !important; /* 🔧 Mniejszy niż desktop */
+    margin: 8px 0 !important;
+  }
+
+  .control-section h3 {
+    font-size: 13px !important; /* 🔧 Mniejszy niż desktop (16px) */
+    margin: 8px 0 6px 0 !important;
+    text-align: center;
+    font-weight: 600;
+  }
+
+  /* 📱 GRID LAYOUTS - responsive dla mobile */
+  #chairs-grid,
   #legs-grid {
     display: grid !important;
-    grid-template-columns: repeat(3, 1fr) !important; /* 🔧 Max 3 kolumny */
-    gap: 1px !important;
+    grid-template-columns: repeat(4, 1fr) !important; /* 🔧 4 kolumny jak desktop */
+    gap: 6px !important; /* 🔧 Mniejszy gap niż desktop */
+    justify-items: center;
+    padding: 4px !important;
   }
 
-  .leg-thumbnail {
-    width: 22px !important;
-    height: 22px !important;
-    border-radius: 3px !important;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-
-  .leg-thumbnail:hover {
-    transform: scale(1.05);
-  }
-
-  .leg-thumbnail.selected {
-    border: 2px solid #1976d2 !important;
-  }
-
-  /* 📱 THUMBNAIL CAPTIONS w sidebar - bardzo małe */
-  .thumbnail-caption {
-    font-size: 7px !important; /* 🔧 Jeszcze mniejszy font */
-    margin-top: 1px !important;
-    text-align: center;
-    line-height: 1 !important;
-    padding: 0 1px !important; /* 🔧 Mały padding */
-  }
-
-  /* 📱 CONTROL SECTIONS w sidebar */
-  .control-section h3 {
-    font-size: 8px !important; /* 🔧 Bardzo mały nagłówek */
-    margin: 1px 0 1px 0 !important;
-    text-align: center;
-    padding: 1px !important;
-  }
-  
-  #model-thumbnails {
-    display: flex !important;
-    flex-wrap: wrap !important;
-    justify-content: space-around !important;
-  }
-  
-  /* 📱 Thumbnail wrapper podstawowy */
+  /* 📱 THUMBNAIL WRAPPERS */
   .thumbnail-wrapper {
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
-    margin-bottom: 4px !important;
+    margin-bottom: 6px !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+  }
+
+  /* � BOTTOM TOOLBAR - skopiowane z desktop, dostosowane */
+  #bottom-toolbar {
+    position: fixed !important;
+    left: 30% !important; /* 🔧 Wyśrodkowany względem canvas (60% / 2 = 30%) */
+    transform: translateX(-50%) !important;
+    bottom: 16px !important;
+    display: none !important; /* 🔧 Domyślnie ukryty */
+    opacity: 0 !important;
+    padding: 8px 12px !important; /* 🔧 Mniejszy padding */
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(10px) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
+    border: 1px solid #e0e0e0 !important;
+    gap: 6px !important;
+    z-index: 1001 !important;
+  }
+
+  /* 📱 BOTTOM TOOLBAR VISIBLE STATE */
+  #bottom-toolbar.visible {
+    display: flex !important;
+    opacity: 1 !important;
+  }
+
+  /* 📱 TOOLBAR BUTTONS - mniejsze niż desktop */
+  #bottom-toolbar button {
+    width: 36px !important; /* 🔧 Mniejsze niż desktop (48px) */
+    height: 36px !important;
+    font-size: 11px !important;
+    padding: 6px !important;
+    border-radius: 8px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  #bottom-toolbar button img {
+    width: 18px !important; /* 🔧 Mniejsze ikony */
+    height: 18px !important;
+  }
+
+  /* 📱 PART TABS - skopiowane z desktop */
+  #part-tabs {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    gap: 6px !important;
+    padding: 6px !important;
+    justify-content: flex-start !important;
+  }
+
+  #part-tabs button,
+  #part-tabs .part-btn {
+    width: 44px !important; /* 🔧 Między mobile a desktop */
+    height: 44px !important;
+    font-size: 10px !important;
+    padding: 6px !important;
+    flex: 0 0 auto !important;
+    border-radius: 8px !important;
     box-sizing: border-box !important;
   }
 
-  /* 🔧 Welcome screen - jak na desktop, po środku ekranu */
-  #welcome-screen {
-    position: fixed !important;
-    top: 50% !important;
-    left: 50% !important; /* 🔧 Po środku poziomo */
-    transform: translate(-50%, -50%) !important; /* 🔧 Wyśrodkuj obie osie */
-    max-width: 300px !important; /* 🔧 Trochę szerszy */
-    background: rgba(255, 255, 255, 0.95) !important;
-    backdrop-filter: blur(15px) !important;
-    padding: 30px 20px !important; /* 🔧 Większy padding */
-    border-radius: 16px !important;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
+  #part-tabs img {
+    width: 24px !important; /* 🔧 Średnie rozmiary */
+    height: 24px !important;
+  }
+
+  /* 📱 MODEL IMAGE CONTAINER */
+  #model-image-container {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: flex-start !important;
+    gap: 6px !important;
+  }
+
+  #model-image-container .model-image {
+    width: calc(50% - 6px) !important;
+    max-width: 70px !important;
+    margin-bottom: 6px !important;
+  }
+
+  /* 📱 BUY BUTTON */
+  #buy-button {
+    font-size: 13px !important;
+    padding: 12px !important;
+    width: 100% !important;
+    margin-top: 12px !important;
+    border-radius: 8px !important;
+  }
+
+  /* 📱 CONFIG OVERVIEW - skopiowane z desktop */
+  #config-overview {
+    display: block !important; /* 🔧 Pokaż jak na desktop */
+  }
+
+  #config-overview h2 {
+    font-size: 14px !important; /* 🔧 Mniejszy niż desktop */
+    line-height: 1.3 !important;
+    margin: 8px 0 !important;
+    padding: 8px !important;
     text-align: center !important;
-    z-index: 1000 !important; /* 🔧 Nad wszystkim */
   }
 
-  /* 🔧 Viewer i App - 60% dla 3D, 40% dla UI */
-  #viewer {
-    width: 60vw !important; /* 🔧 60% dla canvasu 3D */
-    position: relative;
+  /* 📱 DIMENSION PANEL */
+  .dimension-panel {
+    position: fixed !important;
+    bottom: 80px !important; /* 🔧 Nad toolbar */
+    left: 30% !important; /* 🔧 W obszarze canvas */
+    transform: translateX(-50%) !important;
+    font-size: 11px !important;
+    padding: 6px 8px !important;
+    max-width: 50vw !important; /* 🔧 Dopasowane do canvas */
+    z-index: 2000 !important;
+    background: white !important;
+    border: 1px solid #ccc !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2) !important;
+    border-radius: 6px !important;
+  }
   }
 
-  #app {
-    height: 100vh;
-    padding: 0;
-    display: flex;
-    flex-direction: row !important;
+  /* 🌙 DARK MODE - skopiowane z desktop */
+  body.dark-mode #sidebar {
+    background: rgba(45, 45, 45, 0.95) !important;
+    color: #e0e0e0 !important;
+    border-left: 1px solid #444 !important;
   }
 
-  /* 🔧 Canvas 3D - 60% szerokości ekranu */
-  canvas {
-    width: 60vw !important; /* 🔧 60% szerokości dla 3D */
-    height: 100vh !important;
+  body.dark-mode .control-section h3 {
+    color: #e0e0e0 !important;
   }
+
+  body.dark-mode .thumbnail-caption {
+    color: #b0b0b0 !important;
+  }
+  
+  body.dark-mode .thumbnail {
+    background: #3a3a3a !important;
+    border-color: #555 !important;
+  }
+
+  body.dark-mode #bottom-toolbar {
+    background: rgba(45, 45, 45, 0.95) !important;
+    border: 1px solid #444 !important;
+  }
+
+  body.dark-mode #welcome-screen {
+    background: rgba(45, 45, 45, 0.95) !important;
+    color: #e0e0e0 !important;
+  }
+
+  body.dark-mode .dimension-panel {
+    background: #3a3a3a !important;
+    color: #e0e0e0 !important;
+    border-color: #555 !important;
+  }
+
+  /* 📱 RESPONSIVE ADJUSTMENTS dla różnych szerokości mobile */
+  
+  /* iPhone SE/5s (320px) */
+  @media (max-width: 350px) and (orientation: landscape) {
+    #sidebar {
+      width: 45vw !important; /* 🔧 Więcej UI na małych ekranach */
+    }
+    
+    #viewer, canvas {
+      width: 55vw !important; /* 🔧 Mniej 3D */
+    }
+    
+    #welcome-screen {
+      left: 27.5% !important; /* 🔧 Dostosuj do nowych proporcji */
+    }
+    
+    #bottom-toolbar {
+      left: 27.5% !important;
+    }
+    
+    .dimension-panel {
+      left: 27.5% !important;
+    }
+    
+    #chairs-grid,
+    #legs-grid {
+      grid-template-columns: repeat(3, 1fr) !important; /* 🔧 3 kolumny dla małych */
+    }
+  }
+
+  /* iPhone 6/7/8 (375px) */
+  @media (min-width: 351px) and (max-width: 400px) and (orientation: landscape) {
+    #sidebar {
+      width: 42vw !important;
+    }
+    
+    #viewer, canvas {
+      width: 58vw !important;
+    }
+    
+    #welcome-screen {
+      left: 29% !important;
+    }
+    
+    #bottom-toolbar {
+      left: 29% !important;
+    }
+    
+    .dimension-panel {
+      left: 29% !important;
+    }
+  }
+
+  /* iPhone Plus/Max (414px+) */
+  @media (min-width: 401px) and (orientation: landscape) {
+    #sidebar {
+      width: 38vw !important; /* 🔧 Mniej UI na większych */
+    }
+    
+    #viewer, canvas {
+      width: 62vw !important; /* 🔧 Więcej 3D */
+    }
+    
+    #welcome-screen {
+      left: 31% !important;
+    }
+    
+    #bottom-toolbar {
+      left: 31% !important;
+    }
+    
+    .dimension-panel {
+      left: 31% !important;
+    }
+    
+    #chairs-grid,
+    #legs-grid {
+      grid-template-columns: repeat(5, 1fr) !important; /* 🔧 5 kolumn dla większych */
+    }
+  }
+
+  /* 📱 UKRYJ NIEPOTRZEBNE ELEMENTY MOBILE */
+  #mobile-top-ui,
+  #mobile-chair-panel,
+  #mobile-sidebar,
+  #mobile-chairs-section,
+  #mobile-legs-section,
+  #toolbar-toggle,
+  #floating-toggle {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+
+  /* Ukryj loading screen na mobile */
+  #custom-loader {
+    display: none !important;
+  }
+}
+
+
+
 
   /* � MOBILE VERTICAL UI - nad dark mode */
   #mobile-top-ui {
@@ -1784,15 +1871,10 @@
     pointer-events: none !important;
   }
   
-  /* 📱 POKAŻ MOBILE TOP UI NA LANDSCAPE */
-  /* 📱 UKRYJ MOBILE PANELE - używamy desktop layout */
+  /* 📱 UKRYJ MOBILE TOP UI NA LANDSCAPE - kompletnie */
   #mobile-top-ui,
   #mobile-chair-panel {
     display: none !important;
-  }
-
-  #mobile-top-ui {
-    display: flex !important;
   }
 
   /* Ukryj dodatkowe przyciski w mobile - bezpośrednio po ID */
@@ -1800,24 +1882,19 @@
   #export-panel,
   #qr-button,
   #bottom-toolbar #qr-button,
+  #hdr-toggle,
+  #dimensions-show,
+  #ar-button,
+  #brightness-control,
   button[title="Pobierz konfigurację"],
-  button[title="Zobacz na telefonie"] {
+  button[title="Zobacz na telefonie"],
+  button[title="Wymiary modelu"],
+  button[title="AR"],
+  button[title="Zmień jasność"] {
     display: none !important;
     visibility: hidden !important;
     opacity: 0 !important;
     pointer-events: none !important;
-  }
-
-  /* ✅ ZOSTAW TYLKO JASNOŚĆ, WYMIARY I AR */
-  #hdr-toggle,
-  #dimensions-show,
-  #brightness-control,
-  #ar-button,
-  button[title="Wymiary modelu"],
-  button[title="AR"],
-  button[title="Zmień jasność"] {
-    display: block !important;
-    visibility: visible !important;
   }
 
   #part-tabs {
@@ -4675,6 +4752,10 @@ renderOptions('legs-thumbnails', legs, item => {
               grupa.includes(term) || typ.includes(term) || kategoria.includes(term)
             );
           });
+          
+          // 🔧 ZAPISZ GLOBALNIE
+          window.mainModels = mainModels;
+          
           console.log('🪑 Modele główne:', mainModels.length);
           console.log('🪑 Przykładowe modele:', mainModels.slice(0, 3));
           
@@ -4691,16 +4772,24 @@ renderOptions('legs-thumbnails', legs, item => {
           
           // 🔧 ZAWSZE POKAŻ NA MOBILE LANDSCAPE (bez składanych warunków)
           const isMobile = window.innerWidth <= 820 && window.innerWidth > window.innerHeight;
+          // 🔧 DEBUG: Force mobile sidebar on mobile devices regardless of orientation
+          const isMobileDevice = window.innerWidth <= 820;
+          const shouldShowMobile = isMobile || isMobileDevice; // Show if mobile landscape OR any mobile device
           
           console.log('📱 Mobile sidebar check:', {
             width: window.innerWidth,
             height: window.innerHeight,
             isMobile,
+            isMobileDevice,
+            shouldShowMobile,
             mobileChairsGrid: !!mobileChairsGrid,
-            mobileSidebar: !!mobileSidebar
+            mobileSidebar: !!mobileSidebar,
+            mainModelsLength: mainModels.length,
+            allDataLength: allData.length,
+            sampleMainModel: mainModels[0]?.Nazwa || 'brak'
           });
           
-          if (isMobile && mobileChairsGrid && mobileSidebar) {
+          if (shouldShowMobile && mobileChairsGrid && mobileSidebar) {
             console.log('📱 SHOWING MOBILE SIDEBAR');
             
             // 🔧 POKAŻ MOBILE SIDEBAR
@@ -4710,14 +4799,18 @@ renderOptions('legs-thumbnails', legs, item => {
             mobileChairsGrid.innerHTML = ''; // Wyczyść
             
             if (mainModels.length > 0) {
+              console.log('📱 Starting to populate mobile chairs...');
               mainModels.forEach((model, index) => {
                 const chairItem = document.createElement('div');
                 chairItem.className = 'mobile-chair-item';
                 
-                // Obrazek
+                // Obrazek - absolutna ścieżka
                 let imagePath = model.Obrazek || model.Image || './icons/chair_icon.png';
-                if (imagePath.startsWith('./')) imagePath = imagePath.substring(2);
-                if (!imagePath.startsWith('http') && !imagePath.startsWith('/')) imagePath = './' + imagePath;
+                if (!imagePath.startsWith('http') && !imagePath.startsWith('./')) {
+                  imagePath = './' + imagePath;
+                }
+                
+                console.log(`📱 Adding chair ${index}: ${model.Nazwa}, image: ${imagePath}`);
                 
                 chairItem.innerHTML = `<img src="${imagePath}" alt="${model.Nazwa}" onerror="this.src='./icons/chair_icon.png';">`;
                 
@@ -4731,16 +4824,18 @@ renderOptions('legs-thumbnails', legs, item => {
                 mobileChairsGrid.appendChild(chairItem);
               });
               console.log('📱 Mobile sidebar populated with', mainModels.length, 'chairs');
+            } else {
+              console.log('📱 No mainModels to populate!');
             }
           } else {
-            console.log('📱 Mobile sidebar HIDDEN (not mobile or missing elements)');
+            console.log('📱 Mobile sidebar HIDDEN:', { isMobile, mobileChairsGrid: !!mobileChairsGrid, mobileSidebar: !!mobileSidebar });
           }
 
           // 📱 MOBILE LEGS - tylko dla mobile
           const mobileLegsGrid = document.getElementById('mobile-legs-grid');
           const mobileLegsSection = document.getElementById('mobile-legs-section');
           
-          if (isMobile && mobileLegsGrid) {
+          if (shouldShowMobile && mobileLegsGrid) {
             const legModels = allData.filter(d => d.Grupa && d.Grupa.toLowerCase() === 'nogi');
             
             if (legModels.length > 0) {
@@ -5016,6 +5111,10 @@ renderOptions('legs-thumbnails', legs, item => {
           
           throw e; // Przekaż błąd wyżej
         }
+        
+        // 📱 AKTUALIZUJ MOBILE SIDEBAR PO ZAŁADOWANIU DANYCH
+        console.log('📱 Calling updateMobileSidebar after data load');
+        updateMobileSidebar();
       }
 
       document.getElementById('hdr-toggle')?.addEventListener('click', (e) => {
@@ -6015,7 +6114,62 @@ function checkOrientation() {
 
   const isLandscape = window.innerWidth > window.innerHeight;
   rotateMsg.style.display = isLandscape ? 'none' : 'flex';
+  
+  // 📱 UPDATE MOBILE SIDEBAR ON ORIENTATION CHANGE
+  updateMobileSidebar();
 }
+
+// 📱 FUNKCJA DO AKTUALIZACJI MOBILE SIDEBAR
+function updateMobileSidebar() {
+  const mobileChairsGrid = document.getElementById('mobile-chairs-grid');
+  const mobileSidebar = document.getElementById('mobile-sidebar');
+  const isMobile = window.innerWidth <= 820 && window.innerWidth > window.innerHeight;
+  const isMobileDevice = window.innerWidth <= 820;
+  const shouldShowMobile = isMobile || isMobileDevice; // Show if mobile landscape OR any mobile device
+  
+  console.log('📱 updateMobileSidebar called:', {
+    width: window.innerWidth,
+    height: window.innerHeight,
+    isMobile,
+    isMobileDevice,
+    shouldShowMobile,
+    mobileChairsGrid: !!mobileChairsGrid,
+    mobileSidebar: !!mobileSidebar
+  });
+  
+  if (shouldShowMobile && mobileChairsGrid && mobileSidebar) {
+    console.log('📱 Showing mobile sidebar in updateMobileSidebar');
+    mobileSidebar.style.display = 'block';
+    
+    // Jeśli jest pusty, spróbuj ponownie załadować dane
+    if (mobileChairsGrid.children.length === 0 && window.mainModels && window.mainModels.length > 0) {
+      console.log('📱 Re-populating mobile sidebar with', window.mainModels.length, 'chairs');
+      window.mainModels.forEach((model, index) => {
+        const chairItem = document.createElement('div');
+        chairItem.className = 'mobile-chair-item';
+        
+        let imagePath = model.Obrazek || model.Image || './icons/chair_icon.png';
+        if (!imagePath.startsWith('http') && !imagePath.startsWith('./')) {
+          imagePath = './' + imagePath;
+        }
+        
+        chairItem.innerHTML = `<img src="${imagePath}" alt="${model.Nazwa}" onerror="this.src='./icons/chair_icon.png';">`;
+        
+        chairItem.onclick = () => {
+          document.querySelectorAll('.mobile-chair-item').forEach(item => item.classList.remove('selected'));
+          chairItem.classList.add('selected');
+          loadModel(model);
+        };
+        
+        mobileChairsGrid.appendChild(chairItem);
+      });
+    }
+  } else {
+    console.log('📱 Hiding mobile sidebar in updateMobileSidebar');
+    if (mobileSidebar) mobileSidebar.style.display = 'none';
+  }
+}
+
 window.addEventListener('load', checkOrientation);
 window.addEventListener('resize', checkOrientation);
 
@@ -6023,7 +6177,14 @@ window.addEventListener('resize', checkOrientation);
 
 window.addEventListener('DOMContentLoaded', () => {
   // przygotowanie canvas i kontenerów
+  console.log('📱 DOMContentLoaded - calling updateMobileSidebar');
+  updateMobileSidebar();
   
+  // 📱 Sprawdź ponownie po załadowaniu danych (delayed check)
+  setTimeout(() => {
+    console.log('📱 Delayed mobile sidebar check');
+    updateMobileSidebar();
+  }, 2000);
 });
 
 
