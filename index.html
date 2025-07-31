@@ -8,6 +8,34 @@
   <meta http-equiv="cache-control" content="no-cache" />
 
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <script>
+    // 📱 GLOBALNE DETEKCJA URZĄDZENIA (bez przekierowania)
+    (function() {
+      window.isMobile = /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      window.isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      window.isAndroid = /Android/i.test(navigator.userAgent);
+      window.screenWidth = window.screen.width;
+      window.isSmallScreen = window.screenWidth <= 768;
+      
+      console.log('🔍 Device detection:', {
+        userAgent: navigator.userAgent,
+        isMobile: window.isMobile,
+        isIOS: window.isIOS,
+        isAndroid: window.isAndroid,
+        screenWidth: window.screenWidth,
+        isSmallScreen: window.isSmallScreen
+      });
+      
+      // Dodaj klasy CSS do body
+      if (window.isMobile) document.body.classList.add('mobile-device');
+      if (window.isIOS) document.body.classList.add('ios-device');
+      if (window.isAndroid) document.body.classList.add('android-device');
+      if (window.isSmallScreen) document.body.classList.add('small-screen');
+      
+      console.log('� Uruchamiam index.html dla wszystkich urządzeń');
+    })();
+  </script>
+
   <script type="importmap">
 {
   "imports": {
@@ -1144,7 +1172,7 @@
     z-index: 2001 !important; /* 🔧 Nad toolbar */
   }
 
-  /* 🔧 Floating button widoczny gdy toolbar ukryty */
+  /* 🔧 Floating button - wysunięty z boku spod sidebara */
   #floating-toggle {
     background: #007bff;
     color: white;
@@ -1158,16 +1186,22 @@
     justify-content: center;
     box-shadow: 0 6px 16px rgba(0, 123, 255, 0.5);
     position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
+    bottom: 80px; /* 🔧 Wyżej żeby nie nakładał się na elementy */
+    right: -22px; /* 🔧 Połowa ukryta za krawędzią */
     z-index: 2002;
     transition: all 0.3s ease;
     cursor: pointer;
+    /* 🔧 Dodaj wskaźnik że można przesunąć */
+    border-left: 3px solid rgba(255,255,255,0.3);
+  }
+
+  #floating-toggle:hover {
+    right: 5px; /* 🔧 Wysuń na hover */
+    box-shadow: 0 8px 20px rgba(0, 123, 255, 0.6);
   }
 
   #floating-toggle:active {
-    transform: translateX(-50%) scale(0.95);
+    transform: scale(0.95);
   }
 
   /* 🔧 Pokaż przycisk toggle tylko na mobile */
@@ -1255,13 +1289,33 @@
     left: 50%;
     transform: translateX(-50%) translateY(100%); /* 🔧 Domyślnie ukryty poza ekranem */
     bottom: 0px; /* 🔧 Na samym dole */
-    padding: 6px 10px; /* 🔧 Mniejszy padding */
+    padding: 12px 16px; /* 🔧 Wygodniejszy padding */
     width: auto; /* 🔧 Automatyczna szerokość */
-    max-width: calc(100vw - 160px); /* 🔧 Nie przekraczaj szerokości canvas minus margin */
+    max-width: calc(100vw - 80px); /* 🔧 Więcej miejsca */
     justify-content: center;
     flex-wrap: wrap;
-    gap: 6px; /* 🔧 Mniejsze odstępy */
-    transition: all 0.3s ease; /* 🔧 Płynne animacje */
+    gap: 8px; /* 🔧 Wygodniejsze odstępy */
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); /* 🔧 Smooth animacja */
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+    border: 1px solid #e0e0e0;
+    border-bottom: none;
+  }
+
+  /* 🔧 Dodaj wskaźnik że toolbar można wyciągnąć */
+  #bottom-toolbar::before {
+    content: '';
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 30px;
+    height: 3px;
+    background: #007bff;
+    border-radius: 2px;
+    opacity: 0.5;
   }
 
   /* 🔧 Mobile toolbar visible state */
@@ -1272,16 +1326,26 @@
 
   /* 🔧 Wysunięty stan dla bottom-toolbar na mobile */
   #bottom-toolbar.expanded {
-    transform: translateX(-50%) translateY(-10px); /* 🔧 Wysunięty nad dolną krawędź */
+    transform: translateX(-50%) translateY(0); /* 🔧 W pełni widoczny */
   }
 
-  /* 🔧 Minimized state dla bottom-toolbar na mobile - USUŃ */
-  #bottom-toolbar.minimized {
-    transform: translateX(-50%) translateY(100%); /* 🔧 Schowany poza ekranem */
-  }
-
-  #bottom-toolbar.minimized button:not(.toggle-btn) {
-    display: none; /* 🔧 Ukryj wszystkie przyciski oprócz toggle */
+  /* 🔧 Toggle button w toolbar - do zamykania */
+  #bottom-toolbar .toggle-btn {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    background: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: #666;
+    cursor: pointer;
+    z-index: 1;
   }
 
   .dimension-panel {
@@ -1814,12 +1878,118 @@
 
 
 
+    /* 📱 MOBILE OPTIMIZATIONS */
+    @media (max-width: 768px) {
+      #sidebar {
+        width: 100% !important;
+        min-width: 100% !important;
+        max-width: 100% !important;
+        height: 40vh !important;
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        border-radius: 20px 20px 0 0 !important;
+        z-index: 1000 !important;
+        padding: 20px 16px 16px 16px !important;
+        transform: translateY(100%);
+        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow-y: auto;
+      }
+      
+      #sidebar.visible {
+        transform: translateY(0);
+      }
+      
+      #canvas {
+        width: 100% !important;
+        height: 60vh !important;
+        margin-right: 0 !important;
+      }
+      
+      .options-grid {
+        grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)) !important;
+        gap: 8px !important;
+      }
+      
+      .option {
+        padding: 6px !important;
+        font-size: 11px !important;
+      }
+      
+      .option img {
+        width: 40px !important;
+        height: 40px !important;
+      }
+      
+      /* Mobile toolbar */
+      .mobile-toolbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 50px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        z-index: 1001;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 16px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+      }
+      
+      body.dark-mode .mobile-toolbar {
+        background: rgba(45, 45, 45, 0.95);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+    }
+    
+    /* iOS specific styles */
+    .ios-device #sidebar {
+      padding-bottom: env(safe-area-inset-bottom, 16px) !important;
+    }
+    
+    /* USDZ viewer styles */
+    #usdz-viewer {
+      font-family: 'Poppins', sans-serif;
+    }
+    
+    #usdz-viewer h2 {
+      font-weight: 600;
+      margin: 0;
+    }
+    
+    #usdz-viewer p {
+      line-height: 1.4;
+      margin: 0;
+    }
+    
+    #usdz-viewer a {
+      font-family: inherit;
+    }
+    
+    #usdz-viewer button {
+      font-family: inherit;
+    }
+    
   </style>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 </head>
 
 <body>
+
+  <!-- 📱 MOBILE TOOLBAR -->
+  <div class="mobile-toolbar" id="mobile-toolbar" style="display: none;">
+    <div style="display: flex; align-items: center;">
+      <img src="icons/FK_Logo.jpg" alt="FK" style="width: 30px; height: 30px; border-radius: 4px; margin-right: 10px;">
+      <span style="font-weight: 600; font-size: 14px;">Konfigurator</span>
+    </div>
+    <button onclick="toggleMobileSidebar()" style="background: none; border: none; font-size: 20px; cursor: pointer; padding: 8px;">
+      🪑
+    </button>
+  </div>
 
   <div id="rotate-message">
     <div class="rotate-icon">↻</div>
@@ -2279,6 +2449,165 @@
       }
     }
 
+    // 📱 POKAZ USDZ PREVIEW (iOS AR Quick Look)
+    async function showUSZDPreview(variant) {
+      console.log('📱 Pokazuję USDZ preview dla:', variant.Nazwa);
+      
+      const canvas = document.getElementById('canvas');
+      const welcomeScreen = document.getElementById('welcome-screen');
+      
+      // Ukryj welcome screen i pokaż canvas area
+      welcomeScreen.style.display = 'none';
+      canvas.style.display = 'block';
+      
+      // Sprawdź czy już istnieje USDZ viewer
+      let usdzViewer = document.getElementById('usdz-viewer');
+      if (!usdzViewer) {
+        usdzViewer = document.createElement('div');
+        usdzViewer.id = 'usdz-viewer';
+        usdzViewer.style.cssText = `
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          text-align: center;
+          z-index: 5;
+          padding: 20px;
+        `;
+        canvas.parentNode.insertBefore(usdzViewer, canvas);
+      }
+      
+      const usdzPath = `chairs/${variant.Nazwa}.usdz`;
+      
+      usdzViewer.innerHTML = `
+        <div style="font-size: 64px; margin-bottom: 20px;">📱</div>
+        <h2 style="margin-bottom: 15px; font-size: 1.5em;">${variant.Nazwa}</h2>
+        <p style="opacity: 0.9; margin-bottom: 25px; font-size: 1.1em;">
+          Wyświetl krzesło w<br>
+          <strong>rzeczywistości rozszerzonej</strong>
+        </p>
+        <a href="${usdzPath}" 
+           rel="ar" 
+           style="
+             display: inline-block;
+             background: rgba(255,255,255,0.9);
+             color: #333;
+             padding: 15px 30px;
+             border-radius: 25px;
+             text-decoration: none;
+             font-weight: 600;
+             margin: 10px;
+             box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+             transition: all 0.3s ease;
+             font-size: 1.1em;
+           "
+           onmouseover="this.style.transform='scale(1.05)'"
+           onmouseout="this.style.transform='scale(1)'">
+          🥽 Otwórz w AR
+        </a>
+        <div style="margin-top: 20px;">
+          <button onclick="switchToWebGLViewer('${variant.Nazwa}')" 
+                  style="
+                    background: rgba(255,255,255,0.2);
+                    border: 1px solid rgba(255,255,255,0.3);
+                    color: white;
+                    padding: 12px 24px;
+                    border-radius: 20px;
+                    cursor: pointer;
+                    font-size: 1em;
+                  ">
+            📱 Pokaż w przeglądarce
+          </button>
+        </div>
+        <p style="opacity: 0.6; font-size: 12px; margin-top: 20px;">
+          📱 Zoptymalizowane dla Safari iOS
+        </p>
+      `;
+      
+      usdzViewer.style.display = 'flex';
+      canvas.style.display = 'none';
+    }
+
+    // 📱 PRZEŁĄCZENIE NA WEBGL VIEWER (fallback z USDZ)
+    async function switchToWebGLViewer(chairName) {
+      console.log('📱 Przełączam na WebGL viewer dla:', chairName);
+      
+      const usdzViewer = document.getElementById('usdz-viewer');
+      const canvas = document.getElementById('canvas');
+      
+      if (usdzViewer) usdzViewer.style.display = 'none';
+      canvas.style.display = 'block';
+      
+      // Znajdź dane krzesła i załaduj jako GLB
+      const variant = allData.find(item => item.Nazwa === chairName);
+      if (variant) {
+        try {
+          const glbPath = `chairs/${chairName}.glb`;
+          console.log('📱 Ładowanie WebGL fallback:', glbPath);
+          currentModelContainer = await loadModelWithFreshness(glbPath, viewer, { autoCenter: true });
+          
+          // Kontynuuj normalny flow
+          renderPartButtons();
+          
+          if (selectedChair.Grupa && selectedChair.Grupa.toLowerCase() === 'kubełek') {
+            const chairBounds = new Box3().setFromObject(currentModelContainer);
+            currentModelContainer.position.y -= chairBounds.min.y;
+
+            const legsVariants = allData.filter(d => d.Grupa.toLowerCase() === 'nogi');
+            const defaultLeg = legsVariants.find(l => l.Nazwa.toLowerCase().includes('regularne')) || legsVariants[0];
+
+            if (defaultLeg) {
+              await setLegModel(defaultLeg);
+            }
+
+            document.getElementById('legs-section').style.display = 'block';
+            activateLegsTabAndShowMaterials();
+          } else {
+            document.getElementById('legs-section').style.display = 'none';
+          }
+          
+        } catch (error) {
+          console.error('❌ Błąd ładowania WebGL fallback:', error);
+        }
+      }
+    }
+
+    // 📱 FUNKCJA WYKRYWANIA FORMATU MODELU
+    function getModelFormat(modelName) {
+      // Na iOS używamy USDZ jeśli dostępny, inaczej GLB
+      if (window.isIOS) {
+        console.log('📱 iOS wykryty - sprawdzam dostępność USDZ dla:', modelName);
+        return {
+          primary: { path: `chairs/${modelName}.usdz`, format: 'usdz' },
+          fallback: { path: `chairs/${modelName}.glb`, format: 'glb' }
+        };
+      } else {
+        console.log('🖥️ Desktop/Android - używam GLB dla:', modelName);
+        return {
+          primary: { path: `chairs/${modelName}.glb`, format: 'glb' },
+          fallback: null
+        };
+      }
+    }
+
+    // 📱 FUNKCJA SPRAWDZANIA DOSTĘPNOŚCI PLIKU
+    async function checkFileExists(path) {
+      try {
+        const response = await fetch(path, { method: 'HEAD' });
+        return response.ok;
+      } catch (error) {
+        console.warn('Nie można sprawdzić pliku:', path, error);
+        return false;
+      }
+    }
+
     async function loadModelWithFreshness(path, viewer, options = {}) {
       try {
         // Wykonaj zapytanie HEAD, aby pobrać Last-Modified z serwera
@@ -2624,7 +2953,24 @@
 
     async function silentLoadModel(variant) {
       if (currentModelContainer) viewer.scene.remove(currentModelContainer);
-      currentModelContainer = await loadModelWithFreshness(`chairs/${variant.Nazwa}.glb`, viewer, { autoCenter: true });
+      
+      // 📱 UŻYJ NOWEJ LOGIKI FORMATÓW RÓWNIEŻ W SILENT LOAD
+      const formatInfo = getModelFormat(variant.Nazwa);
+      let modelPath = formatInfo.primary.path;
+      
+      // Na iOS: sprawdź USDZ, jeśli nie ma to użyj GLB (ale bez AR preview)
+      if (window.isIOS && formatInfo.primary.format === 'usdz') {
+        const usdzExists = await checkFileExists(formatInfo.primary.path);
+        if (!usdzExists && formatInfo.fallback) {
+          console.log('📱 Silent load: USDZ niedostępny, używam GLB:', formatInfo.fallback.path);
+          modelPath = formatInfo.fallback.path;
+        } else if (usdzExists) {
+          console.log('📱 Silent load: USDZ dostępny ale ładuję GLB dla preview:', formatInfo.fallback.path);
+          modelPath = formatInfo.fallback.path; // Dla silent load zawsze GLB
+        }
+      }
+      
+      currentModelContainer = await loadModelWithFreshness(modelPath, viewer, { autoCenter: true });
 
       console.log("Meshe w modelu:", currentModelContainer.children.map(obj => obj.name)); // <-- DODAJ TO TUTAJ
       //selectedChair = variant; // <-- DODAJ TO!
@@ -2715,11 +3061,35 @@
       document.getElementById('model-loader').style.display = 'flex';
 
   try {
-    const modelPath = `chairs/${variant.Nazwa}.glb`;
+    // 📱 NOWA LOGIKA FORMATÓW - USDZ dla iOS, GLB dla reszty
+    const formatInfo = getModelFormat(variant.Nazwa);
     selectedChair = variant;
-
-    // Załaduj kubełek
-    currentModelContainer = await loadModelWithFreshness(modelPath, viewer, { autoCenter: true });
+    
+    console.log('📱 Format info for', variant.Nazwa, ':', formatInfo);
+    
+    let modelPath = formatInfo.primary.path;
+    let loadSuccess = false;
+    
+    // Na iOS: sprawdź czy USDZ istnieje, jeśli nie to użyj GLB
+    if (window.isIOS && formatInfo.primary.format === 'usdz') {
+      const usdzExists = await checkFileExists(formatInfo.primary.path);
+      
+      if (usdzExists) {
+        console.log('📱 USDZ dostępny dla iOS:', formatInfo.primary.path);
+        // Na iOS z USDZ pokazujemy AR Quick Look zamiast wczytywania do WebGL
+        await showUSZDPreview(variant);
+        loadSuccess = true;
+      } else {
+        console.log('📱 USDZ niedostępny, fallback na GLB:', formatInfo.fallback.path);
+        modelPath = formatInfo.fallback.path;
+      }
+    }
+    
+    // Jeśli nie udało się załadować USDZ lub nie jest iOS, ładuj normalnie
+    if (!loadSuccess) {
+      console.log('🎨 Ładowanie modelu WebGL:', modelPath);
+      currentModelContainer = await loadModelWithFreshness(modelPath, viewer, { autoCenter: true });
+    }
 
     renderPartButtons(); // <-- PRZENIEŚ TUTAJ!
 
@@ -3916,29 +4286,61 @@ renderOptions('legs-thumbnails', legs, item => {
 
       });
 
-      // 🔧 MOBILE: System wysuwania bottom-toolbar na mobile
-      document.getElementById('floating-toggle')?.addEventListener('click', (e) => {
-        e.stopPropagation();
+      // 🔧 MOBILE: Nowy system wysuwania bottom-toolbar z gesture detection
+      let touchStartY = 0;
+      let toolbarVisible = false;
+      
+      // Gesture detection dla wysuwania toolbar
+      document.addEventListener('touchstart', (e) => {
+        if (window.innerWidth > 820) return; // Tylko na mobile
+        touchStartY = e.touches[0].clientY;
+      });
+      
+      document.addEventListener('touchmove', (e) => {
+        if (window.innerWidth > 820) return; // Tylko na mobile
+        const touchY = e.touches[0].clientY;
+        const deltaY = touchStartY - touchY;
         const toolbar = document.getElementById('bottom-toolbar');
-        const floatingBtn = document.getElementById('floating-toggle');
-        const toggleBtn = document.getElementById('toolbar-toggle');
         
-        // Pokaż toolbar i ukryj floating button
-        toolbar.classList.add('expanded');
-        floatingBtn.style.display = 'none';
-        toggleBtn.style.display = 'flex';
+        // Jeśli gesture w górę od dołu ekranu i toolbar ukryty
+        if (deltaY > 30 && touchStartY > window.innerHeight - 100 && !toolbarVisible) {
+          showMobileToolbar();
+        }
+        // Jeśli gesture w dół i toolbar widoczny
+        else if (deltaY < -30 && toolbarVisible) {
+          hideMobileToolbar();
+        }
       });
 
-      document.getElementById('toolbar-toggle')?.addEventListener('click', (e) => {
-        e.stopPropagation();
+      function showMobileToolbar() {
         const toolbar = document.getElementById('bottom-toolbar');
         const floatingBtn = document.getElementById('floating-toggle');
         const toggleBtn = document.getElementById('toolbar-toggle');
         
-        // Ukryj toolbar i pokaż floating button
-        toolbar.classList.remove('expanded');
-        floatingBtn.style.display = 'flex';
-        toggleBtn.style.display = 'none';
+        if (toolbar) {
+          toolbar.classList.add('expanded');
+          toolbar.classList.add('mobile-ready');
+        }
+        if (floatingBtn) floatingBtn.style.display = 'none';
+        if (toggleBtn) toggleBtn.style.display = 'flex';
+        toolbarVisible = true;
+      }
+      
+      function hideMobileToolbar() {
+        const toolbar = document.getElementById('bottom-toolbar');
+        const floatingBtn = document.getElementById('floating-toggle');
+        const toggleBtn = document.getElementById('toolbar-toggle');
+        
+        if (toolbar) toolbar.classList.remove('expanded');
+        if (floatingBtn) floatingBtn.style.display = 'flex';
+        if (toggleBtn) toggleBtn.style.display = 'none';
+        toolbarVisible = false;
+      }
+
+      // Floating button - kliknięcie też otwiera toolbar
+      document.getElementById('floating-toggle')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        showMobileToolbar();
       });
 
 
@@ -5085,6 +5487,85 @@ if (hdrToggle && brightnessControl) {
           console.error('❌ Błąd inicjalizacji event listenerów:', error);
         }
       }
+
+      // 📱 MOBILE FUNCTIONS
+      function toggleMobileSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar) {
+          sidebar.classList.toggle('visible');
+        }
+      }
+
+      // 📱 MOBILE INITIALIZATION
+      function initMobileExperience() {
+        console.log('📱 Inicjalizacja mobile experience');
+        
+        // Pokaż mobile toolbar na małych ekranach
+        if (window.isSmallScreen || window.isMobile) {
+          const toolbar = document.getElementById('mobile-toolbar');
+          if (toolbar) {
+            toolbar.style.display = 'flex';
+          }
+          
+          // Dostosuj canvas top margin dla toolbar
+          const canvas = document.getElementById('canvas');
+          if (canvas) {
+            canvas.style.marginTop = '50px';
+            canvas.style.height = 'calc(100vh - 50px)';
+          }
+          
+          // Na mobile nie pokazuj welcome screen na długo
+          setTimeout(() => {
+            if (window.isMobile) {
+              hideWelcomeScreenAndShowApp();
+            }
+          }, 1000); // Krótszy timeout dla mobile
+        }
+      }
+      
+      // 📱 HIDE WELCOME SCREEN FUNCTION
+      function hideWelcomeScreenAndShowApp() {
+        const welcomeScreen = document.getElementById('welcome-screen');
+        const app = document.getElementById('app');
+        const canvas = document.getElementById('canvas');
+        
+        if (welcomeScreen) {
+          welcomeScreen.style.display = 'none';
+        }
+        
+        if (app) {
+          app.classList.add('visible');
+        }
+        
+        if (canvas) {
+          canvas.style.display = 'block';
+        }
+        
+        console.log('📱 Welcome screen ukryty, app widoczny');
+      }
+
+      // Wywołaj init mobile po inicjalizacji
+      initMobileExperience();
+
+      // 📱 DEBUG FUNCTION - sprawdź dostępne formaty
+      window.checkFormats = function() {
+        console.log('🔍 Sprawdzanie dostępnych formatów...');
+        
+        allData.filter(item => item.Grupa?.toLowerCase().includes('krzesło')).forEach(async (chair) => {
+          const glbPath = `chairs/${chair.Nazwa}.glb`;
+          const usdzPath = `chairs/${chair.Nazwa}.usdz`;
+          
+          const glbExists = await checkFileExists(glbPath);
+          const usdzExists = await checkFileExists(usdzPath);
+          
+          console.log(`📁 ${chair.Nazwa}: GLB=${glbExists ? '✅' : '❌'}, USDZ=${usdzExists ? '✅' : '❌'}`);
+        });
+      };
+      
+      console.log('📱 Dostępne debug functions:');
+      console.log('🔍 checkFormats() - sprawdź dostępne formaty modeli');
+      console.log('📱 iOS detection:', window.isIOS);
+      console.log('📱 Mobile detection:', window.isMobile);
 
 
 
