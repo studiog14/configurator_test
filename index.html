@@ -756,22 +756,10 @@
 
 
     #bottom-toolbar {
-      position: fixed;
-      /* <- zmień z absolute */
-      bottom: 14px;
-      left: 50%;
-      transform: translateX(-100%);
-      background: #fff;
-      border: 1.5px solid #ccc;
-      border-radius: 12px;
-      padding: 8px 14px;
-      display: none; /* 🚫 Ukryj toolbar na start */
-      gap: 16px;
-      z-index: 2000;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-      opacity: 0;
-      transition: opacity 0.4s ease;
-      justify-content: center;
+      display: none !important; /* 🚫 CAŁKOWICIE USUNIĘTY */
+      visibility: hidden !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
     }
 
 
@@ -1169,12 +1157,10 @@
 
   /* � BOTTOM TOOLBAR - skopiowane z desktop, dostosowane */
   #bottom-toolbar {
-    position: fixed !important;
-    left: 30% !important; /* 🔧 Wyśrodkowany względem canvas (60% / 2 = 30%) */
-    transform: translateX(-50%) !important;
-    bottom: 16px !important;
-    display: none !important; /* 🔧 Domyślnie ukryty */
+    display: none !important; /* � CAŁKOWICIE USUNIĘTY */
+    visibility: hidden !important;
     opacity: 0 !important;
+    pointer-events: none !important;
     padding: 8px 12px !important; /* 🔧 Mniejszy padding */
     background: rgba(255, 255, 255, 0.95) !important;
     backdrop-filter: blur(10px) !important;
@@ -1308,8 +1294,10 @@
   }
 
   body.dark-mode #bottom-toolbar {
-    background: rgba(45, 45, 45, 0.95) !important;
-    border: 1px solid #444 !important;
+    display: none !important; /* 🚫 CAŁKOWICIE USUNIĘTY */
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
   }
 
   body.dark-mode #welcome-screen {
@@ -2760,43 +2748,14 @@
       <img src="icons/qr_icon.png" alt="QR" style="width: 20px; height: 20px;">
     </button>
 
-</div>
+  </div>
 
   <!-- 🔧 Floating button do wysuwania toolbar na mobile -->
   <button id="floating-toggle" style="display: none;">⋮</button>
 
-
-
 <div id="model-image-container"></div>
 
-
-
-
-
-    <button id="ar-button" title="AR">
-      <img src="icons/AR_icon.png" alt="AR" style="width: 30px; height: 30px;">
-    </button>
-
-    <button id="dimensions-show" title="Wymiary modelu">
-      <img src="icons/dimmension_icon.png" alt="Wymiary" style="width: 20px; height: 20px;">
-    </button>
-
-
-    <button id="export-config" title="Pobierz konfigurację">
-      <img src="icons/export_icon.png" alt="Eksport" style="width: 20px; height: 20px;">
-    </button>
-
-      <div id="export-panel" class="hidden">
-      <button class="export-btn" data-format="fbx">FBX</button>
-      <button class="export-btn" data-format="dae">DAE</button>
-      <button class="export-btn" data-format="obj">OBJ</button>
-    </div>
-  </div>
-
-
-  <div id="dimension-overlay" style="display: none;"></div>
-
-  <link rel="manifest" href="manifest.json" />
+  <div id="dimension-overlay" style="display: none;"></div>  <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icons/favicon.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
