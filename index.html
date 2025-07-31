@@ -1061,28 +1061,269 @@
   }
 
   /* 📱 MOBILE STYLES - Ultra kompaktowy UI */
+  
+  /* Ukryj loading screen na mobile */
+  #custom-loader {
+    display: none !important;
+  }
+  
+  /* 📱 UKRYJ DESKTOP SIDEBAR NA MOBILE */
   #sidebar {
-    width: 140px; /* 🔧 Jeszcze mniejszy sidebar na mobile */
+    display: none !important; /* 🔧 Ukryj desktop sidebar całkowicie */
+    visibility: hidden !important;
+  }
+
+  /* 📱 NOWY DEDYKOWANY MOBILE SIDEBAR - tylko na mobile landscape */
+  #mobile-sidebar {
+    display: none !important; /* 🔧 Domyślnie ukryty */
+  }
+
+  /* 🔧 POKAŻ TYLKO NA MOBILE LANDSCAPE */
+  @media (max-width: 820px) and (orientation: landscape) {
+    #mobile-sidebar {
+      position: fixed;
+      right: 0;
+      top: 0;
+      width: 40vw !important; /* 🔧 40% szerokości */
+      height: 100vh;
+      background: rgba(255, 255, 255, 0.95) !important;
+      backdrop-filter: blur(10px);
+      border-left: 1px solid #ddd;
+      border-radius: 8px 0 0 8px;
+      box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+      z-index: 100;
+      padding: 12px 8px;
+      box-sizing: border-box;
+      overflow-y: auto;
+      display: block !important; /* 🔧 Pokaż tylko na mobile */
+      visibility: visible !important;
+    }
+  }
+
+  /* 📱 MOBILE CHAIRS SECTION - BEZ NAPISÓW, tylko na mobile */
+  #mobile-chairs-section {
+    margin-bottom: 20px;
+  }
+
+  #mobile-chairs-section h3 {
+    display: none !important; /* 🔧 Ukryj napisy */
+  }
+
+  /* 📱 MOBILE CHAIRS GRID - kopiuj z desktop */
+  #mobile-chairs-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important; /* 🔧 4 jak desktop */
+    gap: 8px !important;
+    justify-items: center;
+    padding: 0 8px;
+  }
+
+  .mobile-chair-item {
+    width: 100% !important;
+    aspect-ratio: 1 !important; /* 🔧 Kwadrat jak desktop */
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: #fff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
     box-sizing: border-box;
-    overflow-y: auto;
-    padding: 4px; /* 🔧 Mniejszy padding */
-    position: fixed; /* 🔧 Fixed także na mobile */
-    right: 0; /* 🔧 Po prawej także na mobile */
-    top: 0;
-    height: 100vh;
-    z-index: 35; /* 🔧 Niższy z-index niż welcome screen (50) */
-    background: #fff !important;
-    border-radius: 4px 0 0 4px; /* 🔧 Zaokrąglenie tylko z lewej strony */
   }
 
-  /* 🔧 Welcome screen musi mieć więcej miejsca na mobile */
+  .mobile-chair-item:hover {
+    border-color: #007bff;
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(0,123,255,0.3);
+  }
+
+  .mobile-chair-item.selected {
+    border: 2px solid #007bff !important;
+    background: rgba(0,123,255,0.1);
+  }
+
+  .mobile-chair-item img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain;
+    border-radius: 4px;
+  }
+
+  /* 📱 MOBILE LEGS SECTION - BEZ NAPISÓW */
+  #mobile-legs-section {
+    margin-bottom: 20px;
+    display: none; /* 🔧 Ukryj na start, pokaże się po wyborze krzesła */
+  }
+
+  #mobile-legs-section h3 {
+    display: none !important; /* 🔧 Ukryj napisy jak na desktopie */
+  }
+
+  #mobile-legs-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important; /* 🔧 4 w rzędzie jak desktop */
+    gap: 8px !important;
+    justify-items: center;
+    padding: 0 8px;
+  }
+
+  .mobile-leg-item {
+    width: 100% !important;
+    aspect-ratio: 1 !important; /* 🔧 Kwadratowe jak na desktopie */
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: #fff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+    box-sizing: border-box;
+  }
+
+  .mobile-leg-item:hover {
+    border-color: #007bff;
+    transform: scale(1.05);
+  }
+
+  .mobile-leg-item.selected {
+    border: 2px solid #007bff !important;
+    background: rgba(0,123,255,0.1);
+  }
+
+  .mobile-leg-item img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain;
+  }
+
+  body.dark-mode #mobile-sidebar {
+    background: rgba(45, 45, 45, 0.95) !important;
+    border-left: 1px solid #444 !important;
+  }
+
+  body.dark-mode .mobile-chair-item,
+  body.dark-mode .mobile-leg-item {
+    background: #3a3a3a !important;
+    border-color: #555 !important;
+  }
+
+  body.dark-mode .mobile-chair-item:hover,
+  body.dark-mode .mobile-leg-item:hover {
+    border-color: #007bff !important;
+  }
+
+  body.dark-mode .mobile-chair-item.selected,
+  body.dark-mode .mobile-leg-item.selected {
+    background: rgba(0,123,255,0.2) !important;
+    border-color: #007bff !important;
+  }
+  
+  /* 🔧 Force show model section i thumbnails */
+  #model-section {
+    display: block !important;
+  }
+
+  /* 📱 CHAIRS GRID W SIDEBAR - max 3 w rzędzie, mniejsze odstępy */
+  #chairs-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important; /* 🔧 Max 3 kolumny */
+    gap: 1px !important; /* 🔧 Bardzo mały gap */
+  }
+
+  .chair-thumbnail {
+    width: 22px !important; /* 🔧 Trochę większe ikony w wąskim sidebar */
+    height: 22px !important;
+    border-radius: 3px !important;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .chair-thumbnail:hover {
+    transform: scale(1.05);
+  }
+
+  .chair-thumbnail.selected {
+    border: 2px solid #1976d2 !important;
+  }
+
+  /* 📱 LEGS GRID W SIDEBAR - max 3 w rzędzie, mniejsze odstępy */
+  #legs-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important; /* 🔧 Max 3 kolumny */
+    gap: 1px !important;
+  }
+
+  .leg-thumbnail {
+    width: 22px !important;
+    height: 22px !important;
+    border-radius: 3px !important;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .leg-thumbnail:hover {
+    transform: scale(1.05);
+  }
+
+  .leg-thumbnail.selected {
+    border: 2px solid #1976d2 !important;
+  }
+
+  /* 📱 THUMBNAIL CAPTIONS w sidebar - bardzo małe */
+  .thumbnail-caption {
+    font-size: 7px !important; /* 🔧 Jeszcze mniejszy font */
+    margin-top: 1px !important;
+    text-align: center;
+    line-height: 1 !important;
+    padding: 0 1px !important; /* 🔧 Mały padding */
+  }
+
+  /* 📱 CONTROL SECTIONS w sidebar */
+  .control-section h3 {
+    font-size: 8px !important; /* 🔧 Bardzo mały nagłówek */
+    margin: 1px 0 1px 0 !important;
+    text-align: center;
+    padding: 1px !important;
+  }
+  
+  #model-thumbnails {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: space-around !important;
+  }
+  
+  /* 📱 Thumbnail wrapper podstawowy */
+  .thumbnail-wrapper {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    margin-bottom: 4px !important;
+    box-sizing: border-box !important;
+  }
+
+  /* 🔧 Welcome screen - jak na desktop, po środku ekranu */
   #welcome-screen {
-    right: 140px !important; /* 🔧 Zostaw miejsce na mniejszy sidebar */
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important; /* 🔧 Po środku poziomo */
+    transform: translate(-50%, -50%) !important; /* 🔧 Wyśrodkuj obie osie */
+    max-width: 300px !important; /* 🔧 Trochę szerszy */
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(15px) !important;
+    padding: 30px 20px !important; /* 🔧 Większy padding */
+    border-radius: 16px !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
+    text-align: center !important;
+    z-index: 1000 !important; /* 🔧 Nad wszystkim */
   }
 
-  /* 🔧 Dodaj specjalne ustawienia viewera dla mobile */
+  /* 🔧 Viewer i App - 60% dla 3D, 40% dla UI */
   #viewer {
-    width: calc(100vw - 140px); /* 🔧 Model 3D bliżej centrum */
+    width: 60vw !important; /* 🔧 60% dla canvasu 3D */
     position: relative;
   }
 
@@ -1090,35 +1331,348 @@
     height: 100vh;
     padding: 0;
     display: flex;
-    flex-direction: row; /* 🔧 Wymuś row layout na mobile */
+    flex-direction: row !important;
   }
 
-  /* 🔧 Canvas 3D na mobile - bliżej centrum */
+  /* 🔧 Canvas 3D - 60% szerokości ekranu */
   canvas {
-    width: calc(100vw - 140px) !important; /* 🔧 Model 3D bliżej centrum */
+    width: 60vw !important; /* 🔧 60% szerokości dla 3D */
     height: 100vh !important;
   }
 
-  /* 🔧 Kontrolki w sidebar - bardzo małe na mobile */
+  /* � MOBILE VERTICAL UI - nad dark mode */
+  #mobile-top-ui {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+  
+  #mobile-top-ui .ui-section {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  #mobile-top-ui button {
+    width: 35px;
+    height: 35px;
+    border: none;
+    border-radius: 6px;
+    background: #f0f0f0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+  }
+  
+  #mobile-top-ui button:hover {
+    background: #e0e0e0;
+  }
+  
+  #mobile-top-ui button img {
+    width: 18px;
+    height: 18px;
+  }
+  
+  /* 🔧 Dark mode toggle w mobile top UI */
+  #mobile-theme-toggle {
+    background: #333 !important;
+    color: white;
+    font-size: 16px;
+  }
+  
+  /* 🔧 CANVAS - 60% szerokości ekranu */
+  #viewer, canvas {
+    margin-top: 0 !important;
+    height: 100vh !important;
+    width: 60vw !important; /* 🔧 60% szerokości dla 3D */
+  }
+  
+  /* 📱 MOBILE CHAIR PANEL CSS - ULEPSZONA WERSJA */
+  #mobile-chair-panel {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(15px);
+    border-top: 1px solid #ddd;
+    padding: 20px 15px 25px 15px; /* 🔧 Większy padding */
+    z-index: 45;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+    max-height: 50vh; /* 🔧 Większa wysokość */
+    overflow-y: auto;
+  }
+  
+  .mobile-panel-header {
+    text-align: center;
+    margin-bottom: 16px; /* 🔧 Więcej marginesu */
+  }
+  
+  .mobile-panel-header h3 {
+    margin: 0;
+    font-size: 18px; /* 🔧 Większy font */
+    color: #333;
+    font-weight: 600;
+  }
+  
+  .mobile-chair-grid {
+    display: grid;
+    gap: 16px; /* 🔧 Większy gap */
+    justify-items: center;
+    max-width: 400px; /* 🔧 Szersza siatka */
+    margin: 0 auto;
+    /* 🔧 Responsive grid */
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  }
+  
+  /* 📱 RESPONSIVE GRID dla różnych rozmiarów iPhone */
+  @media (max-width: 375px) {
+    .mobile-chair-grid {
+      grid-template-columns: repeat(2, 1fr) !important; /* 🔧 2 kolumny dla SE */
+      gap: 12px !important;
+      max-width: 300px !important;
+    }
+    
+    .mobile-chair-thumb {
+      width: 70px !important;
+      height: 70px !important;
+    }
+    
+    .mobile-chair-name {
+      font-size: 12px !important;
+    }
+  }
+  
+  @media (min-width: 376px) and (max-width: 414px) {
+    .mobile-chair-grid {
+      grid-template-columns: repeat(3, 1fr) !important; /* 🔧 3 kolumny dla standard */
+      gap: 14px !important;
+      max-width: 350px !important;
+    }
+  }
+  
+  @media (min-width: 415px) {
+    .mobile-chair-grid {
+      grid-template-columns: repeat(4, 1fr) !important; /* 🔧 4 kolumny dla Plus/Pro Max */
+      gap: 16px !important;
+      max-width: 400px !important;
+    }
+  }
+  
+  .mobile-chair-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    padding: 12px 8px; /* 🔧 Większy padding */
+    border-radius: 12px; /* 🔧 Większe zaokrąglenie */
+    transition: all 0.2s;
+    width: 100%;
+    border: 2px solid transparent; /* 🔧 Ramka dla selection */
+  }
+  
+  .mobile-chair-item:hover {
+    background: rgba(0,0,0,0.05);
+    transform: scale(1.05); /* 🔧 Większy scale */
+  }
+  
+  .mobile-chair-item.selected {
+    background: rgba(0,123,255,0.1);
+    border: 2px solid #007bff;
+    box-shadow: 0 4px 12px rgba(0,123,255,0.3); /* 🔧 Cień dla selection */
+  }
+  
+  .mobile-chair-thumb {
+    width: 80px; /* 🔧 Większe thumbnails jak na desktop */
+    height: 80px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    object-fit: contain;
+    background: #fff;
+    padding: 6px; /* 🔧 Większy padding */
+    box-sizing: border-box;
+    transition: all 0.2s;
+  }
+  
+  .mobile-chair-item:hover .mobile-chair-thumb {
+    border-color: #007bff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  
+  .mobile-chair-name {
+    font-size: 13px; /* 🔧 Większy font */
+    color: #333;
+    text-align: center;
+    margin-top: 6px; /* 🔧 Więcej marginesu */
+    font-weight: 500;
+    line-height: 1.3;
+  }
+  
+  /* 🌙 Dark mode dla mobile chair panel */
+  body.dark-mode #mobile-chair-panel {
+    background: rgba(45, 45, 45, 0.98) !important;
+    border-top: 1px solid #444 !important;
+  }
+  
+  body.dark-mode .mobile-panel-header h3 {
+    color: #e0e0e0 !important;
+  }
+  
+  body.dark-mode .mobile-chair-item {
+    color: #e0e0e0 !important;
+  }
+  
+  body.dark-mode .mobile-chair-item:hover {
+    background: rgba(255,255,255,0.05) !important;
+  }
+  
+  body.dark-mode .mobile-chair-thumb {
+    background: #3a3a3a !important;
+    border-color: #555 !important;
+  }
+  
+  body.dark-mode .mobile-chair-name {
+    color: #e0e0e0 !important;
+  }
+
   .control-section {
-    padding: 1px;
-    margin: 1px 0;
+    padding: 2px;
+    margin: 3px 0;
   }
 
   .control-section h3 {
-    font-size: 10px;
-    margin: 2px 0 1px 0;
+    font-size: 11px;
+    margin: 3px 0 2px 0;
   }
 
-  .thumbnail {
-    width: 25px !important; /* 🔧 Jeszcze mniejsze thumbnails */
-    height: 25px !important;
+  /* 📱 RESPONSIVE THUMBNAILS - różne rozmiary dla różnych iPhone'ów */
+  .options-grid {
+    gap: 2px !important;
+    justify-content: center !important;
   }
 
-  .thumbnail-caption {
-    font-size: 7px;
-    margin-top: 1px;
-    line-height: 1;
+  /* 📱 iPhone 5/5S/SE (szerokość ~320px) - 3 kolumny w mobile sidebar */
+  @media (max-width: 350px) and (orientation: landscape) {
+    #mobile-sidebar {
+      width: 45vw !important; /* 🔧 Więcej UI na małych ekranach */
+    }
+    
+    #viewer, canvas {
+      width: 55vw !important; /* 🔧 Mniej 3D na małych ekranach */
+    }
+    
+    #mobile-chairs-grid,
+    #mobile-legs-grid {
+      grid-template-columns: repeat(3, 1fr) !important; /* 🔧 3 kolumny dla iPhone 5 */
+      gap: 6px !important;
+    }
+  }
+
+  /* 📱 iPhone 6/6S/7/8/SE 2020 (szerokość ~375px) - 4 kolumny */
+  @media (min-width: 351px) and (max-width: 400px) and (orientation: landscape) {
+    #mobile-sidebar {
+      width: 42vw !important;
+    }
+    
+    #viewer, canvas {
+      width: 58vw !important;
+    }
+    
+    #mobile-chairs-grid,
+    #mobile-legs-grid {
+      grid-template-columns: repeat(4, 1fr) !important; /* 🔧 4 kolumny dla iPhone 6-8 */
+      gap: 7px !important;
+    }
+  }
+
+  /* 📱 iPhone 6/7/8 Plus (szerokość ~414px) - 4 kolumny */
+  @media (min-width: 401px) and (max-width: 430px) and (orientation: landscape) {
+    #mobile-sidebar {
+      width: 40vw !important;
+    }
+    
+    #viewer, canvas {
+      width: 60vw !important;
+    }
+    
+    #mobile-chairs-grid,
+    #mobile-legs-grid {
+      grid-template-columns: repeat(4, 1fr) !important; /* 🔧 4 kolumny dla iPhone Plus */
+      gap: 8px !important;
+    }
+  }
+
+  /* 📱 iPhone X/XS/11 Pro/12 Mini/13 Mini (szerokość ~375px) - 4 kolumny */
+  @media (min-width: 431px) and (max-width: 450px) and (orientation: landscape) {
+    #mobile-sidebar {
+      width: 38vw !important;
+    }
+    
+    #viewer, canvas {
+      width: 62vw !important;
+    }
+    
+    #mobile-chairs-grid,
+    #mobile-legs-grid {
+      grid-template-columns: repeat(4, 1fr) !important;
+      gap: 8px !important;
+    }
+  }
+
+  /* 📱 iPhone XR/XS Max/11/12/13/14/15 (szerokość ~390-428px) - 5 kolumn */
+  @media (min-width: 451px) and (orientation: landscape) {
+    #mobile-sidebar {
+      width: 35vw !important;
+    }
+    
+    #viewer, canvas {
+      width: 65vw !important;
+    }
+    
+    #mobile-chairs-grid,
+    #mobile-legs-grid {
+      grid-template-columns: repeat(5, 1fr) !important; /* 🔧 5 kolumn dla większych iPhone */
+      gap: 10px !important;
+    }
+  }
+
+  /* � iPhone 12, 13, 14, 15 (szerokość ~390px) - 2-3 kolumny */
+  @media (min-width: 401px) and (max-width: 450px) and (orientation: landscape) {
+    .thumbnail {
+      width: 40px !important;
+      height: 40px !important;
+    }
+    
+    .thumbnail-wrapper {
+      width: calc(33.33% - 1px) !important;
+    }
+    
+    .thumbnail-caption {
+      font-size: 8px;
+      margin-top: 1px;
+      line-height: 1;
+    }
+  }
+
+  /* 📱 iPhone 12 Pro Max, 13 Pro Max, 14 Plus/Pro Max, 15 Plus/Pro Max (szerokość ~428px) - 3 kolumny */
+  @media (min-width: 451px) and (orientation: landscape) {
+    .thumbnail {
+      width: 35px !important;
+      height: 35px !important;
+    }
+    
+    .thumbnail-wrapper {
+      width: calc(33.33% - 1px) !important;
+    }
+    
+    .thumbnail-caption {
+      font-size: 9px;
+      margin-top: 2px;
+      line-height: 1;
+    }
   }
 
   /* 🔧 3 ikonki w rzędzie na mobile */
@@ -1172,36 +1726,9 @@
     z-index: 2001 !important; /* 🔧 Nad toolbar */
   }
 
-  /* 🔧 Floating button - wysunięty z boku spod sidebara */
+  /* 🔧 Floating button - USUNIĘTY */
   #floating-toggle {
-    background: #007bff;
-    color: white;
-    font-size: 18px;
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    border: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 6px 16px rgba(0, 123, 255, 0.5);
-    position: fixed;
-    bottom: 80px; /* 🔧 Wyżej żeby nie nakładał się na elementy */
-    right: -22px; /* 🔧 Połowa ukryta za krawędzią */
-    z-index: 2002;
-    transition: all 0.3s ease;
-    cursor: pointer;
-    /* 🔧 Dodaj wskaźnik że można przesunąć */
-    border-left: 3px solid rgba(255,255,255,0.3);
-  }
-
-  #floating-toggle:hover {
-    right: 5px; /* 🔧 Wysuń na hover */
-    box-shadow: 0 8px 20px rgba(0, 123, 255, 0.6);
-  }
-
-  #floating-toggle:active {
-    transform: scale(0.95);
+    display: none !important;
   }
 
   /* 🔧 Pokaż przycisk toggle tylko na mobile */
@@ -1214,25 +1741,58 @@
     display: flex !important;
   }
 
-  /* 🌙 Dark mode na mobile */
+  /* 🌙 Dark mode na mobile - NAPRAWIONY */
   body.dark-mode #sidebar {
     background: #2d2d2d !important;
-    color: #e0e0e0;
+    color: #e0e0e0 !important;
+    border-left: 1px solid #444 !important;
   }
 
   body.dark-mode .control-section h3 {
-    color: #e0e0e0;
+    color: #e0e0e0 !important;
   }
 
   body.dark-mode .thumbnail-caption {
-    color: #b0b0b0;
+    color: #b0b0b0 !important;
+  }
+  
+  body.dark-mode .thumbnail {
+    background: #3a3a3a !important;
+    border-color: #555 !important;
+  }
+  
+  body.dark-mode #mobile-top-ui {
+    background: rgba(45, 45, 45, 0.95) !important;
+    color: #e0e0e0 !important;
+    border-bottom: 1px solid #444 !important;
+  }
+  
+  body.dark-mode #mobile-top-ui button {
+    background: #3a3a3a !important;
+    color: #e0e0e0 !important;
+  }
+  
+  body.dark-mode #mobile-top-ui button:hover {
+    background: #4a4a4a !important;
   }
 
-  #bottom-toolbar #qr-button {
+  /* 📱 UKRYJ BOTTOM TOOLBAR - zrobimy później */
+  #bottom-toolbar {
     display: none !important;
     visibility: hidden !important;
     opacity: 0 !important;
     pointer-events: none !important;
+  }
+  
+  /* 📱 POKAŻ MOBILE TOP UI NA LANDSCAPE */
+  /* 📱 UKRYJ MOBILE PANELE - używamy desktop layout */
+  #mobile-top-ui,
+  #mobile-chair-panel {
+    display: none !important;
+  }
+
+  #mobile-top-ui {
+    display: flex !important;
   }
 
   /* Ukryj dodatkowe przyciski w mobile - bezpośrednio po ID */
@@ -1409,20 +1969,7 @@
   }
 
   #config-overview {
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    width: 120px;
-    height: 100vh;
-    padding: 12px;
-    background: rgba(245,245,245,0.95);
-    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-    border-radius: 0 8px 8px 0;
-    z-index: 999;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
+    display: none !important; /* 🔧 Ukryj panel podsumowania na mobile na start */
   }
 
   #config-overview h2 {
@@ -1878,73 +2425,6 @@
 
 
 
-    /* 📱 MOBILE OPTIMIZATIONS */
-    @media (max-width: 768px) {
-      #sidebar {
-        width: 100% !important;
-        min-width: 100% !important;
-        max-width: 100% !important;
-        height: 40vh !important;
-        position: fixed !important;
-        bottom: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        border-radius: 20px 20px 0 0 !important;
-        z-index: 1000 !important;
-        padding: 20px 16px 16px 16px !important;
-        transform: translateY(100%);
-        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        overflow-y: auto;
-      }
-      
-      #sidebar.visible {
-        transform: translateY(0);
-      }
-      
-      #canvas {
-        width: 100% !important;
-        height: 60vh !important;
-        margin-right: 0 !important;
-      }
-      
-      .options-grid {
-        grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)) !important;
-        gap: 8px !important;
-      }
-      
-      .option {
-        padding: 6px !important;
-        font-size: 11px !important;
-      }
-      
-      .option img {
-        width: 40px !important;
-        height: 40px !important;
-      }
-      
-      /* Mobile toolbar */
-      .mobile-toolbar {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 50px;
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(10px);
-        z-index: 1001;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0 16px;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-      }
-      
-      body.dark-mode .mobile-toolbar {
-        background: rgba(45, 45, 45, 0.95);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      }
-    }
-    
     /* iOS specific styles */
     .ios-device #sidebar {
       padding-bottom: env(safe-area-inset-bottom, 16px) !important;
@@ -1980,17 +2460,6 @@
 
 <body>
 
-  <!-- 📱 MOBILE TOOLBAR -->
-  <div class="mobile-toolbar" id="mobile-toolbar" style="display: none;">
-    <div style="display: flex; align-items: center;">
-      <img src="icons/FK_Logo.jpg" alt="FK" style="width: 30px; height: 30px; border-radius: 4px; margin-right: 10px;">
-      <span style="font-weight: 600; font-size: 14px;">Konfigurator</span>
-    </div>
-    <button onclick="toggleMobileSidebar()" style="background: none; border: none; font-size: 20px; cursor: pointer; padding: 8px;">
-      🪑
-    </button>
-  </div>
-
   <div id="rotate-message">
     <div class="rotate-icon">↻</div>
     <p>Obróć urządzenie poziomo</p>
@@ -2019,6 +2488,23 @@
 
     <!-- 🌙 PRZYCISK DARK/LIGHT MODE - ZAWSZE WIDOCZNY W DOLNYM ROGU -->
     <button id="theme-toggle" title="Przełącz motyw">☽</button>
+
+    <!-- 📱 NOWY MOBILE SIDEBAR - tylko na mobile -->
+    <div id="mobile-sidebar" style="display: none;">
+      <div id="mobile-chairs-section">
+        <h3 style="display: none;">Krzesła</h3> <!-- 🔧 Ukryj napisy -->
+        <div id="mobile-chairs-grid">
+          <!-- Krzesła będą dodane przez JavaScript -->
+        </div>
+      </div>
+      
+      <div id="mobile-legs-section" style="display: none;">
+        <h3 style="display: none;">Nogi</h3> <!-- 🔧 Ukryj napisy -->
+        <div id="mobile-legs-grid">
+          <!-- Nogi będą dodane przez JavaScript -->
+        </div>
+      </div>
+    </div>
 
 <div id="material-preloader" style="display:none;">
   <div class="preloader-box">
@@ -2122,6 +2608,39 @@
   <div id="success-message" class="hidden">✅ Dziękujemy! Formularz został wysłany.</div>
 
 
+
+  <!-- 📱 MOBILE CHAIR PANEL - osobny panel z krzesłami -->
+  <div id="mobile-chair-panel" style="display: none;">
+    <div class="mobile-panel-header">
+      <h3>Wybierz krzesło</h3>
+    </div>
+    <div id="mobile-chair-grid" class="mobile-chair-grid">
+      <!-- Krzesła będą dodane przez JavaScript -->
+    </div>
+  </div>
+
+  <!-- 📱 MOBILE TOP UI -->
+  <div id="mobile-top-ui" style="display: none;">
+    <div class="ui-section">
+      <!-- Dark mode toggle -->
+      <button id="mobile-theme-toggle" title="Tryb ciemny">🌙</button>
+      
+      <!-- Brightness -->
+      <button id="mobile-brightness" title="Jasność">
+        <img src="icons/bulb_icon.png" alt="Jasność">
+      </button>
+      
+      <!-- AR -->
+      <button id="mobile-ar" title="AR">
+        <img src="icons/AR_icon.png" alt="AR">
+      </button>
+      
+      <!-- Dimensions -->
+      <button id="mobile-dimensions" title="Wymiary">
+        <img src="icons/dimmension_icon.png" alt="Wymiary">
+      </button>
+    </div>
+  </div>
 
   <!-- Dolny panel UI -->
   <div id="bottom-toolbar" style="display: none;">
@@ -2817,8 +3336,27 @@
       }
 
       try {
-        await loadDataFromSheet();
-        console.log('✅ Dane z arkusza załadowane');
+        // 📱 MOBILE: timeout dla loadDataFromSheet
+        if (window.isMobile) {
+          console.log('📱 Mobile: Krótszy timeout dla loadDataFromSheet');
+          
+          const loadDataPromise = loadDataFromSheet();
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Mobile timeout')), 3000)
+          );
+          
+          try {
+            await Promise.race([loadDataPromise, timeoutPromise]);
+            console.log('✅ Dane z arkusza załadowane (mobile)');
+          } catch (error) {
+            console.warn('⚠️ Mobile timeout - używam danych fallback:', error);
+            await useFallbackData();
+          }
+        } else {
+          // Desktop: normalny timeout
+          await loadDataFromSheet();
+          console.log('✅ Dane z arkusza załadowane');
+        }
         
         // 🔧 DODAJ FUNKCJE DEBUGOWANIA POZYCJI KAMERY DO KONSOLI
         window.getCameraPosition = function() {
@@ -2905,6 +3443,34 @@
         console.log('✅ Funkcje inicjalizacyjne zakończone');
       } catch (initError) {
         console.error('❌ Błąd funkcji inicjalizacyjnych:', initError);
+      }
+      
+      // 📱 DIAGNOZA LOADING SCREEN
+      console.log('🔍 DIAGNOZA LOADING SCREEN:');
+      const loader = document.getElementById('custom-loader');
+      const app = document.getElementById('app');
+      const welcomeScreen = document.getElementById('welcome-screen');
+      
+      console.log('🔍 Custom loader display:', loader ? getComputedStyle(loader).display : 'null');
+      console.log('🔍 App visibility:', app ? app.classList.contains('visible') : 'null');
+      console.log('🔍 Welcome screen display:', welcomeScreen ? getComputedStyle(welcomeScreen).display : 'null');
+      console.log('🔍 Is mobile:', window.isMobile);
+      console.log('🔍 Is iOS:', window.isIOS);
+      
+      // 📱 FORCE HIDE LOADER NA MOBILE
+      if (window.isMobile && loader) {
+        console.log('📱 Wymuszam ukrycie loading screen na mobile');
+        loader.style.display = 'none';
+        
+        if (app) {
+          app.classList.add('visible');
+          console.log('📱 App visible dodane');
+        }
+        
+        if (welcomeScreen) {
+          welcomeScreen.style.display = 'none';
+          console.log('📱 Welcome screen ukryty');
+        }
       }
     }
 
@@ -3614,9 +4180,18 @@ function applyMaterialToSpecificMesh(variant, meshKey) {
             });
           }
           const img = document.createElement('img');
-          // 🔧 Obsługa różnych nazw kolumn dla obrazków
-          const imageSrc = item.Obrazek || item.Image || item.icon || item.Icon || 'icons/placeholder.svg';
-          img.src = imageSrc && imageSrc.length > 4 ? imageSrc : 'icons/placeholder.svg';
+          // 🔧 iPhone fix - popraw ścieżki obrazków
+          let imageSrc = item.Obrazek || item.Image || item.icon || item.Icon || 'icons/placeholder.svg';
+          
+          // Normalizuj ścieżki dla iPhone
+          if (imageSrc.startsWith('./')) {
+            imageSrc = imageSrc.substring(2);
+          }
+          if (!imageSrc.startsWith('http') && !imageSrc.startsWith('/')) {
+            imageSrc = './' + imageSrc;
+          }
+          
+          img.src = imageSrc && imageSrc.length > 4 ? imageSrc : './icons/placeholder.svg';
           img.alt = item.Nazwa || item.Name || 'Bez nazwy';
           console.log(`🖼️ Tworzenie obrazka dla ${img.alt}: ${img.src}`);
           button.appendChild(img);
@@ -3938,6 +4513,76 @@ renderOptions('legs-thumbnails', legs, item => {
         `;
       }
       
+      
+      // 📱 FALLBACK DATA FUNCTION
+      async function useFallbackData() {
+        console.log('📱 Używam danych fallback dla mobile');
+        
+        window.allData = [
+          {
+            Nazwa: 'Amy-2',
+            Grupa: 'Krzesło',
+            Obrazek: './icons/chair_icon.png',
+            Cena: '299.00',
+            Visible: 'true'
+          },
+          {
+            Nazwa: 'Ava',
+            Grupa: 'Krzesło',
+            Obrazek: './icons/chair_icon.png',
+            Cena: '349.00',
+            Visible: 'true'
+          },
+          {
+            Nazwa: 'Carine',
+            Grupa: 'Krzesło',
+            Obrazek: './icons/chair_icon.png',
+            Cena: '399.00',
+            Visible: 'true'
+          },
+          {
+            Nazwa: 'Soul',
+            Grupa: 'Krzesło',
+            Obrazek: './icons/chair_icon.png',
+            Cena: '459.00',
+            Visible: 'true'
+          },
+          {
+            Nazwa: 'Tulla-2',
+            Grupa: 'Krzesło',
+            Obrazek: './icons/chair_icon.png',
+            Cena: '389.00',
+            Visible: 'true'
+          },
+          // Materiały
+          {
+            Nazwa: 'Brooklyn',
+            Grupa: 'Tkanina',
+            Obrazek: './icons/brooklyn.png',
+            Color: '#8B4513',
+            Visible: 'true'
+          },
+          {
+            Nazwa: 'Leo',
+            Grupa: 'Tkanina',
+            Obrazek: './icons/leo.png',
+            Color: '#2F4F4F',
+            Visible: 'true'
+          }
+        ];
+        
+        // Ustaw globalne dane
+        window.allData = window.allData;
+        console.log('✅ Fallback data załadowane:', window.allData.length, 'elementów');
+        
+        // Wywołaj funkcję która renderuje przyciski (jeśli istnieje)
+        if (typeof window.renderThumbnails === 'function') {
+          window.renderThumbnails();
+        } else {
+          console.log('📱 renderThumbnails nie istnieje - dane gotowe do użycia');
+        }
+      }
+
       async function loadDataFromSheet() {
         console.log('🍎 iPhone debug - ROZPOCZĘCIE loadDataFromSheet');
         console.log('🍎 iPhone debug - navigator.userAgent:', navigator.userAgent);
@@ -4040,7 +4685,91 @@ renderOptions('legs-thumbnails', legs, item => {
             console.log('📊 Dostępne grupy:', [...new Set(allData.map(d => d.Grupa).filter(Boolean))]);
           }
           
-          // 🪑 UTWÓRZ PRZYCISKI KRZESEŁ (prosta metoda)
+          // 📱 MOBILE SIDEBAR - tylko dla mobile landscape
+          const mobileChairsGrid = document.getElementById('mobile-chairs-grid');
+          const mobileSidebar = document.getElementById('mobile-sidebar');
+          
+          // 🔧 ZAWSZE POKAŻ NA MOBILE LANDSCAPE (bez składanych warunków)
+          const isMobile = window.innerWidth <= 820 && window.innerWidth > window.innerHeight;
+          
+          console.log('📱 Mobile sidebar check:', {
+            width: window.innerWidth,
+            height: window.innerHeight,
+            isMobile,
+            mobileChairsGrid: !!mobileChairsGrid,
+            mobileSidebar: !!mobileSidebar
+          });
+          
+          if (isMobile && mobileChairsGrid && mobileSidebar) {
+            console.log('📱 SHOWING MOBILE SIDEBAR');
+            
+            // 🔧 POKAŻ MOBILE SIDEBAR
+            mobileSidebar.style.display = 'block';
+            
+            // 🔧 POPULUJ KRZESŁA
+            mobileChairsGrid.innerHTML = ''; // Wyczyść
+            
+            if (mainModels.length > 0) {
+              mainModels.forEach((model, index) => {
+                const chairItem = document.createElement('div');
+                chairItem.className = 'mobile-chair-item';
+                
+                // Obrazek
+                let imagePath = model.Obrazek || model.Image || './icons/chair_icon.png';
+                if (imagePath.startsWith('./')) imagePath = imagePath.substring(2);
+                if (!imagePath.startsWith('http') && !imagePath.startsWith('/')) imagePath = './' + imagePath;
+                
+                chairItem.innerHTML = `<img src="${imagePath}" alt="${model.Nazwa}" onerror="this.src='./icons/chair_icon.png';">`;
+                
+                // Klik
+                chairItem.onclick = () => {
+                  document.querySelectorAll('.mobile-chair-item').forEach(item => item.classList.remove('selected'));
+                  chairItem.classList.add('selected');
+                  loadModel(model);
+                };
+                
+                mobileChairsGrid.appendChild(chairItem);
+              });
+              console.log('📱 Mobile sidebar populated with', mainModels.length, 'chairs');
+            }
+          } else {
+            console.log('📱 Mobile sidebar HIDDEN (not mobile or missing elements)');
+          }
+
+          // 📱 MOBILE LEGS - tylko dla mobile
+          const mobileLegsGrid = document.getElementById('mobile-legs-grid');
+          const mobileLegsSection = document.getElementById('mobile-legs-section');
+          
+          if (isMobile && mobileLegsGrid) {
+            const legModels = allData.filter(d => d.Grupa && d.Grupa.toLowerCase() === 'nogi');
+            
+            if (legModels.length > 0) {
+              mobileLegsGrid.innerHTML = '';
+              
+              legModels.forEach((leg) => {
+                const legItem = document.createElement('div');
+                legItem.className = 'mobile-leg-item';
+                
+                let imagePath = leg.Obrazek || leg.Image || './icons/legs_icon.png';
+                if (imagePath.startsWith('./')) imagePath = imagePath.substring(2);
+                if (!imagePath.startsWith('http') && !imagePath.startsWith('/')) imagePath = './' + imagePath;
+                
+                legItem.innerHTML = `<img src="${imagePath}" alt="${leg.Nazwa}" onerror="this.src='./icons/legs_icon.png';">`;
+                
+                legItem.onclick = () => {
+                  document.querySelectorAll('.mobile-leg-item').forEach(item => item.classList.remove('selected'));
+                  legItem.classList.add('selected');
+                  if (typeof setLegModel === 'function') setLegModel(leg);
+                };
+                
+                mobileLegsGrid.appendChild(legItem);
+              });
+              
+              console.log('📱 Mobile legs populated');
+            }
+          }
+          
+          // 🪑 FALLBACK: Stary sidebar dla desktop lub gdy mobile panel nie działa
           const modelContainer = document.getElementById('model-thumbnails');
           console.log('🍎 iPhone debug - model container:', modelContainer);
           if (modelContainer) {
@@ -4056,11 +4785,26 @@ renderOptions('legs-thumbnails', legs, item => {
                 try {
                   const button = document.createElement('div');
                   button.className = 'thumbnail-wrapper';
+                  
+                  // 📱 IPHONE FIX - bezwzględne ścieżki obrazów
+                  let imagePath = model.Obrazek || model.Image || 'icons/placeholder.svg';
+                  
+                  // Popraw ścieżki dla iPhone
+                  if (imagePath.startsWith('./')) {
+                    imagePath = imagePath.substring(2); // Usuń ./
+                  }
+                  if (!imagePath.startsWith('http') && !imagePath.startsWith('/')) {
+                    imagePath = './' + imagePath; // Dodaj ./
+                  }
+                  
+                  console.log(`🖼️ iPhone fix - obraz dla ${model.Nazwa}:`, imagePath);
+                  
                   button.innerHTML = `
                     <div class="thumbnail" title="${model.Nazwa || 'Krzesło'}">
-                      <img src="${model.Obrazek || model.Image || 'icons/placeholder.svg'}" 
+                      <img src="${imagePath}" 
                            alt="${model.Nazwa || 'Krzesło'}" 
-                           onerror="this.src='icons/placeholder.svg'">
+                           onerror="console.log('❌ iPhone błąd:', this.src); this.src='icons/chair_icon.png';"
+                           onload="console.log('✅ iPhone OK:', this.alt, this.src);">
                     </div>
                     <div class="thumbnail-caption">${model.Nazwa || 'Krzesło'}</div>
                   `;
@@ -4282,8 +5026,9 @@ renderOptions('legs-thumbnails', legs, item => {
           return;
         }
         panel.classList.toggle('hidden');
-        document.getElementById('hdr-panel').style.display = 'block';
-
+        if (!panel.classList.contains('hidden')) {
+          panel.style.display = 'block';
+        }
       });
 
       // 🔧 MOBILE: Nowy system wysuwania bottom-toolbar z gesture detection
@@ -5488,38 +6233,70 @@ if (hdrToggle && brightnessControl) {
         }
       }
 
-      // 📱 MOBILE FUNCTIONS
-      function toggleMobileSidebar() {
-        const sidebar = document.getElementById('sidebar');
-        if (sidebar) {
-          sidebar.classList.toggle('visible');
-        }
-      }
-
       // 📱 MOBILE INITIALIZATION
       function initMobileExperience() {
         console.log('📱 Inicjalizacja mobile experience');
         
-        // Pokaż mobile toolbar na małych ekranach
+        // Na mobile od razu pokaż app bez loading screen
         if (window.isSmallScreen || window.isMobile) {
-          const toolbar = document.getElementById('mobile-toolbar');
-          if (toolbar) {
-            toolbar.style.display = 'flex';
+          console.log('📱 Mobile: Pomijam loading screen');
+          hideWelcomeScreenAndShowApp();
+          
+          // 📱 MOBILE UI - WYŁĄCZONE (używamy desktop layout)
+          const mobileTopUI = document.getElementById('mobile-top-ui');
+          if (false && mobileTopUI) { // 🔧 WYŁĄCZONE
+            console.log('📱 Mobile UI wyłączone - używamy desktop layout');
           }
           
-          // Dostosuj canvas top margin dla toolbar
-          const canvas = document.getElementById('canvas');
-          if (canvas) {
-            canvas.style.marginTop = '50px';
-            canvas.style.height = 'calc(100vh - 50px)';
+          // 📱 MOBILE CHAIR PANEL - WYŁĄCZONY
+          const mobileChairPanel = document.getElementById('mobile-chair-panel');
+          if (false && mobileChairPanel) { // 🔧 WYŁĄCZONE
+            console.log('📱 Mobile chair panel wyłączony');
           }
           
-          // Na mobile nie pokazuj welcome screen na długo
-          setTimeout(() => {
-            if (window.isMobile) {
-              hideWelcomeScreenAndShowApp();
-            }
-          }, 1000); // Krótszy timeout dla mobile
+          // 📱 Podłącz eventy do mobile UI
+          setupMobileTopUI();
+        }
+      }
+      
+      // 📱 SETUP MOBILE TOP UI
+      function setupMobileTopUI() {
+        console.log('📱 Konfiguracja mobile top UI');
+        
+        // Dark mode toggle
+        const mobileThemeToggle = document.getElementById('mobile-theme-toggle');
+        if (mobileThemeToggle) {
+          mobileThemeToggle.onclick = () => {
+            document.body.classList.toggle('dark-mode');
+            console.log('📱 Dark mode toggled');
+          };
+        }
+        
+        // Brightness
+        const mobileBrightness = document.getElementById('mobile-brightness');
+        if (mobileBrightness) {
+          mobileBrightness.onclick = () => {
+            const hdrButton = document.getElementById('hdr-toggle');
+            if (hdrButton) hdrButton.click();
+          };
+        }
+        
+        // AR
+        const mobileAR = document.getElementById('mobile-ar');
+        if (mobileAR) {
+          mobileAR.onclick = () => {
+            const arButton = document.getElementById('ar-button');
+            if (arButton) arButton.click();
+          };
+        }
+        
+        // Dimensions
+        const mobileDimensions = document.getElementById('mobile-dimensions');
+        if (mobileDimensions) {
+          mobileDimensions.onclick = () => {
+            const dimButton = document.getElementById('dimensions-show');
+            if (dimButton) dimButton.click();
+          };
         }
       }
       
@@ -5564,8 +6341,62 @@ if (hdrToggle && brightnessControl) {
       
       console.log('📱 Dostępne debug functions:');
       console.log('🔍 checkFormats() - sprawdź dostępne formaty modeli');
-      console.log('📱 iOS detection:', window.isIOS);
+      console.log('� debugAppState() - sprawdź stan aplikacji');
+      console.log('�📱 iOS detection:', window.isIOS);
       console.log('📱 Mobile detection:', window.isMobile);
+      
+      // 🔍 DEBUG APP STATE FUNCTION
+      window.debugAppState = function() {
+        console.log('=== 🔍 DEBUG APP STATE ===');
+        
+        const loader = document.getElementById('custom-loader');
+        const app = document.getElementById('app');
+        const welcomeScreen = document.getElementById('welcome-screen');
+        const sidebar = document.getElementById('sidebar');
+        const canvas = document.getElementById('canvas');
+        
+        console.log('🔍 Loader:', {
+          exists: !!loader,
+          display: loader ? getComputedStyle(loader).display : 'null',
+          visible: loader ? !loader.classList.contains('hidden') : 'null'
+        });
+        
+        console.log('🔍 App:', {
+          exists: !!app,
+          visible: app ? app.classList.contains('visible') : 'null',
+          display: app ? getComputedStyle(app).display : 'null'
+        });
+        
+        console.log('🔍 Welcome Screen:', {
+          exists: !!welcomeScreen,
+          display: welcomeScreen ? getComputedStyle(welcomeScreen).display : 'null',
+          hidden: welcomeScreen ? welcomeScreen.classList.contains('hidden') : 'null'
+        });
+        
+        console.log('🔍 Canvas:', {
+          exists: !!canvas,
+          display: canvas ? getComputedStyle(canvas).display : 'null'
+        });
+        
+        console.log('🔍 Sidebar:', {
+          exists: !!sidebar,
+          visible: sidebar ? sidebar.classList.contains('visible') : 'null'
+        });
+        
+        console.log('🔍 Data:', {
+          allData: !!window.allData,
+          count: window.allData ? window.allData.length : 0,
+          viewer: !!window.viewer
+        });
+        
+        return {
+          loader: !!loader && getComputedStyle(loader).display !== 'none',
+          app: !!app && app.classList.contains('visible'),
+          welcomeScreen: !!welcomeScreen && getComputedStyle(welcomeScreen).display !== 'none',
+          canvas: !!canvas && getComputedStyle(canvas).display !== 'none',
+          dataLoaded: !!window.allData && window.allData.length > 0
+        };
+      };
 
 
 
