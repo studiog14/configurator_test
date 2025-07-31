@@ -2563,6 +2563,20 @@
         `;
         return;
       }
+      
+      // ✅ WYWOŁAJ FUNKCJE INICJALIZACYJNE NA KOŃCU
+      try {
+        console.log('🔧 Wywołuję funkcje inicjalizacyjne...');
+        if (typeof setDefaultMaterialsFromSheet === 'function') {
+          setDefaultMaterialsFromSheet();
+        }
+        if (typeof updateSummary === 'function') {
+          updateSummary();
+        }
+        console.log('✅ Funkcje inicjalizacyjne zakończone');
+      } catch (initError) {
+        console.error('❌ Błąd funkcji inicjalizacyjnych:', initError);
+      }
     }
 
     function setCameraView(targetPosition) {
@@ -3893,6 +3907,10 @@ renderOptions('legs-thumbnails', legs, item => {
       document.getElementById('hdr-toggle')?.addEventListener('click', (e) => {
         e.stopPropagation();
         const panel = document.getElementById('hdr-panel');
+        if (!panel) {
+          console.warn('⚠️ Element hdr-panel nie istnieje');
+          return;
+        }
         panel.classList.toggle('hidden');
         document.getElementById('hdr-panel').style.display = 'block';
 
@@ -3923,9 +3941,6 @@ renderOptions('legs-thumbnails', legs, item => {
         toggleBtn.style.display = 'none';
       });
 
-
-setDefaultMaterialsFromSheet();
-updateSummary();
 
 // 🌙 DARK/LIGHT MODE FUNCTIONALITY - PRAWDZIWE CZARNO-BIAŁE IKONY
 function initThemeToggle() {
@@ -4177,7 +4192,10 @@ if (Array.isArray(mats)) {
 
       function renderHDROptions(entries) {
         const container = document.getElementById('hdr-options');
-        if (!container) return;
+        if (!container) {
+          console.warn('⚠️ Element hdr-options nie istnieje - pomijam renderowanie HDR');
+          return;
+        }
         container.innerHTML = '';
 
         entries.forEach(entry => {
@@ -4863,9 +4881,9 @@ window.addEventListener('DOMContentLoaded', () => {
 
 
 function setDefaultMaterialsFromSheet() {
-  if (!Array.isArray(allData) || !window.selectedChair || !selectedChair.Nazwa) return;
+  if (!Array.isArray(allData) || !window.selectedChair || !window.selectedChair.Nazwa) return;
 
-  const modelName = selectedChair.Nazwa.trim().toLowerCase();
+  const modelName = window.selectedChair.Nazwa.trim().toLowerCase();
   if (typeof window.selectedMaterials !== 'object') window.selectedMaterials = {};
 
   allData.forEach(row => {
@@ -4954,88 +4972,119 @@ if (hdrToggle && brightnessControl) {
 
 
 
-      console.log('🍎 iPhone debug - WYWOŁANIE INIT()');
+      console.log('🍎 iPhone debug - OCZEKIWANIE NA DOM...');
       console.log('🍎 iPhone debug - DOM ready state:', document.readyState);
-      console.log('🍎 iPhone debug - Window loaded:', document.readyState === 'complete');
-      init();
-
-    
-
-
-
-      // Rejestracja Service Workera
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('service-worker.js')
-          .then(() => console.log('Service Worker registered'))
-          .catch(err => console.error('SW registration failed:', err));
-      }
-
-      // Pokaż/ukryj popup
-      const emailModal = document.getElementById('emailModal');
-      const closeBtn = emailModal.querySelector('.close-button');
-      const buyButton = document.getElementById('buy-button');
-      const emailForm = document.getElementById('emailForm');
-      const successMessage = document.getElementById('success-message');
-
-      buyButton.addEventListener('click', () => {
-        emailModal.classList.remove('hidden');
-        emailModal.classList.add('visible');
-        successMessage.classList.remove('visible'); // ukryj komunikat na otwarciu
-        successMessage.classList.add('hidden');
-      });
-
-      closeBtn.addEventListener('click', () => {
-        emailModal.classList.remove('visible');
-        emailModal.classList.add('hidden');
-      });
-
-      emailModal.addEventListener('click', (e) => {
-        if (e.target === emailModal) {
-          emailModal.classList.remove('visible');
-          emailModal.classList.add('hidden');
-        }
-      });
-
-      emailForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-
-        // Tutaj wysyłka danych formularza (jeśli masz backend)
-        // Można dodać fetch lub EmailJS
-
-        // Po wysłaniu:
-        emailModal.classList.remove('visible');
-        emailModal.classList.add('hidden');
-
-        successMessage.classList.remove('hidden');
-        successMessage.classList.add('visible');
-
-        setTimeout(() => {
-          successMessage.classList.remove('visible');
-          successMessage.classList.add('hidden');
-        }, 3000);
-
-        emailForm.reset(); // wyczyść formularz
-      });
-
-
-      const btn = document.getElementById('dimensions-show');
-      if (btn) {
-        btn.onclick = (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          console.log("📐 Kliknięto przycisk wymiarów");
-          toggleDimensions();
-        };
-      }
-
-
-      // Po inicjalizacji (czyli gdy masz już modele i przyciski):
-      document.querySelectorAll(".export-btn").forEach(button => {
-        button.addEventListener("click", () => {
-          const format = button.getAttribute("data-format");
-          handleExport(format);
+      
+      // ✅ WŁAŚCIWE WYWOŁANIE INIT() PO ZAŁADOWANIU DOM
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+          console.log('🍎 iPhone debug - DOM LOADED - WYWOŁANIE INIT()');
+          init();
+          initEventListeners(); // ✅ Wywołaj po załadowaniu DOM
         });
-      });
+      } else {
+        console.log('🍎 iPhone debug - DOM JUŻ GOTOWY - WYWOŁANIE INIT()');
+        init();
+        initEventListeners(); // ✅ Wywołaj po załadowaniu DOM
+      }
+
+      // ✅ FUNKCJA INICJALIZUJĄCA EVENT LISTENERY
+      function initEventListeners() {
+        try {
+          // Rejestracja Service Workera
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js')
+              .then(() => console.log('Service Worker registered'))
+              .catch(err => console.error('SW registration failed:', err));
+          }
+
+          // Pokaż/ukryj popup
+          const emailModal = document.getElementById('emailModal');
+          const closeBtn = emailModal?.querySelector('.close-button');
+          const buyButton = document.getElementById('buy-button');
+          const emailForm = document.getElementById('emailForm');
+          const successMessage = document.getElementById('success-message');
+
+          if (buyButton) {
+            buyButton.addEventListener('click', () => {
+              if (emailModal) {
+                emailModal.classList.remove('hidden');
+                emailModal.classList.add('visible');
+              }
+              if (successMessage) {
+                successMessage.classList.remove('visible');
+                successMessage.classList.add('hidden');
+              }
+            });
+          }
+
+          if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+              if (emailModal) {
+                emailModal.classList.remove('visible');
+                emailModal.classList.add('hidden');
+              }
+            });
+          }
+
+          if (emailModal) {
+            emailModal.addEventListener('click', (e) => {
+              if (e.target === emailModal) {
+                emailModal.classList.remove('visible');
+                emailModal.classList.add('hidden');
+              }
+            });
+          }
+
+          if (emailForm) {
+            emailForm.addEventListener('submit', (e) => {
+              e.preventDefault();
+
+              // Tutaj wysyłka danych formularza (jeśli masz backend)
+              // Można dodać fetch lub EmailJS
+
+              // Po wysłaniu:
+              if (emailModal) {
+                emailModal.classList.remove('visible');
+                emailModal.classList.add('hidden');
+              }
+
+              if (successMessage) {
+                successMessage.classList.remove('hidden');
+                successMessage.classList.add('visible');
+
+                setTimeout(() => {
+                  successMessage.classList.remove('visible');
+                  successMessage.classList.add('hidden');
+                }, 3000);
+              }
+
+              emailForm.reset(); // wyczyść formularz
+            });
+          }
+
+          const btn = document.getElementById('dimensions-show');
+          if (btn) {
+            btn.onclick = (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              console.log("📐 Kliknięto przycisk wymiarów");
+              toggleDimensions();
+            };
+          }
+
+          // Po inicjalizacji (czyli gdy masz już modele i przyciski):
+          document.querySelectorAll(".export-btn").forEach(button => {
+            button.addEventListener("click", () => {
+              const format = button.getAttribute("data-format");
+              handleExport(format);
+            });
+          });
+
+        } catch (error) {
+          console.error('❌ Błąd inicjalizacji event listenerów:', error);
+        }
+      }
 
 
 
