@@ -1,0 +1,499 @@
+/* 🎨 CONFIGURATOR STYLES */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f5f5f5;
+    color: #333;
+    overflow: hidden;
+}
+
+/* 🔄 LOADER STYLES */
+#custom-loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    transition: opacity 0.5s ease;
+}
+
+/* 📱 ORIENTATION WARNING */
+#orientation-warning {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #2c3e50;
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    padding: 20px;
+    text-align: center;
+}
+
+#orientation-warning .rotate-icon {
+    font-size: 60px;
+    margin-bottom: 20px;
+    animation: phoneRotate 2s ease-in-out infinite;
+}
+
+@keyframes phoneRotate {
+    0% { 
+        transform: rotate(0deg);
+    }
+    50% { 
+        transform: rotate(90deg);
+    }
+    100% { 
+        transform: rotate(0deg);
+    }
+}
+
+#orientation-warning h2 {
+    font-size: 24px;
+    color: #ffffff;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+#orientation-warning p {
+    font-size: 16px;
+    color: #ecf0f1;
+    line-height: 1.5;
+    max-width: 300px;
+}
+
+#app {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+    position: relative;
+    visibility: hidden;
+    opacity: 0;
+}
+
+#app.visible {
+    visibility: visible;
+    opacity: 1;
+    transition: opacity 0.5s ease;
+}
+
+/* 🖥️ CANVAS */
+#canvas {
+    flex: 1;
+    width: calc(100vw - 350px);
+    height: 100%;
+    background: #f0f0f0;
+    position: relative;
+    display: block;
+    outline: none;
+}
+
+/* 🎯 WELCOME SCREEN */
+#welcome-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 350px;
+    height: 100%;
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+    transition: opacity 0.5s ease;
+}
+
+#welcome-screen.hidden {
+    opacity: 0;
+    pointer-events: none;
+    display: none;
+}
+
+#welcome-screen h1 {
+    font-size: 2em;
+    color: #000;
+    margin-bottom: 20px;
+    text-align: center;
+    font-weight: 300;
+}
+
+#welcome-screen p {
+    font-size: 1.2em;
+    color: #666;
+    text-align: center;
+    margin-bottom: 40px;
+    max-width: 400px;
+    line-height: 1.6;
+}
+
+#welcome-logo {
+    width: 200px;
+    height: auto;
+    margin-bottom: 30px;
+    opacity: 0.9;
+    border-radius: 10px;
+    animation: logoPulse 3s ease-in-out infinite;
+}
+
+/* 📱 SIDEBAR */
+#sidebar {
+    width: 350px;
+    background: #fff;
+    color: #333;
+    border-left: 1px solid #e0e0e0;
+    box-shadow: 0 4px 32px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    overflow-y: auto;
+}
+
+/* 🔍 SEARCH */
+.search-container {
+    margin-bottom: 20px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+    background: #fff;
+    color: #333;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #FFD700;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+.search-input::placeholder {
+    color: #999;
+}
+
+/* 🏷️ CATEGORIES */
+.categories {
+    margin-bottom: 20px;
+}
+
+.category-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: space-between;
+}
+
+.category-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 8px;
+    border: 2px solid #333;
+    border-radius: 8px;
+    background: #fff;
+    color: #333;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex: 1;
+    min-width: 0;
+    position: relative;
+}
+
+.category-btn:hover {
+    border-color: #666;
+    background: #f5f5f5;
+    color: #333;
+    transform: translateY(-1px);
+}
+
+.category-btn.active {
+    border-color: #FFD700;
+    background: #fff;
+    color: #333;
+}
+
+.category-icon {
+    width: 32px;
+    height: 32px;
+    margin-bottom: 6px;
+}
+
+.category-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: brightness(0);
+}
+
+.category-btn:hover .category-icon img,
+.category-btn.active .category-icon img {
+    filter: brightness(0);
+}
+
+.category-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-align: center;
+    line-height: 1.2;
+}
+
+/* 🪑 CHAIRS GRID */
+.chairs-section {
+    margin-bottom: 20px;
+}
+
+.chairs-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.chair-item {
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: #fff;
+}
+
+.chair-item:hover {
+    border-color: #666;
+    background: #f5f5f5;
+    color: #333;
+}
+
+.chair-item.selected {
+    border-color: #FFD700;
+    background: #fff;
+    color: #333;
+}
+
+.chair-item img {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    margin-bottom: 5px;
+    filter: brightness(0);
+}
+
+.chair-item:hover img,
+.chair-item.selected img {
+    filter: brightness(0);
+}
+
+.chair-name {
+    font-size: 11px;
+    font-weight: 600;
+}
+
+/* 🔧 THUMBNAIL STYLES */
+.thumbnail-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.thumbnail {
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 80px;
+}
+
+.thumbnail:hover {
+    border-color: #666;
+    background: #f5f5f5;
+    transform: scale(1.05);
+}
+
+.thumbnail.selected {
+    border-color: #FFD700;
+    background: #fff;
+}
+
+.thumbnail img {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    filter: brightness(0);
+}
+
+.thumbnail:hover img,
+.thumbnail.selected img {
+    filter: brightness(0);
+}
+
+.thumbnail-caption {
+    font-size: 11px;
+    font-weight: 600;
+    text-align: center;
+    margin-top: 5px;
+    color: #333;
+}
+
+.thumbnail:hover .thumbnail-caption,
+.thumbnail.selected .thumbnail-caption {
+    color: #333;
+}
+
+/* 📱 MOBILE RESPONSIVE - tylko landscape (poziomo) */
+@media (max-width: 820px) and (orientation: landscape) {
+    #app {
+        flex-direction: column;
+    }
+    
+    #sidebar {
+        width: 100%;
+        height: 40vh;
+        order: 2;
+        border-left: none;
+        border-top: 1px solid #e0e0e0;
+    }
+    
+    #canvas {
+        order: 1;
+        height: 60vh;
+        width: 100%;
+    }
+    
+    #welcome-screen {
+        right: 0;
+        z-index: 60;
+    }
+    
+    #welcome-screen h1 {
+        font-size: 1.4em;
+        margin-bottom: 8px;
+    }
+    
+    #welcome-screen p {
+        font-size: 0.8em;
+        margin-bottom: 15px;
+        padding: 0 8px;
+    }
+    
+    #welcome-logo {
+        width: 100px;
+        margin-bottom: 15px;
+    }
+    
+    .category-grid {
+        flex-direction: column;
+        gap: 6px;
+    }
+    
+    .category-btn {
+        flex-direction: row;
+        padding: 8px 12px;
+        justify-content: flex-start;
+    }
+    
+    .category-icon {
+        width: 24px;
+        height: 24px;
+        margin-bottom: 0;
+        margin-right: 8px;
+    }
+    
+    .category-label {
+        font-size: 10px;
+        text-align: left;
+    }
+    
+    .chairs-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+    }
+    
+    .chair-item {
+        padding: 8px;
+    }
+    
+    .chair-item img {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .chair-name {
+        font-size: 9px;
+    }
+    
+    .thumbnail {
+        min-height: 60px;
+        padding: 6px;
+    }
+    
+    .thumbnail img {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .thumbnail-caption {
+        font-size: 9px;
+        margin-top: 3px;
+    }
+}
+
+/* 📱 MOBILE PORTRAIT - ukryj app, pokaż orientation warning */
+@media (max-width: 820px) and (orientation: portrait) {
+    #app {
+        display: none !important;
+    }
+    
+    #custom-loader {
+        display: none !important;
+    }
+    
+    #orientation-warning {
+        display: flex !important;
+    }
+}
+
+/* 🎬 LOADER ANIMATIONS */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes progressSlide {
+    0% { transform: translateX(-100%); }
+    50% { transform: translateX(0%); }
+    100% { transform: translateX(100%); }
+}
+
+@keyframes logoPulse {
+    0%, 100% { 
+        opacity: 0.8;
+        transform: scale(1);
+    }
+    50% { 
+        opacity: 1;
+        transform: scale(1.05);
+    }
+}

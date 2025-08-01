@@ -1,15 +1,13 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FK Configurator - Nowy</title>
+    <title>FK Configurator - React Three Fiber</title>
     <link rel="icon" href="icons/favicon.png" type="image/jpeg" />
+    <link rel="stylesheet" href="style.css" />
     
-    <!-- đź“± Preload dla iOS - tylko logo (HDR Ĺ‚adowany pĂłĹşniej) -->
-    <link rel="preload" href="icons/FK_logo.png" as="image" type="image/png">
-    
-    <!-- đź“± DEVICE DETECTION -->
+    <!-- 📱 DEVICE DETECTION -->
     <script>
         window.isMobile = /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         window.isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
@@ -17,25 +15,25 @@
         window.screenWidth = window.screen.width;
         window.isSmallScreen = window.screenWidth <= 768;
         
-        console.log('đź”Ť Device detection:', {
+        console.log('🔍 Device detection:', {
             isMobile: window.isMobile,
             isIOS: window.isIOS,
             screenWidth: window.screenWidth
         });
         
-        // đź“± ORIENTATION CHECK - poprawiona logika
+        // 📱 ORIENTATION CHECK - poprawiona logika
         function checkOrientation() {
             const orientationWarning = document.getElementById('orientation-warning');
             const app = document.getElementById('app');
             const loader = document.getElementById('custom-loader');
             
-            // SprawdĹş czy to mobile/tablet
+            // Sprawdź czy to mobile/tablet
             if (window.isMobile || window.isSmallScreen) {
-                // SprawdĹş orientacjÄ™
+                // Sprawdź orientację
                 const isPortrait = window.innerHeight > window.innerWidth;
                 
                 if (isPortrait) {
-                    // UrzÄ…dzenie w pionie - pokaĹĽ ostrzeĹĽenie
+                    // Urządzenie w pionie - pokaż ostrzeżenie
                     if (orientationWarning) {
                         orientationWarning.style.display = 'flex';
                     }
@@ -46,14 +44,14 @@
                         loader.style.display = 'none';
                     }
                 } else {
-                    // UrzÄ…dzenie w poziomie - ukryj ostrzeĹĽenie
+                    // Urządzenie w poziomie - ukryj ostrzeżenie
                     if (orientationWarning) {
                         orientationWarning.style.display = 'none';
                     }
                     if (app) {
                         app.style.display = 'flex';
                     }
-                    // Loader bÄ™dzie zarzÄ…dzany przez gĹ‚ĂłwnÄ… logikÄ™
+                    // Loader będzie zarządzany przez główną logikę
                 }
             } else {
                 // Desktop - zawsze ukryj orientation warning
@@ -66,520 +64,44 @@
             }
         }
         
-        // SprawdĹş orientacjÄ™ przy Ĺ‚adowaniu i przy obrocie
+        // Sprawdź orientację przy ładowaniu i przy obrocie
         document.addEventListener('DOMContentLoaded', checkOrientation);
         window.addEventListener('orientationchange', () => {
-            setTimeout(checkOrientation, 100); // MaĹ‚e opĂłĹşnienie na zmianÄ™ orientacji
+            setTimeout(checkOrientation, 100); // Małe opóźnienie na zmianę orientacji
         });
         window.addEventListener('resize', checkOrientation);
     </script>
     
-    <!-- đźŽ¬ THREE.JS IMPORTS - tylko Three.js bez ThreePipe -->
+    <!-- 🎬 REACT THREE FIBER + DREI IMPORTS - ESM.SH stabilne CDN -->
     <script type="importmap">
     {
       "imports": {
-        "three": "https://cdn.jsdelivr.net/npm/three@0.155.0/build/three.module.js",
-        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.155.0/examples/jsm/"
+        "react": "https://esm.sh/react@18.2.0",
+        "react-dom": "https://esm.sh/react-dom@18.2.0",
+        "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+        "three": "https://esm.sh/three@0.154.0",
+        "@react-three/fiber": "https://esm.sh/@react-three/fiber@8.13.0",
+        "@react-three/drei": "https://esm.sh/@react-three/drei@9.79.0"
       }
     }
     </script>
-    
-    <!-- đźŽ¨ PODSTAWOWE STYLE -->
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: Arial, sans-serif;
-            background: #f5f5f5;
-            color: #333;
-            overflow: hidden;
-        }
-        
-        /* đź”„ LOADER STYLES */
-        #custom-loader {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #ffffff;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            transition: opacity 0.5s ease;
-        }
-        
-        /* đź“± ORIENTATION WARNING */
-        #orientation-warning {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #2c3e50;
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 10000;
-            padding: 20px;
-            text-align: center;
-        }
-        
-        #orientation-warning .rotate-icon {
-            font-size: 60px;
-            margin-bottom: 20px;
-            animation: phoneRotate 2s ease-in-out infinite;
-        }
-        
-        #orientation-warning h2 {
-            font-size: 24px;
-            color: #ffffff;
-            margin-bottom: 15px;
-            font-weight: 600;
-        }
-        
-        #orientation-warning p {
-            font-size: 16px;
-            color: #ecf0f1;
-            line-height: 1.5;
-            max-width: 300px;
-        }
-        
-        #app {
-            display: flex;
-            height: 100vh;
-            width: 100vw;
-            position: relative;
-            visibility: hidden;
-            opacity: 0;
-        }
-
-        #app.visible {
-            visibility: visible;
-            opacity: 1;
-            transition: opacity 0.5s ease;
-        }
-        
-        /* đź–Ąď¸Ź CANVAS */
-        #canvas {
-            flex: 1;
-            width: calc(100vw - 350px);
-            height: 100%;
-            background: #f0f0f0;
-            position: relative;
-            display: block;
-            outline: none;
-            cursor: grab;
-        }
-        
-        #canvas:active {
-            cursor: grabbing;
-        }
-        
-        #viewer-canvas {
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
-        
-        /* đźŽŻ WELCOME SCREEN */
-        #welcome-screen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 350px;
-            height: 100%;
-            background: #ffffff;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 50;
-            transition: opacity 0.5s ease;
-        }
-        
-        #welcome-screen.hidden {
-            opacity: 0;
-            pointer-events: none;
-            display: none;
-        }
-        
-        #welcome-screen h1 {
-            font-size: 2em;
-            color: #000;
-            margin-bottom: 20px;
-            text-align: center;
-            font-weight: 300;
-        }
-        
-        #welcome-screen p {
-            font-size: 1.2em;
-            color: #666;
-            text-align: center;
-            margin-bottom: 40px;
-            max-width: 400px;
-            line-height: 1.6;
-        }
-        
-        #welcome-logo {
-            width: 200px;
-            height: auto;
-            margin-bottom: 30px;
-            opacity: 0.9;
-            border-radius: 10px;
-            animation: logoPulse 3s ease-in-out infinite;
-        }
-        
-        /* đź“± SIDEBAR */
-        #sidebar {
-            width: 350px;
-            background: #fff;
-            color: #333;
-            border-left: 1px solid #e0e0e0;
-            box-shadow: 0 4px 32px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            overflow-y: auto;
-        }
-        
-        /* đź”Ť SEARCH */
-        .search-container {
-            margin-bottom: 20px;
-        }
-        
-        .search-input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 14px;
-            background: #fff;
-            color: #333;
-        }
-        
-        .search-input:focus {
-            outline: none;
-            border-color: #FFD700;
-            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
-        }
-        
-        .search-input::placeholder {
-            color: #999;
-        }
-        
-        /* đźŹ·ď¸Ź CATEGORIES */
-        .categories {
-            margin-bottom: 20px;
-        }
-        
-        .category-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            justify-content: space-between;
-        }
-        
-        .category-btn {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 12px 8px;
-            border: 2px solid #333;
-            border-radius: 8px;
-            background: #fff;
-            color: #333;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            flex: 1;
-            min-width: 0;
-            position: relative;
-        }
-        
-        .category-btn:hover {
-            border-color: #666;
-            background: #f5f5f5;
-            color: #333;
-            transform: translateY(-1px);
-        }
-        
-        .category-btn.active {
-            border-color: #FFD700;
-            background: #fff;
-            color: #333;
-        }
-        
-        .category-icon {
-            width: 32px;
-            height: 32px;
-            margin-bottom: 6px;
-        }
-        
-        .category-icon img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            filter: brightness(0); /* czarne ikony */
-        }
-        
-        .category-btn:hover .category-icon img,
-        .category-btn.active .category-icon img {
-            filter: brightness(0); /* czarne ikony pozostajÄ… czarne */
-        }
-        
-        .category-label {
-            font-size: 11px;
-            font-weight: 600;
-            text-align: center;
-            line-height: 1.2;
-        }
-        
-        /* đźŞ‘ CHAIRS GRID */
-        .chairs-section {
-            margin-bottom: 20px;
-        }
-        
-        .chairs-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-        }
-        
-        .chair-item {
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 10px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            background: #fff;
-        }
-        
-        .chair-item:hover {
-            border-color: #666;
-            background: #f5f5f5;
-            color: #333;
-        }
-        
-        .chair-item.selected {
-            border-color: #FFD700;
-            background: #fff;
-            color: #333;
-        }
-        
-        .chair-item img {
-            width: 60px;
-            height: 60px;
-            object-fit: contain;
-            margin-bottom: 5px;
-            filter: brightness(0); /* czarne ikony */
-        }
-        
-        .chair-item:hover img,
-        .chair-item.selected img {
-            filter: brightness(0); /* czarne ikony pozostajÄ… czarne */
-        }
-        
-        .chair-name {
-            font-size: 11px;
-            font-weight: 600;
-        }
-        
-        /* đź”§ THUMBNAIL STYLES (for renderOptions) */
-        .thumbnail-wrapper {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        
-        .thumbnail {
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            background: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            min-height: 80px;
-        }
-        
-        .thumbnail:hover {
-            border-color: #666;
-            background: #f5f5f5;
-            transform: scale(1.05);
-        }
-        
-        .thumbnail.selected {
-            border-color: #FFD700;
-            background: #fff;
-        }
-        
-        .thumbnail img {
-            width: 60px;
-            height: 60px;
-            object-fit: contain;
-            filter: brightness(0); /* czarne ikony */
-        }
-        
-        .thumbnail:hover img,
-        .thumbnail.selected img {
-            filter: brightness(0); /* czarne ikony pozostajÄ… czarne */
-        }
-        
-        .thumbnail-caption {
-            font-size: 11px;
-            font-weight: 600;
-            text-align: center;
-            margin-top: 5px;
-            color: #333;
-        }
-        
-        .thumbnail:hover .thumbnail-caption,
-        .thumbnail.selected .thumbnail-caption {
-            color: #333;
-        }
-        
-        /* đź“± MOBILE RESPONSIVE - tylko landscape (poziomo) */
-        @media (max-width: 820px) and (orientation: landscape) {
-            #app {
-                flex-direction: column;
-            }
-            
-            #sidebar {
-                width: 100%;
-                height: 40vh;
-                order: 2;
-                border-left: none;
-                border-top: 1px solid #e0e0e0;
-            }
-            
-            #canvas {
-                order: 1;
-                height: 60vh;
-                width: 100%;
-            }
-            
-            #welcome-screen {
-                right: 0;
-                z-index: 60;
-            }
-            
-            #welcome-screen h1 {
-                font-size: 1.4em;
-                margin-bottom: 8px;
-            }
-            
-            #welcome-screen p {
-                font-size: 0.8em;
-                margin-bottom: 15px;
-                padding: 0 8px;
-            }
-            
-            #welcome-logo {
-                width: 100px;
-                margin-bottom: 15px;
-            }
-            
-            .category-grid {
-                flex-direction: column;
-                gap: 6px;
-            }
-            
-            .category-btn {
-                flex-direction: row;
-                padding: 8px 12px;
-                justify-content: flex-start;
-            }
-            
-            .category-icon {
-                width: 24px;
-                height: 24px;
-                margin-bottom: 0;
-                margin-right: 8px;
-            }
-            
-            .category-label {
-                font-size: 10px;
-                text-align: left;
-            }
-            
-            .chairs-grid {
-                grid-template-columns: repeat(4, 1fr);
-                gap: 8px;
-            }
-            
-            .chair-item {
-                padding: 8px;
-            }
-            
-            .chair-item img {
-                width: 40px;
-                height: 40px;
-            }
-            
-            .chair-name {
-                font-size: 9px;
-            }
-            
-            /* đź“± MOBILE THUMBNAIL STYLES */
-            .thumbnail {
-                min-height: 60px;
-                padding: 6px;
-            }
-            
-            .thumbnail img {
-                width: 40px;
-                height: 40px;
-            }
-            
-            .thumbnail-caption {
-                font-size: 9px;
-                margin-top: 3px;
-            }
-        }
-        
-        /* đź“± MOBILE PORTRAIT - ukryj app, pokaĹĽ orientation warning */
-        @media (max-width: 820px) and (orientation: portrait) {
-            #app {
-                display: none !important;
-            }
-            
-            #custom-loader {
-                display: none !important;
-            }
-            
-            #orientation-warning {
-                display: flex !important;
-            }
-        }
-    </style>
 </head>
 <body>
-    <!-- ďż˝ ORIENTATION WARNING - dla mobile w pionie -->
+    <!-- 📱 ORIENTATION WARNING - dla mobile w pionie -->
     <div id="orientation-warning">
-        <div class="rotate-icon">đź“˛</div>đź“±ďż˝</div>
-        <h2>ObrĂłÄ‡ urzÄ…dzenie</h2>
-        <p>Konfigurator dziaĹ‚a najlepiej w orientacji poziomej. ObrĂłÄ‡ swoje urzÄ…dzenie, aby kontynuowaÄ‡.</p>
+        <div class="rotate-icon">📱</div>
+        <h2>Obróć urządzenie</h2>
+        <p>Konfigurator działa najlepiej w orientacji poziomej. Obróć swoje urządzenie, aby kontynuować.</p>
     </div>
 
-    <!-- ďż˝đź”„ ANIMATED LOADER - na poczÄ…tku body, poza #app -->
+    <!-- 🔄 ANIMATED LOADER -->
     <div id="custom-loader">
-        <!-- Logo Container -->
         <div class="logo-container" style="
             position: relative;
             margin-bottom: 40px;
             animation: logoPulse 3s ease-in-out infinite;
         ">
-            <!-- Main Logo -->
-            <img src="icons/FK_logo.png" alt="Fajne KrzesĹ‚a" style="
+            <img src="icons/FK_logo.png" alt="Fajne Krzesła" style="
                 max-width: 200px; 
                 height: auto;
                 border-radius: 10px;
@@ -587,7 +109,6 @@
             " />
         </div>
         
-        <!-- Spinner -->
         <div class="spinner" style="
             width: 40px;
             height: 40px;
@@ -598,7 +119,6 @@
             margin-bottom: 30px;
         "></div>
         
-        <!-- Progress Bar -->
         <div class="progress-container" style="
             width: 280px;
             height: 3px;
@@ -615,89 +135,43 @@
             "></div>
         </div>
         
-        <!-- Loading Text -->
         <div class="loading-text" style="
             font-size: 16px; 
             color: #333;
             font-weight: 500;
             text-align: center;
             letter-spacing: 0.5px;
-        ">Ĺadowanie interfejsu</div>
+        ">Inicjalizacja React Three Fiber...</div>
     </div>
 
     <div id="app">
-        
-        <style>
-            /* đźŽ¬ LOADER ANIMATIONS - minimalistyczne */
-            @keyframes spin {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
-            }
-            
-            @keyframes progressSlide {
-                0% { transform: translateX(-100%); }
-                50% { transform: translateX(0%); }
-                100% { transform: translateX(100%); }
-            }
-            
-            @keyframes logoPulse {
-                0%, 100% { 
-                    opacity: 0.8;
-                    transform: scale(1);
-                }
-                50% { 
-                    opacity: 1;
-                    transform: scale(1.05);
-                }
-            }
-            
-            @keyframes phoneRotate {
-                0% { 
-                    transform: rotate(0deg);
-                }
-                25% { 
-                    transform: rotate(90deg);
-                }
-                50% { 
-                    transform: rotate(90deg);
-                }
-                75% { 
-                    transform: rotate(180deg);
-                }
-                100% { 
-                    transform: rotate(0deg);
-                }
-            }
-        </style>
-        </style>
-        
-        <!-- đź–Ąď¸Ź CANVAS -->
+        <!-- 🖥️ CANVAS -->
         <div id="canvas">
-            <canvas id="viewer-canvas"></canvas>
+            <!-- React Three Fiber scene będzie tutaj -->
         </div>
         
-        <!-- đźŽŻ WELCOME SCREEN -->
+        <!-- 🎯 WELCOME SCREEN -->
         <div id="welcome-screen">
-            <img id="welcome-logo" src="icons/FK_logo.png" alt="Fajne KrzesĹ‚a">
-            <h1>Konfigurator KrzeseĹ‚</h1>
-            <p>Wybierz model krzesĹ‚a z dostÄ™pnych kategorii w bocznym panelu, aby rozpoczÄ…Ä‡ konfiguracjÄ™ w 3D</p>
+            <img id="welcome-logo" src="icons/FK_logo.png" alt="Fajne Krzesła">
+            <h1>Konfigurator Krzeseł</h1>
+            <p>Wybierz model krzesła z dostępnych kategorii w bocznym panelu, aby rozpocząć konfigurację w 3D</p>
         </div>
         
-        <!-- đź“± SIDEBAR -->
+        <!-- 📱 SIDEBAR -->
         <div id="sidebar">
-            <!-- đź”Ť SEARCH -->
+            <!-- 🔍 SEARCH -->
             <div class="search-container">
-                <input type="text" id="search-input" class="search-input" placeholder="Szukaj krzesĹ‚a...">
+                <input type="text" id="search-input" class="search-input" placeholder="Szukaj krzesła...">
             </div>
             
-            <!-- đźŹ·ď¸Ź CATEGORIES -->
+            <!-- 🏷️ CATEGORIES -->
             <div class="categories">
                 <div class="category-grid">
                     <div class="category-btn" data-category="krzesla">
                         <div class="category-icon">
-                            <img src="icons/chair_icon.png" alt="KrzesĹ‚a" onerror="this.src='icons/placeholder.svg'">
+                            <img src="icons/chair_icon.png" alt="Krzesła" onerror="this.src='icons/placeholder.svg'">
                         </div>
-                        <div class="category-label">KrzesĹ‚a</div>
+                        <div class="category-label">Krzesła</div>
                     </div>
                     <div class="category-btn" data-category="hooker">
                         <div class="category-icon">
@@ -720,7 +194,7 @@
                 </div>
             </div>
             
-            <!-- đźŞ‘ CHAIRS -->
+            <!-- 🪑 CHAIRS -->
             <div class="chairs-section">
                 <div id="chairs-grid" class="chairs-grid">
                     <!-- Chairs will be loaded here -->
@@ -729,690 +203,7 @@
         </div>
     </div>
 
-    <script type="module">
-        // đźŽ¬ THREE.JS IMPORTS - czyste Three.js
-        import * as THREE from 'three';
-        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-        
-        // Alias dla kompatybilnoĹ›ci
-        const {
-            Group,
-            Box3,
-            Vector3,
-            ArrowHelper,
-            Sprite,
-            SpriteMaterial,
-            CanvasTexture,
-            Color,
-            TextureLoader,
-            Scene,
-            PerspectiveCamera,
-            WebGLRenderer,
-            DirectionalLight,
-            AmbientLight
-        } = THREE;
-
-        // đźŚŤ GLOBALNE ZMIENNE - z Three.js zamiast ThreePipe
-        let allData = [];
-        let mainModels = [];
-        let selectedChair = null;
-        let currentCategory = 'krzesla';
-        let scene, camera, renderer, controls, currentModelContainer;
-        let selectedLeg, selectedMaterials = {};
-        
-        // đźŽŻ CAMERA SETTINGS
-        const CAMERA_FOV = 12;
-        const CAMERA_POSITION = { x: -4.50, y: 0.28, z: 4.53 };
-        const CAMERA_TARGET = { x: 1, y: -0.5, z: 2 };
-        const MIN_ZOOM_DISTANCE = 1;
-        const MAX_ZOOM_DISTANCE = 8;
-        
-        // đźš€ INICJALIZACJA 3D VIEWERA - czyste Three.js
-        async function init3DViewer() {
-            console.log('đźš€ Inicjalizacja 3D Viewer (Three.js)...');
-            
-            const canvas = document.getElementById("viewer-canvas");
-            if (!canvas) {
-                console.error('âťŚ Canvas nie znaleziony!');
-                return false;
-            }
-            
-            try {
-                console.log('đźš€ Inicjalizacja Three.js Scene...');
-                
-                // Scena
-                scene = new Scene();
-                scene.background = new Color(0xf0f0f0);
-                
-                // Kamera
-                camera = new PerspectiveCamera(
-                    CAMERA_FOV, 
-                    canvas.clientWidth / canvas.clientHeight, 
-                    0.1, 
-                    1000
-                );
-                camera.position.set(CAMERA_POSITION.x, CAMERA_POSITION.y, CAMERA_POSITION.z);
-                
-                // Renderer
-                renderer = new WebGLRenderer({ 
-                    canvas: canvas,
-                    antialias: true,
-                    alpha: true 
-                });
-                renderer.setSize(canvas.clientWidth, canvas.clientHeight);
-                renderer.setPixelRatio(window.devicePixelRatio);
-                renderer.shadowMap.enabled = true;
-                renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-                
-                // Kontrolki
-                controls = new OrbitControls(camera, canvas);
-                controls.target.set(CAMERA_TARGET.x, CAMERA_TARGET.y, CAMERA_TARGET.z);
-                controls.minDistance = MIN_ZOOM_DISTANCE;
-                controls.maxDistance = MAX_ZOOM_DISTANCE;
-                controls.dampingFactor = 0.1;
-                controls.enableDamping = true;
-                controls.update();
-                
-                // OĹ›wietlenie
-                const ambientLight = new AmbientLight(0xffffff, 0.6);
-                scene.add(ambientLight);
-                
-                const directionalLight = new DirectionalLight(0xffffff, 1);
-                directionalLight.position.set(5, 5, 5);
-                directionalLight.castShadow = true;
-                directionalLight.shadow.mapSize.width = 2048;
-                directionalLight.shadow.mapSize.height = 2048;
-                scene.add(directionalLight);
-                
-                // Animate loop
-                function animate() {
-                    requestAnimationFrame(animate);
-                    controls.update();
-                    renderer.render(scene, camera);
-                }
-                animate();
-                
-                // Resize handler
-                window.addEventListener('resize', () => {
-                    camera.aspect = canvas.clientWidth / canvas.clientHeight;
-                    camera.updateProjectionMatrix();
-                    renderer.setSize(canvas.clientWidth, canvas.clientHeight);
-                });
-                
-                console.log('âś… Three.js Scene zainicjalizowany');
-                return true;
-                
-            } catch (error) {
-                console.error('âťŚ BĹ‚Ä…d inicjalizacji Three.js:', error);
-                
-                const loader = document.getElementById('custom-loader');
-                if (loader) {
-                    loader.innerHTML = `
-                        <img src="icons/FK_logo.png" alt="Fajne KrzesĹ‚a" style="
-                            max-width: 200px; 
-                            margin-bottom: 20px;
-                            border-radius: 10px;
-                        " />
-                        <p style="
-                            color: #333; 
-                            text-align: center;
-                            font-size: 16px;
-                            padding: 20px;
-                            max-width: 300px;
-                            line-height: 1.5;
-                        ">
-                            âťŚ BĹ‚Ä…d inicjalizacji 3D: ${error.message}<br><br>đź”„ SprĂłbuj odĹ›wieĹĽyÄ‡ stronÄ™
-                        </p>
-                    `;
-                }
-                return false;
-            }
-        }
-        
-        // đźŽŻ FUNKCJA POKAZUJÄ„CA UI PO PIERWSZYM WYBORZE KRZESĹA - z backup'a
-        function showAfterFirstSelection() {
-            console.log('đźŽŻ PokazujÄ™ interfejs po wyborze krzesĹ‚a...');
-            
-            // Ukryj welcome screen
-            const welcomeScreen = document.getElementById('welcome-screen');
-            if (welcomeScreen && !welcomeScreen.classList.contains('hidden')) {
-                welcomeScreen.classList.add('hidden');
-                console.log('âś… Welcome screen ukryty');
-            }
-            
-            console.log('âś… Canvas 3D juĹĽ widoczny');
-            console.log('âś… Sidebar juĹĽ widoczny');
-        }
-        
-        // đźŞ‘ ĹADOWANIE MODELU 3D - Three.js GLTF Loader
-        async function loadChairModel(chairData) {
-            if (!scene || !renderer) {
-                console.error('âťŚ Scene nie zainicjalizowany!');
-                return;
-            }
-            
-            console.log('đźŞ‘ Ĺadowanie modelu:', chairData.Nazwa);
-            
-            // PokaĹĽ UI po pierwszym wyborze krzesĹ‚a
-            showAfterFirstSelection();
-            
-            try {
-                // UsuĹ„ poprzedni model
-                if (currentModelContainer) {
-                    scene.remove(currentModelContainer);
-                    // Dispose geometrii i materiaĹ‚Ăłw
-                    currentModelContainer.traverse((child) => {
-                        if (child.geometry) child.geometry.dispose();
-                        if (child.material) {
-                            if (Array.isArray(child.material)) {
-                                child.material.forEach(mat => mat.dispose());
-                            } else {
-                                child.material.dispose();
-                            }
-                        }
-                    });
-                    currentModelContainer = null;
-                }
-                
-                // ĹšcieĹĽka do modelu
-                const modelPath = `chairs/${chairData.Nazwa}.glb`;
-                console.log('đź“¦ Ĺadowanie modelu z:', modelPath);
-                
-                // UtwĂłrz loader
-                const loader = new GLTFLoader();
-                
-                // ZaĹ‚aduj model z Promise
-                const gltf = await new Promise((resolve, reject) => {
-                    loader.load(
-                        modelPath,
-                        (gltf) => resolve(gltf),
-                        (progress) => console.log('đź“¦ Progress:', (progress.loaded / progress.total * 100) + '%'),
-                        (error) => reject(error)
-                    );
-                });
-                
-                currentModelContainer = gltf.scene;
-                scene.add(currentModelContainer);
-                
-                console.log('âś… Model zaĹ‚adowany:', chairData.Nazwa);
-                
-                // WyĹ›rodkuj model
-                if (currentModelContainer) {
-                    const box = new Box3().setFromObject(currentModelContainer);
-                    const center = box.getCenter(new Vector3());
-                    currentModelContainer.position.sub(center);
-                    
-                    // WĹ‚Ä…cz cienie dla modelu
-                    currentModelContainer.traverse((child) => {
-                        if (child.isMesh) {
-                            child.castShadow = true;
-                            child.receiveShadow = true;
-                        }
-                    });
-                    
-                    // Dostosuj kamerÄ™ do modelu
-                    if (controls) {
-                        controls.target.set(CAMERA_TARGET.x, CAMERA_TARGET.y, CAMERA_TARGET.z);
-                        controls.update();
-                    }
-                }
-                
-                return true;
-                
-            } catch (error) {
-                console.error('âťŚ BĹ‚Ä…d Ĺ‚adowania modelu:', error);
-                return false;
-            }
-        }
-        
-        // đź”§ RENDER OPTIONS (do wyĹ›wietlania miniatur)
-        function renderOptions(containerId, items, onSelect, isInteractive = true) {
-            console.log(`đź”„ renderOptions dla ${containerId} z ${items.length} elementami`);
-            const container = document.getElementById(containerId);
-            if (!container) {
-                console.error(`âťŚ Kontener ${containerId} nie istnieje!`);
-                return;
-            }
-            
-            container.innerHTML = '';
-            
-            items.forEach((item, index) => {
-                const wrapper = document.createElement('div');
-                wrapper.className = 'thumbnail-wrapper';
-                
-                const button = document.createElement('div');
-                button.className = 'thumbnail';
-                button.title = item.Nazwa;
-
-                if (isInteractive) {
-                    button.addEventListener('click', () => {
-                        onSelect(item);
-                        container.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('selected'));
-                        button.classList.add('selected');
-                    });
-                }
-                
-                const img = document.createElement('img');
-                let imageSrc = item.Obrazek || item.Image || 'icons/chair_icon.png';
-                
-                // Normalizuj Ĺ›cieĹĽki
-                if (imageSrc.startsWith('./')) {
-                    imageSrc = imageSrc.substring(2);
-                }
-                if (!imageSrc.startsWith('http') && !imageSrc.startsWith('/')) {
-                    imageSrc = './' + imageSrc;
-                }
-                
-                img.src = imageSrc;
-                img.alt = item.Nazwa || 'Bez nazwy';
-                img.onerror = () => { img.src = './icons/chair_icon.png'; };
-                
-                button.appendChild(img);
-                
-                const caption = document.createElement('div');
-                caption.className = 'thumbnail-caption';
-                caption.textContent = item.Nazwa;
-                
-                wrapper.appendChild(button);
-                wrapper.appendChild(caption);
-                container.appendChild(wrapper);
-            });
-        }
-        
-        // đźŚŤ GLOBALNE ZMIENNE - USUNIÄTA DUPLIKACJA
-        // let allData = []; - juĹĽ zadeklarowana wyĹĽej
-        // let mainModels = []; - juĹĽ zadeklarowana wyĹĽej  
-        // let selectedChair = null; - juĹĽ zadeklarowana wyĹĽej
-        // let currentCategory = 'krzesla'; - juĹĽ zadeklarowana wyĹĽej
-        
-        // đź“Š ĹADOWANIE DANYCH Z GOOGLE SHEETS - poprawiony z backup'a
-        async function loadDataFromSheet() {
-            console.log('đź“Š Loading data from Google Sheets...');
-            
-            const sheetId = '1vCs6YeHgKqlYwg8rvJOqVzNRnXeATJCBuK-zh3NNj78';
-            const sheetURL = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=Dane&v=${new Date().getTime()}`;
-            
-            try {
-                console.log('đź”„ Ĺadowanie danych z arkusza...');
-                console.log('đź“ˇ URL:', sheetURL);
-                
-                let attemptCount = 0;
-                const maxAttempts = 3;
-                let lastError;
-                
-                while (attemptCount < maxAttempts) {
-                    attemptCount++;
-                    console.log(`đź”„ PrĂłba ${attemptCount}/${maxAttempts}...`);
-                    
-                    try {
-                        const fetchPromise = fetch(sheetURL + '?nocache=' + Date.now(), { 
-                            cache: 'no-store',
-                            mode: 'cors',
-                            headers: {
-                                'Cache-Control': 'no-cache',
-                                'Pragma': 'no-cache',
-                                'Accept': 'text/csv,*/*'
-                            }
-                        });
-                        const timeoutPromise = new Promise((_, reject) => 
-                            setTimeout(() => reject(new Error('Fetch timeout - sprawdĹş poĹ‚Ä…czenie')), 15000 + (attemptCount * 5000))
-                        );
-                        
-                        const response = await Promise.race([fetchPromise, timeoutPromise]);
-                        console.log('đź“ˇ Response status:', response.status, response.statusText);
-                        
-                        if (!response.ok) {
-                            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                        }
-
-                        const csvText = await response.text();
-                        console.log('đź“„ CSV length:', csvText.length);
-                        
-                        if (csvText.length < 100) {
-                            throw new Error('CSV data too short - moĹĽliwe problemy z poĹ‚Ä…czeniem');
-                        }
-                        
-                        // Sukces - dane zaĹ‚adowane
-                        const rows = csvText.trim().split('\n');
-                        const headers = rows.shift().split(',').map(h => h.trim().replace(/"/g, ''));
-                        
-                        allData = rows.map(row => {
-                            const values = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
-                            const obj = {};
-                            headers.forEach((header, index) => obj[header] = values[index]?.trim().replace(/"/g, '') || '');
-                            return obj;
-                        }).filter(item => item.Visible?.toLowerCase() !== 'false');
-
-                        console.log('âś… Dane zaĹ‚adowane:', allData.length, 'elementĂłw');
-                        console.log('đź“Š PrzykĹ‚adowe dane:', allData.slice(0, 2));
-                        console.log('đź“Š Wszystkie kolumny w pierwszym elemencie:', Object.keys(allData[0] || {}));
-                        break; // WyjdĹş z pÄ™tli - sukces!
-                        
-                    } catch (attemptError) {
-                        lastError = attemptError;
-                        console.error(`âťŚ PrĂłba ${attemptCount} nieudana:`, attemptError.message);
-                        
-                        if (attemptCount >= maxAttempts) {
-                            throw lastError; // RzuÄ‡ ostatni bĹ‚Ä…d
-                        }
-                        
-                        // Czekaj przed kolejnÄ… prĂłbÄ…
-                        const waitTime = attemptCount * 2000; // 2s, 4s, 6s
-                        console.log(`âŹ±ď¸Ź Czekam ${waitTime/1000}s przed kolejnÄ… prĂłbÄ…...`);
-                        await new Promise(resolve => setTimeout(resolve, waitTime));
-                    }
-                }
-
-                // Filter main models (chairs) - z backup'a
-                const mainModelsFromData = allData.filter(d => {
-                    const grupa = (d.Grupa || d.Group || d.grupa || '').toLowerCase();
-                    const typ = (d.Typ || d.Type || d.typ || '').toLowerCase();
-                    const kategoria = (d.Kategoria || d.Category || d.kategoria || '').toLowerCase();
-                    
-                    return ['krzesĹ‚o', 'kubeĹ‚ek', 'chair', 'bucket'].some(term => 
-                        grupa.includes(term) || typ.includes(term) || kategoria.includes(term)
-                    );
-                });
-                
-                // đź”§ ZAPISZ GLOBALNIE
-                mainModels = mainModelsFromData;
-                window.mainModels = mainModels;
-                
-                console.log('đźŞ‘ Modele gĹ‚Ăłwne:', mainModels.length);
-                console.log('đźŞ‘ PrzykĹ‚adowe modele:', mainModels.slice(0, 3));
-                
-                // JeĹ›li nie ma gĹ‚Ăłwnych modeli, pokaĹĽ wszystkie dane dla debugowania
-                if (mainModels.length === 0) {
-                    console.warn('âš ď¸Ź Nie znaleziono gĹ‚Ăłwnych modeli, uĹĽywam wszystkich danych');
-                    mainModels = allData.slice(0, 10); // pierwsze 10 dla testu
-                }
-                
-                // Initialize UI
-                initializeApp();
-                
-            } catch (error) {
-                console.error('âťŚ Error loading data:', error);
-                // Fallback data for testing
-                mainModels = [
-                    { Nazwa: 'Amy-2', Kategoria: 'krzesla', Obrazek: 'icons/chair_icon.png' },
-                    { Nazwa: 'Ava', Kategoria: 'hooker', Obrazek: 'icons/chair_icon.png' },
-                    { Nazwa: 'Carine', Kategoria: 'biurowe', Obrazek: 'icons/chair_icon.png' }
-                ];
-                initializeApp();
-            }
-        }
-        
-        // ďż˝ď¸Ź CREATE CATEGORIES - funkcja z backup'a
-        function createCategories() {
-            console.log('đźŹ·ď¸Ź Tworzenie kategorii...');
-            
-            // Funkcja juĹĽ istnieje w HTML jako statyczne przyciski
-            // Tutaj tylko uruchamiamy setupCategoryButtons
-            setupCategoryButtons();
-            setupSearch();
-            setDefaultCategory();
-            
-            console.log('âś… Kategorie skonfigurowane');
-        }
-        
-        // ďż˝đźŽŻ INICJALIZACJA APLIKACJI
-        function initializeApp() {
-            console.log('đźŽŻ Initializing app...');
-            
-            setupCategoryButtons();
-            setupSearch();
-            setDefaultCategory();
-            renderChairs();
-        }
-        
-        // đźŹ·ď¸Ź SETUP CATEGORY BUTTONS
-        function setupCategoryButtons() {
-            console.log('đźŹ·ď¸Ź Setting up category buttons...');
-            
-            const categoryBtns = document.querySelectorAll('.category-btn');
-            
-            categoryBtns.forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    
-                    const category = btn.getAttribute('data-category');
-                    console.log('đźŹ·ď¸Ź Category clicked:', category);
-                    
-                    // Update active state
-                    categoryBtns.forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    
-                    // Update current category
-                    currentCategory = category;
-                    
-                    // Filter chairs
-                    filterChairsByCategory(category);
-                });
-            });
-        }
-        
-        // đź”Ť SETUP SEARCH
-        function setupSearch() {
-            console.log('đź”Ť Setting up search...');
-            
-            const searchInput = document.getElementById('search-input');
-            
-            if (searchInput) {
-                searchInput.addEventListener('input', (e) => {
-                    const searchTerm = e.target.value.toLowerCase().trim();
-                    console.log('đź”Ť Search term:', searchTerm);
-                    
-                    // Clear category selection when searching
-                    if (searchTerm) {
-                        document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
-                        currentCategory = null;
-                    }
-                    
-                    // Filter chairs
-                    filterChairsBySearch(searchTerm);
-                });
-            }
-        }
-        
-        // đźŽŻ SET DEFAULT CATEGORY
-        function setDefaultCategory() {
-            console.log('đźŽŻ Setting default category...');
-            
-            const defaultBtn = document.querySelector('.category-btn[data-category="krzesla"]');
-            if (defaultBtn) {
-                defaultBtn.classList.add('active');
-                currentCategory = 'krzesla';
-            }
-        }
-        
-        // đźŹ·ď¸Ź FILTER CHAIRS BY CATEGORY
-        function filterChairsByCategory(category) {
-            console.log('đźŹ·ď¸Ź Filtering by category:', category);
-            
-            const filteredChairs = mainModels.filter(chair => {
-                const chairCategory = (chair.Kategoria || '').toLowerCase().trim();
-                return chairCategory === category.toLowerCase();
-            });
-            
-            console.log('đźŹ·ď¸Ź Found chairs:', filteredChairs.length);
-            renderChairs(filteredChairs);
-        }
-        
-        // đź”Ť FILTER CHAIRS BY SEARCH
-        function filterChairsBySearch(searchTerm) {
-            console.log('đź”Ť Filtering by search:', searchTerm);
-            
-            if (!searchTerm) {
-                // If search is empty, show category or all
-                if (currentCategory) {
-                    filterChairsByCategory(currentCategory);
-                } else {
-                    renderChairs(mainModels);
-                }
-                return;
-            }
-            
-            const filteredChairs = mainModels.filter(chair => {
-                const chairName = (chair.Nazwa || '').toLowerCase();
-                return chairName.includes(searchTerm);
-            });
-            
-            console.log('đź”Ť Found chairs:', filteredChairs.length);
-            renderChairs(filteredChairs);
-        }
-        
-        // đźŞ‘ RENDER CHAIRS
-        function renderChairs(chairs = mainModels) {
-            console.log('đźŞ‘ Rendering chairs:', chairs.length);
-            
-            // UĹĽyj renderOptions dla spĂłjnoĹ›ci
-            renderOptions('chairs-grid', chairs, (chair) => {
-                console.log('đźŽŻ Chair selected via renderOptions:', chair.Nazwa);
-                
-                // Update selection
-                selectedChair = chair;
-                
-                // đźŞ‘ ZaĹ‚aduj model 3D
-                loadChairModel(chair);
-                
-                console.log('âś… Selected chair:', selectedChair);
-            });
-        }
-        
-        // đźŽŻ SELECT CHAIR
-        function selectChair(chair, chairElement) {
-            console.log('đźŽŻ Chair selected:', chair.Nazwa);
-            
-            // Update selection
-            document.querySelectorAll('.chair-item').forEach(item => item.classList.remove('selected'));
-            chairElement.classList.add('selected');
-            
-            selectedChair = chair;
-            
-            // đźŞ‘ ZaĹ‚aduj model 3D
-            loadChairModel(chair);
-            
-            console.log('âś… Selected chair:', selectedChair);
-        }
-        
-        // đźš€ START THE APP - usuniÄ™ty zduplikowany kod
-        // Kod przeniesiony do initialize3DApp powyĹĽej
-        
-        // đź“± DEBUG FUNCTIONS
-        window.debugApp = function() {
-            console.log('=== đź”Ť DEBUG APP STATE ===');
-            console.log('Data loaded:', allData.length, 'items');
-            console.log('Main models:', mainModels.length, 'chairs');
-            console.log('Selected chair:', selectedChair);
-            console.log('Current category:', currentCategory);
-        };
-        
-        // đź”„ FUNKCJE LOADERA - do uĹĽycia w przyszĹ‚oĹ›ci
-        window.showLoader = function(text = 'Ĺadowanie...') {
-            const loader = document.getElementById('custom-loader');
-            if (loader) {
-                // Aktualizuj tekst jeĹ›li podano
-                const loadingText = loader.querySelector('.loading-text');
-                if (loadingText && text !== 'Ĺadowanie...') {
-                    loadingText.textContent = text;
-                }
-                
-                loader.style.display = 'flex';
-                console.log('đź”„ Loader pokazany:', text);
-            }
-        };
-        
-        window.hideLoader = function() {
-            const loader = document.getElementById('custom-loader');
-            if (loader) {
-                loader.style.display = 'none';
-                console.log('âś… Loader ukryty');
-            }
-        };
-        
-        // PrzykĹ‚ad uĹĽycia dla przyszĹ‚ych funkcji:
-        // window.showLoader('Przygotowywanie pokoju 3D...');
-        // await loadRoomViewer();
-        // window.hideLoader();
-        
-        // đźŽŻ GĹĂ“WNA FUNKCJA STARTOWA - uproszczona
-        async function initialize3DApp() {
-            console.log('đźš€ Inicjalizacja aplikacji 3D...');
-            
-            try {
-                // âŹ±ď¸Ź KROK 1: Inicjalizacja 3D
-                console.log('âŹ±ď¸Ź Krok 1: Inicjalizacja 3D Viewer...');
-                window.showLoader('đźš€ Inicjalizacja 3D...');
-                
-                const initSuccess = await init3DViewer();
-                if (!initSuccess) {
-                    throw new Error('Inicjalizacja 3D nie powiodĹ‚a siÄ™');
-                }
-                
-                // âŹ±ď¸Ź KROK 2: Ĺadowanie danych
-                console.log('âŹ±ď¸Ź Krok 2: Ĺadowanie danych...');
-                window.showLoader('đź“‹ Ĺadowanie danych krzeseĹ‚...');
-                await loadDataFromSheet();
-                
-                // âŹ±ď¸Ź KROK 3: Finalizacja UI
-                console.log('âŹ±ď¸Ź Krok 3: Przygotowanie interfejsu...');
-                window.showLoader('đźŽ¨ Przygotowanie interfejsu...');
-                createCategories();
-                
-                // KrĂłtkie opĂłĹşnienie przed ukryciem loadera
-                setTimeout(() => {
-                    window.hideLoader();
-                    
-                    // PokaĹĽ gĹ‚ĂłwnÄ… aplikacjÄ™
-                    const app = document.getElementById('app');
-                    if (app) {
-                        app.style.visibility = 'visible';
-                        app.style.opacity = '1';
-                        app.classList.add('visible');
-                    }
-                    
-                    console.log('âś… Aplikacja 3D gotowa!');
-                }, 800);
-                
-            } catch (error) {
-                console.error('âťŚ BĹ‚Ä…d inicjalizacji:', error);
-                
-                // PokaĹĽ komunikat bĹ‚Ä™du
-                const loader = document.getElementById('custom-loader');
-                if (loader) {
-                    loader.innerHTML = `
-                        <img src="icons/FK_logo.png" alt="Fajne KrzesĹ‚a" style="
-                            max-width: 200px; 
-                            margin-bottom: 20px;
-                        " />
-                        <div style="
-                            color: #333; 
-                            text-align: center;
-                            font-size: 16px;
-                            padding: 20px;
-                            max-width: 350px;
-                            line-height: 1.6;
-                        ">
-                            âťŚ <strong>BĹ‚Ä…d Ĺ‚adowania aplikacji</strong><br><br>
-                            ${error.message}<br><br>
-                            đź”„ SprĂłbuj odĹ›wieĹĽyÄ‡ stronÄ™
-                        </div>
-                    `;
-                }
-            }
-        }
-        
-        // đźš€ START APLIKACJI - uproszczony
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('đź“„ DOM zaĹ‚adowany - uruchamiam aplikacjÄ™...');
-            
-            // KrĂłtkie opĂłĹşnienie, potem start
-            setTimeout(() => {
-                initialize3DApp();
-            }, 100);
-        });
-    </script>
+    <!-- 🎬 LOAD CONFIGURATOR SCRIPT -->
+    <script src="configurator.js" type="module"></script>
 </body>
 </html>
-
