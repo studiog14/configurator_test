@@ -2364,26 +2364,32 @@
 
     // Natychmiastowe sprawdzenie orientacji na mobile
     document.addEventListener('DOMContentLoaded', () => {
+      console.log('DOMContentLoaded fired');
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      console.log('Is mobile:', isMobile);
       
       if (isMobile) {
         function checkOrientation() {
+          console.log('checkOrientation called, window size:', window.innerWidth + 'x' + window.innerHeight);
           const rotationMessage = document.getElementById('rotation-message');
           const customLoader = document.getElementById('custom-loader');
           
           if (rotationMessage) {
             if (window.innerHeight > window.innerWidth) {
               // Orientacja portret - pokaż komunikat obrotu i ukryj loader
+              console.log('Portrait orientation - showing rotation message');
               rotationMessage.style.display = 'flex';
               if (customLoader) customLoader.style.display = 'none';
               return false;
             } else {
               // Orientacja krajobraz - ukryj komunikat i pokaż loader, następnie uruchom aplikację
+              console.log('Landscape orientation - hiding rotation message');
               rotationMessage.style.display = 'none';
               if (customLoader) customLoader.style.display = 'flex';
               
               // Jeśli to pierwsze uruchomienie po zmianie orientacji, uruchom aplikację
               if (!window.appInitialized) {
+                console.log('App not initialized yet, starting...');
                 window.appInitialized = true;
                 setTimeout(() => {
                   initApp(); // Uruchom aplikację po krótkim opóźnieniu
@@ -2397,9 +2403,11 @@
         
         // Sprawdź orientację natychmiast
         const initialCheck = checkOrientation();
+        console.log('Initial check result:', initialCheck);
         
         // Jeśli orientacja jest OK lub to desktop, uruchom aplikację od razu
         if (initialCheck || !isMobile) {
+          console.log('Starting app immediately');
           window.appInitialized = true;
           init();
         }
@@ -2411,6 +2419,7 @@
         window.addEventListener('resize', checkOrientation);
       } else {
         // Desktop - uruchom aplikację od razu
+        console.log('Desktop detected - starting app immediately');
         init();
       }
     });
@@ -2420,14 +2429,18 @@
     }
     
     async function initApp() {
-      console.log('initApp() called');
+      console.log('=== initApp() called ===');
       const canvas = document.getElementById("canvas");
+      console.log('Canvas element found:', !!canvas);
 
+      console.log('Creating ThreeViewer...');
       viewer = new ThreeViewer({
         canvas: canvas,
         plugins: [ GBufferPlugin, SSAAPlugin, SSReflectionPlugin, BloomPlugin],
         rendererSettings: { antialias: true }
       });
+      console.log('ThreeViewer created');
+      
       if (viewer.controls) {
         viewer.controls.minDistance = MIN_ZOOM_DISTANCE;
         viewer.controls.maxDistance = MAX_ZOOM_DISTANCE;
@@ -2435,6 +2448,7 @@
         viewer.controls.enableDamping = true;
         // Dodaj nasłuchiwanie TUTAJ, po utworzeniu viewer i controls:
         viewer.controls.addEventListener('change', clampCameraDistance);
+        console.log('Viewer controls configured');
       }
 
       const collapseBtn = document.getElementById('collapse-btn');
@@ -2445,7 +2459,7 @@
         collapseBtn.textContent = overviewPanel.classList.contains('collapsed') ? '+' : '−';
       };
 
-
+      console.log('Configuring buy button...');
       document.getElementById('buy-button').innerHTML = '<span class="cart-icon">🛒</span>Zapytaj o produkt';
 
       document.getElementById('buy-button').onclick = () => {
@@ -2487,13 +2501,25 @@
 
 
       try {
+        console.log('Loading environment map...');
         await viewer.setEnvironmentMap("hdr/hamburg_hbf_1k.hdr", { isHDR: true });
-      } catch (e) { console.error("Błąd ładowania HDR:", e); }
+        console.log('Environment map loaded');
+      } catch (e) { 
+        console.error("Błąd ładowania HDR:", e); 
+      }
 
+      console.log('Loading camera target...');
       await loadCameraTarget();
+      console.log('Camera target loaded');
+      
+      console.log('Setting up resize listener...');
       window.addEventListener("resize", resizeCanvas);
       resizeCanvas();
+      console.log('Resize configured');
+      
+      console.log('BEFORE loadDataFromSheet - this might hang...');
       await loadDataFromSheet();
+      console.log('AFTER loadDataFromSheet - if you see this, data loaded successfully');
       
       // Pokaż welcome screen jako domyślny ekran
       const welcomeScreen = document.getElementById('welcome-screen');
