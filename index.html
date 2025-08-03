@@ -1077,15 +1077,15 @@
     display: none !important;
   }
 
-  #rotate-message {
+  #rotation-message {
     display: flex !important;
     justify-content: center;
     align-items: center;
     text-align: center;
     padding: 40px;
     font-size: 18px;
-    background: #000;
-    color: #fff;
+    background: #FFD700;
+    color: #333;
     position: fixed;
     top: 0;
     left: 0;
@@ -1106,7 +1106,7 @@
 
 /* 🤖 Tryb POZIOMY — pokazujemy UI */
 @media (max-width: 820px) and (orientation: landscape) {
-  #rotate-message {
+  #rotation-message {
     display: none !important;
   }
 
@@ -3624,19 +3624,27 @@ renderOptions('legs-thumbnails', legs, item => {
           }
 
           console.log('Data parsed, items:', allData.length);
+          
+          if (allData.length === 0) {
+            console.error('No data loaded - forcing timeout');
+            throw new Error('No data available');
+          }
 
           // Wyczyść timeout loader jeśli dane się załadowały
           clearTimeout(loaderTimeout);
           console.log('Starting UI initialization...');
 
           // Renderuj przyciski kategorii
+          console.log('About to render category buttons...');
           renderCategoryButtons();
           console.log('Category buttons rendered');
           
           // Renderuj promocje na starcie
+          console.log('About to render promotions...');
           renderPromotions();
           console.log('Promotions rendered');
           
+          console.log('About to show models screen...');
           showScreen('models');
           console.log('Models screen shown');
 
@@ -3644,10 +3652,7 @@ renderOptions('legs-thumbnails', legs, item => {
           renderHDROptions(hdrEntries);
           console.log('HDR options rendered, entries:', hdrEntries.length);
 
-          // Wyczyść timeout loader i ukryj loader po załadowaniu danych
-          clearTimeout(loaderTimeout);
-          console.log('Hiding loader...');
-          
+          // Ukryj loader
           const customLoader = document.getElementById('custom-loader');
           const appElement = document.getElementById('app');
           
@@ -4779,10 +4784,18 @@ function setDefaultMaterialsFromSheet() {
 
       // Funkcja renderująca przyciski kategorii
       function renderCategoryButtons() {
-        if (!allData || !Array.isArray(allData)) return;
+        console.log('renderCategoryButtons called, allData:', allData?.length);
+        if (!allData || !Array.isArray(allData)) {
+          console.error('allData is not available or not an array');
+          return;
+        }
         
         const container = document.getElementById('category-buttons-container');
-        if (!container) return;
+        console.log('category-buttons-container:', container);
+        if (!container) {
+          console.error('category-buttons-container not found');
+          return;
+        }
         
         container.innerHTML = '';
         
@@ -4791,6 +4804,8 @@ function setDefaultMaterialsFromSheet() {
           .filter(item => item.Kategoria && item.Typ === 'model')
           .map(item => item.Kategoria)
         )];
+        
+        console.log('Found categories:', categories);
         
         // Dodaj przycisk "Wszystkie"
         const allButton = document.createElement('button');
@@ -4802,6 +4817,7 @@ function setDefaultMaterialsFromSheet() {
           renderAllModels();
         };
         container.appendChild(allButton);
+        console.log('Added "Wszystkie" button');
         
         // Dodaj przyciski dla każdej kategorii
         categories.forEach(category => {

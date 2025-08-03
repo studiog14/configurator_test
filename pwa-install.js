@@ -26,7 +26,11 @@ function showWelcomeInstallButton() {
   const container = document.getElementById('pwa-install-container');
   const button = document.getElementById('welcome-install-btn');
   
-  if (container && button && !isAppInstalled()) {
+  // Sprawdź czy to mobile device
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                   (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  
+  if (container && button && !isAppInstalled() && isMobile) {
     container.style.display = 'block';
     button.addEventListener('click', installPWA);
     
@@ -137,9 +141,13 @@ function showManualInstallInstructions() {
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
-  // Show install button after 3 seconds if not installed and on welcome screen
+  // Sprawdź czy to mobile device
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                   (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  
+  // Show install button after 3 seconds if not installed and on mobile
   setTimeout(() => {
-    if (!isAppInstalled()) {
+    if (!isAppInstalled() && isMobile) {
       // For browsers that don't fire beforeinstallprompt (like iOS Safari)
       if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
         showWelcomeInstallButton();
@@ -147,9 +155,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }, 3000);
   
-  // Hide button if already installed
-  if (isAppInstalled()) {
-    console.log('PWA: App is already installed');
+  // Hide button if already installed or on desktop
+  if (isAppInstalled() || !isMobile) {
+    console.log('PWA: App is already installed or on desktop');
     hideWelcomeInstallButton();
   }
 });
