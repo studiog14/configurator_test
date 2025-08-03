@@ -1,6 +1,5 @@
 // PWA Install Handler
 let deferredPrompt;
-let installButton;
 
 // Check if app is already installed
 function isAppInstalled() {
@@ -13,65 +12,37 @@ window.addEventListener('beforeinstallprompt', (e) => {
   console.log('PWA: Install prompt available');
   e.preventDefault();
   deferredPrompt = e;
-  showInstallButton();
+  showWelcomeInstallButton();
 });
 
 // Handle successful installation
 window.addEventListener('appinstalled', (e) => {
   console.log('PWA: App installed successfully');
-  hideInstallButton();
+  hideWelcomeInstallButton();
   showWelcomeMessage();
 });
 
-// Create install button
-function createInstallButton() {
-  const button = document.createElement('button');
-  button.id = 'install-pwa-btn';
-  button.innerHTML = '📱 Zainstaluj aplikację';
-  button.style.cssText = `
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: #007AFF;
-    color: white;
-    border: none;
-    padding: 12px 20px;
-    border-radius: 25px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    z-index: 10000;
-    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
-    transition: all 0.3s ease;
-    display: none;
-  `;
+// Show install button in welcome screen
+function showWelcomeInstallButton() {
+  const container = document.getElementById('pwa-install-container');
+  const button = document.getElementById('welcome-install-btn');
   
-  button.addEventListener('click', installPWA);
-  document.body.appendChild(button);
-  return button;
-}
-
-// Show install button
-function showInstallButton() {
-  if (!installButton) {
-    installButton = createInstallButton();
-  }
-  
-  if (!isAppInstalled()) {
-    installButton.style.display = 'block';
+  if (container && button && !isAppInstalled()) {
+    container.style.display = 'block';
+    button.addEventListener('click', installPWA);
+    
+    // Animate button
     setTimeout(() => {
-      installButton.style.transform = 'scale(1.1)';
-      setTimeout(() => {
-        installButton.style.transform = 'scale(1)';
-      }, 200);
-    }, 100);
+      button.style.animation = 'pulse 2s infinite';
+    }, 1000);
   }
 }
 
-// Hide install button
-function hideInstallButton() {
-  if (installButton) {
-    installButton.style.display = 'none';
+// Hide install button in welcome screen
+function hideWelcomeInstallButton() {
+  const container = document.getElementById('pwa-install-container');
+  if (container) {
+    container.style.display = 'none';
   }
 }
 
@@ -100,7 +71,7 @@ async function installPWA() {
     }
     
     deferredPrompt = null;
-    hideInstallButton();
+    hideWelcomeInstallButton();
   } catch (error) {
     console.error('PWA: Install error:', error);
   }
@@ -192,23 +163,24 @@ function showWelcomeMessage() {
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
-  // Show install button after 5 seconds if not installed
+  // Show install button after 3 seconds if not installed and on welcome screen
   setTimeout(() => {
-    if (!isAppInstalled() && !deferredPrompt) {
+    if (!isAppInstalled()) {
       // For browsers that don't fire beforeinstallprompt (like iOS Safari)
       if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-        showInstallButton();
+        showWelcomeInstallButton();
       }
     }
-  }, 5000);
+  }, 3000);
   
   // Hide button if already installed
   if (isAppInstalled()) {
     console.log('PWA: App is already installed');
+    hideWelcomeInstallButton();
   }
 });
 
 // Export functions for global use
 window.installPWA = installPWA;
-window.showInstallButton = showInstallButton;
-window.hideInstallButton = hideInstallButton;
+window.showWelcomeInstallButton = showWelcomeInstallButton;
+window.hideWelcomeInstallButton = hideWelcomeInstallButton;

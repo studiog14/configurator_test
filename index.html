@@ -24,31 +24,6 @@
   <!-- iOS Fallback System -->
   <script src="ios-fallback.js"></script>
   <script src="pwa-install.js"></script>
-  
-  <script>
-    // Auto-redirect iOS to mobile version if main app fails
-    if (/iPhone|iPad|iPod/i.test(navigator.userAgent) || 
-        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) {
-      
-      console.log('iOS device detected');
-      
-      // Check if user explicitly wants full version
-      const urlParams = new URLSearchParams(window.location.search);
-      const forceFullVersion = urlParams.get('full') === '1';
-      
-      if (!forceFullVersion) {
-        // Set a timeout - if app doesn't load in 8 seconds, redirect to mobile
-        setTimeout(() => {
-          const loader = document.getElementById('custom-loader');
-          if (loader && loader.style.display !== 'none') {
-            console.log('iOS: App loading timeout, redirecting to mobile version');
-            const mobileUrl = window.location.href.replace('index.html', 'mobile.html').replace(/\?.*$/, '') + '?from=timeout';
-            window.location.href = mobileUrl;
-          }
-        }, 8000);
-      }
-    }
-  </script>
 
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
   <script type="importmap">
@@ -1674,6 +1649,21 @@
   100% { transform: rotate(360deg); }
 }
 
+@keyframes pulse {
+  0% { 
+    transform: scale(1);
+    box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3);
+  }
+  50% { 
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(0, 122, 255, 0.5);
+  }
+  100% { 
+    transform: scale(1);
+    box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3);
+  }
+}
+
 @keyframes progressSlide {
   0% { transform: translateX(-100%); }
   50% { transform: translateX(0%); }
@@ -1811,6 +1801,24 @@
           </div>
           <p>Wybierz kategorię oraz model krzesła z bocznego panelu, aby rozpocząć konfigurację w 3D</p>
           <p class="promo-text">Możesz również zapoznać się z naszymi promocjami i bestsellerami - najczęściej wybieranymi modelami krzeseł</p>
+          
+          <!-- PWA Install Button -->
+          <div id="pwa-install-container" style="margin-top: 30px; display: none;">
+            <button id="welcome-install-btn" style="
+              background: linear-gradient(135deg, #007AFF, #5856D6);
+              color: white;
+              border: none;
+              padding: 12px 24px;
+              border-radius: 25px;
+              font-size: 14px;
+              font-weight: 600;
+              cursor: pointer;
+              box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3);
+              transition: all 0.3s ease;
+            " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+              📱 Zainstaluj jako aplikację
+            </button>
+          </div>
       </div>
     </div>
     
@@ -3046,6 +3054,8 @@ function applyMaterialToSpecificMesh(variant, meshKey) {
         console.log(`📦 Rendering ${filteredItems.length}/${items.length} items in ${containerId} with filter: "${currentSearchFilter}"`);
         
         filteredItems.forEach((item, index) => {
+          console.log(`📷 Item ${index}: "${item.Nazwa}", Image URL: "${item.Obrazek}"`);
+          
           const wrapper = document.createElement('div');
           wrapper.className = 'thumbnail-wrapper';
           const button = document.createElement('div');
@@ -3074,8 +3084,19 @@ function applyMaterialToSpecificMesh(variant, meshKey) {
             });
           }
           const img = document.createElement('img');
-          img.src = item.Obrazek && item.Obrazek.length > 4 ? item.Obrazek : 'icons/placeholder.svg';
+          const imageUrl = item.Obrazek && item.Obrazek.length > 4 ? item.Obrazek : 'icons/placeholder.svg';
+          img.src = imageUrl;
           img.alt = item.Nazwa;
+          
+          // Debug obrazka
+          img.onerror = () => {
+            console.error(`❌ Failed to load image: ${imageUrl} for item: ${item.Nazwa}`);
+            img.src = 'icons/placeholder.svg';
+          };
+          img.onload = () => {
+            console.log(`✅ Successfully loaded image: ${imageUrl} for item: ${item.Nazwa}`);
+          };
+          
           button.appendChild(img);
           const caption = document.createElement('div');
           caption.className = 'thumbnail-caption';
@@ -3412,31 +3433,19 @@ renderOptions('legs-thumbnails', legs, item => {
 
 
       async function loadDataFromSheet() {
-        console.log('=== STARTING LOAD DATA FROM SHEET ===');
-        console.log('User Agent:', navigator.userAgent);
-        console.log('Platform:', navigator.platform);
-        console.log('Max Touch Points:', navigator.maxTouchPoints);
-        
         const sheetId = '1lZMJ-4Qd0nDY-7Hl9iV-pJnZSTVzYiA-A3rDq_bC16U';
         const sheetURL = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=Baza Danych&v=${new Date().getTime()}`;
-        console.log('Sheet URL:', sheetURL);
+        
         // Pokaż loader
-        console.log('Showing custom loader...');
         const customLoaderElement = document.getElementById('custom-loader');
         const appElement = document.getElementById('app');
         
         if (customLoaderElement) {
           customLoaderElement.style.display = 'flex';
-          console.log('Custom loader displayed');
-        } else {
-          console.error('Custom loader element not found!');
         }
         
         if (appElement) {
           appElement.style.visibility = 'hidden';
-          console.log('App hidden');
-        } else {
-          console.error('App element not found!');
         }
         
         // Dodaj timeout na wypadek nieskończonego loadingu (20 sekund)
@@ -3518,6 +3527,19 @@ renderOptions('legs-thumbnails', legs, item => {
 
           console.log('Data parsed successfully, items:', allData.length);
           console.log('Sample data item:', allData[0]);
+          console.log('Sample data fields:', Object.keys(allData[0] || {}));
+          
+          // Sprawdź próbki danych dla modeli
+          const sampleModels = allData.filter(item => item.Typ?.toLowerCase() === 'model').slice(0, 3);
+          console.log('Sample model items:');
+          sampleModels.forEach((model, index) => {
+            console.log(`Model ${index + 1}:`, {
+              Nazwa: model.Nazwa,
+              Obrazek: model.Obrazek,
+              Typ: model.Typ,
+              Grupa: model.Grupa
+            });
+          });
           
           if (allData.length === 0) {
             throw new Error('No visible items found in data');
@@ -4556,40 +4578,9 @@ function setDefaultMaterialsFromSheet() {
 
 
 
-      console.log('=== STARTING INIT FUNCTION ===');
-      console.log('DOM readyState:', document.readyState);
-      console.log('Canvas element exists:', !!document.getElementById("canvas"));
-      console.log('Custom loader exists:', !!document.getElementById("custom-loader"));
-      console.log('App element exists:', !!document.getElementById("app"));
-      
-      // Dodaj global emergency timeout dla iOS debugging
-      const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
-                           (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-      
-      if (isMobileDevice) {
-        console.log('=== MOBILE DEVICE DETECTED - SETTING EMERGENCY TIMEOUT ===');
-        setTimeout(() => {
-          console.log('=== EMERGENCY TIMEOUT TRIGGERED (30s) ===');
-          const emergencyLoader = document.getElementById('custom-loader');
-          const emergencyApp = document.getElementById('app');
-          
-          if (emergencyLoader && emergencyLoader.style.display !== 'none') {
-            console.log('Force hiding stuck loader after 30s');
-            emergencyLoader.style.display = 'none';
-          }
-          
-          if (emergencyApp && emergencyApp.style.visibility !== 'visible') {
-            console.log('Force showing app after 30s');
-            emergencyApp.style.visibility = 'visible';
-          }
-        }, 30000); // 30 sekund emergency timeout
-      }
-      
       // Upewnij się, że DOM jest w pełni załadowany przed uruchomieniem init
       if (document.readyState === 'loading') {
-        console.log('DOM still loading, waiting for DOMContentLoaded...');
         document.addEventListener('DOMContentLoaded', () => {
-          console.log('DOM loaded, now starting init...');
           init().catch(error => {
             console.error('Error in init():', error);
             // Ukryj loader w przypadku błędu w init()
@@ -4604,7 +4595,6 @@ function setDefaultMaterialsFromSheet() {
           });
         });
       } else {
-        console.log('DOM ready, starting init immediately...');
         init().catch(error => {
           console.error('Error in init():', error);
           // Ukryj loader w przypadku błędu w init()
@@ -4766,9 +4756,11 @@ function setDefaultMaterialsFromSheet() {
       // Funkcja renderująca wszystkie modele
       function renderAllModels() {
         const models = allData.filter(item => 
-          item.Typ && item.Typ.toLowerCase() === 'model' &&
-          item.Kategoria && item.Kategoria.toLowerCase().includes('krzesła')
+          item.Typ && item.Typ.toLowerCase() === 'model'
         );
+        console.log('📦 Rendering all models:', models.length, 'items');
+        console.log('📦 Sample model data:', models[0]);
+        console.log('📦 Available categories:', [...new Set(models.map(m => m.Kategoria))]);
         renderOptions('model-thumbnails', models, item => loadModel(item));
       }
 
@@ -4778,6 +4770,7 @@ function setDefaultMaterialsFromSheet() {
           item.Typ && item.Typ.toLowerCase() === 'model' &&
           item.Kategoria === category
         );
+        console.log(`📦 Rendering models for category "${category}":`, models.length, 'items');
         renderOptions('model-thumbnails', models, item => loadModel(item));
       }
 
@@ -4787,6 +4780,9 @@ function setDefaultMaterialsFromSheet() {
           item.Typ && item.Typ.toLowerCase() === 'model' &&
           item.Promocja && item.Promocja.trim() !== ''
         );
+        
+        console.log('🎉 Promotional models found:', promotionalModels.length);
+        console.log('🎉 Sample promotional model:', promotionalModels[0]);
         
         if (promotionalModels.length > 0) {
           renderOptions('model-thumbnails', promotionalModels, item => loadModel(item));
@@ -4799,6 +4795,9 @@ function setDefaultMaterialsFromSheet() {
               allButton.classList.add('active');
             }
           }, 100);
+        } else {
+          console.log('🎉 No promotional models, showing all models instead');
+          renderAllModels();
         }
       }
 
