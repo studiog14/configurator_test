@@ -3375,49 +3375,103 @@ renderOptions('legs-thumbnails', legs, item => {
 
 
       async function loadDataFromSheet() {
+        console.log('=== STARTING LOAD DATA FROM SHEET ===');
+        console.log('User Agent:', navigator.userAgent);
+        console.log('Platform:', navigator.platform);
+        console.log('Max Touch Points:', navigator.maxTouchPoints);
+        
         const sheetId = '1lZMJ-4Qd0nDY-7Hl9iV-pJnZSTVzYiA-A3rDq_bC16U';
         const sheetURL = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=Baza Danych&v=${new Date().getTime()}`;
-        
+        console.log('Sheet URL:', sheetURL);
         // Pokaż loader
-        document.getElementById('custom-loader').style.display = 'flex';
-        document.getElementById('app').style.visibility = 'hidden';
+        console.log('Showing custom loader...');
+        const customLoaderElement = document.getElementById('custom-loader');
+        const appElement = document.getElementById('app');
+        
+        if (customLoaderElement) {
+          customLoaderElement.style.display = 'flex';
+          console.log('Custom loader displayed');
+        } else {
+          console.error('Custom loader element not found!');
+        }
+        
+        if (appElement) {
+          appElement.style.visibility = 'hidden';
+          console.log('App hidden');
+        } else {
+          console.error('App element not found!');
+        }
         
         // Dodaj timeout na wypadek nieskończonego loadingu (20 sekund)
+        console.log('Setting up loader timeout (20s)...');
         const loaderTimeout = setTimeout(() => {
+          console.log("=== LOADER TIMEOUT TRIGGERED ===");
           console.log("Wymuszenie ukrycia loadera po 20 sekundach");
-          document.getElementById('custom-loader').classList.add('fade-out');
-          setTimeout(() => {
-            document.getElementById('custom-loader').style.display = 'none';
-            document.getElementById('app').style.visibility = 'visible';
-          }, 500);
+          const loader = document.getElementById('custom-loader');
+          if (loader) {
+            loader.classList.add('fade-out');
+            setTimeout(() => {
+              loader.style.display = 'none';
+              console.log('Loader hidden after timeout');
+              const app = document.getElementById('app');
+              if (app) {
+                app.style.visibility = 'visible';
+                console.log('App shown after timeout');
+              }
+            }, 500);
+          }
         }, 20000);
         
         try {
           console.log('Loading data from Google Sheets...');
+          console.log('Network online status:', navigator.onLine);
+          console.log('Connection type:', navigator.connection?.effectiveType || 'unknown');
           
-          // Timeout dla mobile
+          // Improved mobile detection (especially for iOS)
+          const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                           (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); // iPad na iOS 13+
+          
+          // Timeout dla mobile (longer for iOS)
+          const timeoutDuration = isMobile ? 20000 : 15000; // 20s for mobile, 15s for desktop
           const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Timeout loading data')), 15000)
+            setTimeout(() => reject(new Error(`Timeout loading data (${timeoutDuration/1000}s)`)), timeoutDuration)
           );
+          
+          console.log('Making fetch request...');
+          console.log('Timeout duration:', timeoutDuration + 'ms');
           
           const fetchPromise = fetch(sheetURL + '?nocache=' + Date.now(), { 
             cache: 'no-store',
             headers: {
-              'Accept': 'text/plain,text/csv,application/csv'
+              'Accept': 'text/plain,text/csv,application/csv',
+              'User-Agent': navigator.userAgent // Explicit user agent for iOS
             }
           });
           
+          console.log('Waiting for response...');
           const response = await Promise.race([fetchPromise, timeoutPromise]);
+          console.log('Response received, status:', response.status, 'ok:', response.ok);
           
           if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error(`HTTP error! status: ${response.status}, statusText: ${response.statusText}`);
           }
 
+          console.log('Reading response text...');
           const csvText = await response.text();
-          console.log('CSV data loaded, parsing...');
+          console.log('CSV data loaded successfully, length:', csvText.length);
+          console.log('Device type:', isMobile ? 'mobile' : 'desktop');
+          console.log('CSV preview (first 200 chars):', csvText.substring(0, 200));
           
           const rows = csvText.trim().split('\n');
+          console.log('CSV rows found:', rows.length);
+          
+          if (rows.length === 0) {
+            throw new Error('CSV file appears to be empty');
+          }
+          
           const headers = rows.shift().split(',').map(h => h.trim().replace(/"/g, ''));
+          console.log('CSV headers parsed:', headers.length);
+          console.log('CSV headers:', headers);
           allData = rows.map(row => {
             const values = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
             const obj = {};
@@ -3425,76 +3479,89 @@ renderOptions('legs-thumbnails', legs, item => {
             return obj;
           }).filter(item => item.Visible?.toLowerCase() !== 'false');
 
+          console.log('Data parsed successfully, items:', allData.length);
+          console.log('Sample data item:', allData[0]);
+          
+          if (allData.length === 0) {
+            throw new Error('No visible items found in data');
+          }
+
           console.log('Data parsed, items:', allData.length);
 
           // Wyczyść timeout loader jeśli dane się załadowały
           clearTimeout(loaderTimeout);
+          console.log('Timeout cleared, starting UI initialization...');
 
           // Renderuj przyciski kategorii
           renderCategoryButtons();
+          console.log('Category buttons rendered');
           
           // Renderuj promocje na starcie
           renderPromotions();
+          console.log('Promotions rendered');
           
           showScreen('models');
+          console.log('Models screen shown');
 
           const hdrEntries = allData.filter(d => d.HDR && d.HDRIcon);
           renderHDROptions(hdrEntries);
+          console.log('HDR options rendered, entries:', hdrEntries.length);
 
+          // Wyczyść timeout loader i ukryj loader po załadowaniu danych
+          clearTimeout(loaderTimeout);
+          console.log('Hiding custom loader...');
+          
+          const customLoader = document.getElementById('custom-loader');
+          const appElement = document.getElementById('app');
+          
+          if (customLoader) {
+            customLoader.classList.add('fade-out');
+            setTimeout(() => {
+              customLoader.style.display = 'none';
+              console.log('Custom loader hidden');
+              
+              if (appElement) {
+                appElement.style.visibility = 'visible';
+                console.log('App made visible');
+              }
+            }, 500);
+          }
 
-
-
-
-          // Pokaż loader
-document.getElementById('custom-loader').style.display = 'flex';
-document.getElementById('app').style.visibility = 'hidden';
-
-// Usuń poprzedni model
-if (currentModelContainer) {
-  viewer.scene.remove(currentModelContainer);
-  if (typeof currentModelContainer.dispose === 'function') currentModelContainer.dispose();
-}
-
-// Załaduj nowy model
-currentModelContainer = await viewer.load('chairs/Ava.glb', { autoCenter: true });
-setCameraView(new Vector3(0, 0, 0));
-
-// Resetuj wybory
-selectedChair = null;
-selectedLeg = null;
-selectedMaterials = {};
-userInteracted = false;
-
-// Zaktualizuj podsumowanie
-updateSummary();
-
-// Pokaż scenę i ukryj loader
-document.getElementById('custom-loader').classList.add('fade-out');
-setTimeout(() => {
-  document.getElementById('custom-loader').style.display = 'none';
-  document.getElementById('app').style.visibility = 'visible';
-}, 500);
-
-// Pokaż toolbar
-const toolbar = document.getElementById('bottom-toolbar');
-if (toolbar) {
-  toolbar.style.display = 'flex';
-  toolbar.classList.add('visible');
-}
+          // Pokaż toolbar
+          const toolbar = document.getElementById('bottom-toolbar');
+          if (toolbar) {
+            toolbar.style.display = 'flex';
+            toolbar.classList.add('visible');
+            console.log('Toolbar shown');
+          }
+          
+          console.log('=== iOS LOADING COMPLETE ===');
 
 
         } catch (e) { 
-          console.error("Błąd ładowania danych:", e); 
+          console.error("=== ERROR IN LOAD DATA FROM SHEET ===");
+          console.error("Error type:", e.constructor.name);
+          console.error("Error message:", e.message);
+          console.error("Full error:", e);
+          console.error("Stack trace:", e.stack);
           
           // Wyczyść timeout loader
           clearTimeout(loaderTimeout);
+          console.log('Timeout cleared after error');
           
           // Ukryj loader nawet przy błędzie
-          document.getElementById('custom-loader').classList.add('fade-out');
-          setTimeout(() => {
-            document.getElementById('custom-loader').style.display = 'none';
-            document.getElementById('app').style.visibility = 'visible';
-          }, 500);
+          const errorLoader = document.getElementById('custom-loader');
+          if (errorLoader) {
+            errorLoader.classList.add('fade-out');
+            setTimeout(() => {
+              errorLoader.style.display = 'none';
+              const errorApp = document.getElementById('app');
+              if (errorApp) {
+                errorApp.style.visibility = 'visible';
+              }
+              console.log('Loader hidden after error');
+            }, 500);
+          }
           
           // Pokaż komunikat błędu
           document.body.innerHTML = `
@@ -4452,7 +4519,68 @@ function setDefaultMaterialsFromSheet() {
 
 
 
-      init();
+      console.log('=== STARTING INIT FUNCTION ===');
+      console.log('DOM readyState:', document.readyState);
+      console.log('Canvas element exists:', !!document.getElementById("canvas"));
+      console.log('Custom loader exists:', !!document.getElementById("custom-loader"));
+      console.log('App element exists:', !!document.getElementById("app"));
+      
+      // Dodaj global emergency timeout dla iOS debugging
+      const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                           (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      
+      if (isMobileDevice) {
+        console.log('=== MOBILE DEVICE DETECTED - SETTING EMERGENCY TIMEOUT ===');
+        setTimeout(() => {
+          console.log('=== EMERGENCY TIMEOUT TRIGGERED (30s) ===');
+          const emergencyLoader = document.getElementById('custom-loader');
+          const emergencyApp = document.getElementById('app');
+          
+          if (emergencyLoader && emergencyLoader.style.display !== 'none') {
+            console.log('Force hiding stuck loader after 30s');
+            emergencyLoader.style.display = 'none';
+          }
+          
+          if (emergencyApp && emergencyApp.style.visibility !== 'visible') {
+            console.log('Force showing app after 30s');
+            emergencyApp.style.visibility = 'visible';
+          }
+        }, 30000); // 30 sekund emergency timeout
+      }
+      
+      // Upewnij się, że DOM jest w pełni załadowany przed uruchomieniem init
+      if (document.readyState === 'loading') {
+        console.log('DOM still loading, waiting for DOMContentLoaded...');
+        document.addEventListener('DOMContentLoaded', () => {
+          console.log('DOM loaded, now starting init...');
+          init().catch(error => {
+            console.error('Error in init():', error);
+            // Ukryj loader w przypadku błędu w init()
+            const loaderElement = document.getElementById('custom-loader');
+            if (loaderElement) {
+              loaderElement.style.display = 'none';
+            }
+            const appElement = document.getElementById('app');
+            if (appElement) {
+              appElement.style.visibility = 'visible';
+            }
+          });
+        });
+      } else {
+        console.log('DOM ready, starting init immediately...');
+        init().catch(error => {
+          console.error('Error in init():', error);
+          // Ukryj loader w przypadku błędu w init()
+          const loaderElement = document.getElementById('custom-loader');
+          if (loaderElement) {
+            loaderElement.style.display = 'none';
+          }
+          const appElement = document.getElementById('app');
+          if (appElement) {
+            appElement.style.visibility = 'visible';
+          }
+        });
+      }
 
       // Globalna zmienna do filtrowania kafelków w sidebarze
       let currentSearchFilter = '';
@@ -5320,11 +5448,12 @@ function setDefaultMaterialsFromSheet() {
 
       // Sprawdzenie czy strona została załadowana z cache (wyłączone na mobile)
       window.addEventListener('load', function() {
-        // Sprawdź czy to mobile device
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        // Sprawdź czy to mobile device (улучшена detekcja dla iOS)
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); // iPad na iOS 13+
         
         if (isMobile) {
-          console.log('Mobile device detected, skipping cache reload logic');
+          console.log('Mobile device detected (iOS/Android), skipping cache reload logic');
           return;
         }
         
@@ -5370,10 +5499,11 @@ function setDefaultMaterialsFromSheet() {
       // Sprawdzenie czy strona była odświeżona normalnie (nie hard refresh) - wyłączone na mobile
       const perfEntries = performance.getEntriesByType('navigation');
       if (perfEntries.length > 0) {
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); // iPad na iOS 13+
         
         if (isMobile) {
-          console.log('Mobile device detected, skipping aggressive cache clearing');
+          console.log('Mobile device detected (iOS/Android), skipping aggressive cache clearing');
         } else {
           const navType = perfEntries[0].type;
           if (navType === 'reload' || navType === 'navigate') {
@@ -5386,7 +5516,8 @@ function setDefaultMaterialsFromSheet() {
 
       // Rejestracja Service Workera z obsługą aktualizacji (mniej agresywne na mobile)
       if ('serviceWorker' in navigator) {
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); // iPad na iOS 13+
         
         navigator.serviceWorker.register('service-worker.js')
           .then(registration => {
@@ -5402,7 +5533,7 @@ function setDefaultMaterialsFromSheet() {
                     console.log('Reloading for SW update...');
                     window.location.reload();
                   } else {
-                    console.log('Mobile detected, skipping auto-reload for SW update');
+                    console.log('Mobile detected (iOS/Android), skipping auto-reload for SW update');
                   }
                 }
               });
@@ -5418,7 +5549,7 @@ function setDefaultMaterialsFromSheet() {
               console.log('Reloading for cache update...');
               window.location.reload();
             } else {
-              console.log('Mobile detected, skipping auto-reload for cache update');
+              console.log('Mobile detected (iOS/Android), skipping auto-reload for cache update');
             }
           }
         });
