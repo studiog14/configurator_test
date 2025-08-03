@@ -19,7 +19,6 @@ window.addEventListener('beforeinstallprompt', (e) => {
 window.addEventListener('appinstalled', (e) => {
   console.log('PWA: App installed successfully');
   hideWelcomeInstallButton();
-  showWelcomeMessage();
 });
 
 // Show install button in welcome screen
@@ -134,31 +133,6 @@ function showIOSInstallInstructions() {
 // Manual install instructions
 function showManualInstallInstructions() {
   alert('Aby zainstalować aplikację:\n\n• Chrome: Menu → Zainstaluj aplikację\n• Edge: Menu → Aplikacje → Zainstaluj tę witrynę jako aplikację\n• Firefox: Menu → Zainstaluj\n\nLub dodaj stronę do zakładek dla szybkiego dostępu.');
-}
-
-// Welcome message after installation
-function showWelcomeMessage() {
-  const welcome = document.createElement('div');
-  welcome.style.cssText = `
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: #34C759;
-    color: white;
-    padding: 20px 30px;
-    border-radius: 15px;
-    font-weight: 600;
-    z-index: 10001;
-    box-shadow: 0 4px 20px rgba(52, 199, 89, 0.3);
-  `;
-  
-  welcome.innerHTML = '✅ Aplikacja zainstalowana pomyślnie!';
-  document.body.appendChild(welcome);
-  
-  setTimeout(() => {
-    welcome.remove();
-  }, 3000);
 }
 
 // Initialize

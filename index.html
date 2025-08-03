@@ -21,8 +21,6 @@
   <meta http-equiv="pragma" content="no-cache" />
   <meta http-equiv="expires" content="0" />
   
-  <!-- iOS Fallback System -->
-  <script src="ios-fallback.js"></script>
   <script src="pwa-install.js"></script>
 
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
@@ -1686,12 +1684,63 @@
   100% { transform: rotate(360deg);}
 }
 
+@keyframes rotatePhone {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(-15deg); }
+  75% { transform: rotate(15deg); }
+  100% { transform: rotate(0deg); }
+}
+
 
   </style>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
 <body>
+    <!-- Komunikat obrotu telefonu - pierwszy element -->
+    <div id="rotation-message" style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #FFD700;
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 30000;
+        text-align: center;
+        padding: 40px;
+    ">
+        <img src="icons/FK_logo.png" alt="Fajne Krzesła" style="
+            max-width: 150px;
+            height: auto;
+            margin-bottom: 30px;
+            border-radius: 10px;
+        " />
+        
+        <div style="
+            font-size: 60px;
+            margin-bottom: 20px;
+            animation: rotatePhone 2s ease-in-out infinite;
+        ">📱</div>
+        
+        <h2 style="
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        ">Obróć telefon</h2>
+        
+        <p style="
+            color: #666;
+            font-size: 16px;
+            line-height: 1.5;
+            max-width: 300px;
+        ">Dla lepszego doświadczenia użyj orientacji poziomej</p>
+    </div>
+
     <!-- 🔄 ANIMATED LOADER z żółtym paskiem -->
     <div id="custom-loader">
         <div class="logo-container" style="
@@ -2309,6 +2358,53 @@
 
 
     async function init() {
+      // Sprawdź orientację na początku
+      function checkOrientation() {
+        const rotationMessage = document.getElementById('rotation-message');
+        const customLoader = document.getElementById('custom-loader');
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
+        if (isMobile && rotationMessage) {
+          if (window.innerHeight > window.innerWidth) {
+            // Orientacja portret - pokaż komunikat obrotu i ukryj loader
+            rotationMessage.style.display = 'flex';
+            if (customLoader) customLoader.style.display = 'none';
+            return false; // Nie kontynuuj inicjalizacji
+          } else {
+            // Orientacja krajobraz - ukryj komunikat i pokaż loader
+            rotationMessage.style.display = 'none';
+            if (customLoader) customLoader.style.display = 'flex';
+            return true; // Kontynuuj inicjalizację
+          }
+        }
+        return true; // Desktop - kontynuuj
+      }
+      
+      // Sprawdź orientację przy ładowaniu
+      if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+        if (!checkOrientation()) {
+          // Czekaj na zmianę orientacji
+          const orientationHandler = () => {
+            setTimeout(() => {
+              if (checkOrientation()) {
+                // Orientacja OK, usuń handler i kontynuuj inicjalizację
+                window.removeEventListener('orientationchange', orientationHandler);
+                window.removeEventListener('resize', orientationHandler);
+                initApp(); // Kontynuuj inicjalizację
+              }
+            }, 500);
+          };
+          
+          window.addEventListener('orientationchange', orientationHandler);
+          window.addEventListener('resize', orientationHandler);
+          return; // Zatrzymaj inicjalizację do czasu zmiany orientacji
+        }
+      }
+      
+      initApp(); // Uruchom właściwą inicjalizację
+    }
+    
+    async function initApp() {
       const canvas = document.getElementById("canvas");
 
       viewer = new ThreeViewer({
@@ -2401,6 +2497,25 @@
       if (configOverview) {
         configOverview.style.display = 'none';
         configOverview.classList.add('hidden');
+      }
+      
+      // Dodaj stały handler orientacji po inicjalizacji
+      if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+        const continuousOrientationCheck = () => {
+          const rotationMessage = document.getElementById('rotation-message');
+          if (rotationMessage) {
+            if (window.innerHeight > window.innerWidth) {
+              rotationMessage.style.display = 'flex';
+            } else {
+              rotationMessage.style.display = 'none';
+            }
+          }
+        };
+        
+        window.addEventListener('orientationchange', () => {
+          setTimeout(continuousOrientationCheck, 500);
+        });
+        window.addEventListener('resize', continuousOrientationCheck);
       }
     }
 
@@ -3051,7 +3166,7 @@ function applyMaterialToSpecificMesh(variant, meshKey) {
           ? items.filter(matchesSearchFilter)
           : items;
           
-        console.log(`📦 Rendering ${filteredItems.length}/${items.length} items in ${containerId} with filter: "${currentSearchFilter}"`);
+        console.log(`📦 Rendering ${filteredItems.length}/${items.length} items in ${containerId}`);
         
         filteredItems.forEach((item, index) => {
           console.log(`📷 Item ${index}: "${item.Nazwa}", Image URL: "${item.Obrazek}"`);
@@ -3470,33 +3585,30 @@ renderOptions('legs-thumbnails', legs, item => {
         
         try {
           console.log('Loading data from Google Sheets...');
-          console.log('Network online status:', navigator.onLine);
-          console.log('Connection type:', navigator.connection?.effectiveType || 'unknown');
           
-          // Improved mobile detection (especially for iOS)
+          // Enhanced mobile detection
           const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
-                           (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); // iPad na iOS 13+
+                           (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); // iPad detection
           
-          // Timeout dla mobile (longer for iOS)
-          const timeoutDuration = isMobile ? 20000 : 15000; // 20s for mobile, 15s for desktop
+          // Timeout for mobile devices
+          const timeoutDuration = isMobile ? 20000 : 15000;
           const timeoutPromise = new Promise((_, reject) => 
             setTimeout(() => reject(new Error(`Timeout loading data (${timeoutDuration/1000}s)`)), timeoutDuration)
           );
           
           console.log('Making fetch request...');
-          console.log('Timeout duration:', timeoutDuration + 'ms');
           
           const fetchPromise = fetch(sheetURL + '?nocache=' + Date.now(), { 
             cache: 'no-store',
             headers: {
               'Accept': 'text/plain,text/csv,application/csv',
-              'User-Agent': navigator.userAgent // Explicit user agent for iOS
+              'User-Agent': navigator.userAgent
             }
           });
           
           console.log('Waiting for response...');
           const response = await Promise.race([fetchPromise, timeoutPromise]);
-          console.log('Response received, status:', response.status, 'ok:', response.ok);
+          console.log('Response received, status:', response.status);
           
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}, statusText: ${response.statusText}`);
@@ -3505,8 +3617,6 @@ renderOptions('legs-thumbnails', legs, item => {
           console.log('Reading response text...');
           const csvText = await response.text();
           console.log('CSV data loaded successfully, length:', csvText.length);
-          console.log('Device type:', isMobile ? 'mobile' : 'desktop');
-          console.log('CSV preview (first 200 chars):', csvText.substring(0, 200));
           
           const rows = csvText.trim().split('\n');
           console.log('CSV rows found:', rows.length);
@@ -3517,7 +3627,6 @@ renderOptions('legs-thumbnails', legs, item => {
           
           const headers = rows.shift().split(',').map(h => h.trim().replace(/"/g, ''));
           console.log('CSV headers parsed:', headers.length);
-          console.log('CSV headers:', headers);
           allData = rows.map(row => {
             const values = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
             const obj = {};
@@ -3527,19 +3636,6 @@ renderOptions('legs-thumbnails', legs, item => {
 
           console.log('Data parsed successfully, items:', allData.length);
           console.log('Sample data item:', allData[0]);
-          console.log('Sample data fields:', Object.keys(allData[0] || {}));
-          
-          // Sprawdź próbki danych dla modeli
-          const sampleModels = allData.filter(item => item.Typ?.toLowerCase() === 'model').slice(0, 3);
-          console.log('Sample model items:');
-          sampleModels.forEach((model, index) => {
-            console.log(`Model ${index + 1}:`, {
-              Nazwa: model.Nazwa,
-              Obrazek: model.Obrazek,
-              Typ: model.Typ,
-              Grupa: model.Grupa
-            });
-          });
           
           if (allData.length === 0) {
             throw new Error('No visible items found in data');
@@ -3549,7 +3645,7 @@ renderOptions('legs-thumbnails', legs, item => {
 
           // Wyczyść timeout loader jeśli dane się załadowały
           clearTimeout(loaderTimeout);
-          console.log('Timeout cleared, starting UI initialization...');
+          console.log('Starting UI initialization...');
 
           // Renderuj przyciski kategorii
           renderCategoryButtons();
@@ -3568,7 +3664,7 @@ renderOptions('legs-thumbnails', legs, item => {
 
           // Wyczyść timeout loader i ukryj loader po załadowaniu danych
           clearTimeout(loaderTimeout);
-          console.log('Hiding custom loader...');
+          console.log('Hiding loader...');
           
           const customLoader = document.getElementById('custom-loader');
           const appElement = document.getElementById('app');
@@ -3577,11 +3673,11 @@ renderOptions('legs-thumbnails', legs, item => {
             customLoader.classList.add('fade-out');
             setTimeout(() => {
               customLoader.style.display = 'none';
-              console.log('Custom loader hidden');
+              console.log('Loader hidden');
               
               if (appElement) {
                 appElement.style.visibility = 'visible';
-                console.log('App made visible');
+                console.log('App shown');
               }
             }, 500);
           }
@@ -3594,7 +3690,7 @@ renderOptions('legs-thumbnails', legs, item => {
             console.log('Toolbar shown');
           }
           
-          console.log('=== iOS LOADING COMPLETE ===');
+          console.log('App initialization complete');
 
 
         } catch (e) { 
@@ -4759,8 +4855,6 @@ function setDefaultMaterialsFromSheet() {
           item.Typ && item.Typ.toLowerCase() === 'model'
         );
         console.log('📦 Rendering all models:', models.length, 'items');
-        console.log('📦 Sample model data:', models[0]);
-        console.log('📦 Available categories:', [...new Set(models.map(m => m.Kategoria))]);
         renderOptions('model-thumbnails', models, item => loadModel(item));
       }
 
@@ -4782,7 +4876,6 @@ function setDefaultMaterialsFromSheet() {
         );
         
         console.log('🎉 Promotional models found:', promotionalModels.length);
-        console.log('🎉 Sample promotional model:', promotionalModels[0]);
         
         if (promotionalModels.length > 0) {
           renderOptions('model-thumbnails', promotionalModels, item => loadModel(item));
