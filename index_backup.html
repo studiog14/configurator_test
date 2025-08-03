@@ -92,23 +92,12 @@
       overflow-y: auto;
     }
 
-    /* Separator między wyszukiwaniem a kategoriami */
-    #sidebar hr {
-      border: none;
-      border-top: 1px solid #e0e0e0;
-      margin: 20px 0 16px 0;
-      opacity: 0.6;
-    }
-
     /* Pole wyszukiwania w lewym sidebar'ze po prawej stronie */
     #search-container {
-      position: relative;
-      margin-bottom: 20px;
+      position: absolute;
+      top: 20px;
+      right: 20px;
       z-index: 1300;
-      display: flex;
-      align-items: flex-start;
-      justify-content: flex-end;
-      gap: 10px;
     }
 
     #search-toggle {
@@ -137,28 +126,25 @@
     }
 
     #search-panel {
-      position: relative !important;
-      top: 0 !important;
-      left: 0 !important;
-      width: 0 !important;
-      max-width: 0 !important;
+      position: fixed !important;
+      top: 70px !important;
+      right: -320px !important;
+      width: 320px !important;
+      max-width: calc(100vw - 40px) !important;
       background: rgba(255, 255, 255, 0.98) !important;
       backdrop-filter: blur(15px) !important;
       border-radius: 12px !important;
-      padding: 0 !important;
+      padding: 16px !important;
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
       opacity: 0 !important;
       visibility: hidden !important;
       transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
       z-index: 1400 !important;
       transform: translateX(0) !important;
-      overflow: hidden !important;
     }
 
     #search-panel.active {
-      width: 320px !important;
-      max-width: 320px !important;
-      padding: 16px !important;
+      right: 20px !important;
       opacity: 1 !important;
       visibility: visible !important;
       transform: translateX(0) !important;
@@ -229,11 +215,9 @@
     }
 
     .search-result-item .result-category {
-      font-size: 12px;
-      color: #f1c40f;
-      font-weight: 600;
+      font-size: 10px;
+      color: #666;
       line-height: 1.1;
-      text-transform: uppercase;
     }
 
     /* Fallback dla wyników bez obrazków */
@@ -252,10 +236,7 @@
     }
 
     .search-result-item.text-only .result-category {
-      font-size: 14px;
-      color: #f1c40f;
-      font-weight: 600;
-      text-transform: uppercase;
+      font-size: 12px;
     }
 
     .search-result-item .result-type {
@@ -383,9 +364,7 @@
 
     .search-choice-item-category {
       font-size: 12px;
-      color: #f1c40f;
-      font-weight: 600;
-      text-transform: uppercase;
+      color: #666;
     }
 
     .search-choice-buttons {
@@ -1875,8 +1854,7 @@
         <button id="clear-search-filter" style="float: right; background: none; border: none; color: #666; cursor: pointer; font-size: 16px; padding: 0;" title="Wyczyść filtr">×</button>
       </div>
       
-      <!-- Separator oddzielajacy wyszukiwanie od kategorii -->
-      <hr style="margin: 20px 0 16px 0; border: none; border-top: 1px solid #e0e0e0; opacity: 0.6;" />
+      <hr />
       
       <!-- Przyciski kategorii -->
       <div id="category-buttons" style="margin-bottom: 20px;">
@@ -2230,8 +2208,6 @@
     };
 
     function showScreen(screenName) {
-      console.log("Showing screen:", screenName);
-      
       const welcomeScreen = document.getElementById('welcome-screen');
       
       // Ukryj welcome screen przy przejściu do jakiegokolwiek ekranu
@@ -2241,19 +2217,6 @@
       
       document.getElementById('model-section').style.display = (screenName === 'models' || screenName === 'search-results') ? 'block' : 'none';
       document.getElementById('config-section').style.display = screenName === 'config' ? 'block' : 'none';
-      
-      // Upewnij się że loader jest ukryty gdy pokazujemy główny ekran
-      if (screenName === 'models') {
-        const loader = document.getElementById('custom-loader');
-        if (loader && loader.style.display !== 'none') {
-          console.log("Ukrywam loader po przejściu na ekran models");
-          loader.classList.add('fade-out');
-          setTimeout(() => {
-            loader.style.display = 'none';
-            document.getElementById('app').style.visibility = 'visible';
-          }, 500);
-        }
-      }
     }
 
 
@@ -2749,27 +2712,18 @@ function hideModelLoader() {
 
 // Funkcje loadera materiałów
 function showMaterialLoader(text = 'Ładowanie materiału...') {
-  const el = document.getElementById('custom-loader');
+  const el = document.getElementById('material-preloader');
   if (el) {
-    const textEl = el.querySelector('p');
+    const textEl = el.querySelector('div');
     if (textEl) textEl.textContent = text;
     el.style.display = 'flex';
-    document.getElementById('app').style.visibility = 'hidden';
   }
 }
 
 function hideMaterialLoader() {
-  const el = document.getElementById('custom-loader');
+  const el = document.getElementById('material-preloader');
   if (el) {
-    el.classList.add('fade-out');
-    setTimeout(() => {
-      el.style.display = 'none';
-      el.classList.remove('fade-out');
-      document.getElementById('app').style.visibility = 'visible';
-      // Przywróć oryginalny tekst
-      const textEl = el.querySelector('p');
-      if (textEl) textEl.textContent = 'Ładowanie...';
-    }, 500);
+    el.style.display = 'none';
   }
 }
 
@@ -3414,45 +3368,10 @@ renderOptions('legs-thumbnails', legs, item => {
       async function loadDataFromSheet() {
         const sheetId = '1lZMJ-4Qd0nDY-7Hl9iV-pJnZSTVzYiA-A3rDq_bC16U';
         const sheetURL = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=Baza Danych&v=${new Date().getTime()}`;
-        
-        // Pokaż loader
-        document.getElementById('custom-loader').style.display = 'flex';
-        document.getElementById('app').style.visibility = 'hidden';
-        
-        // Dodaj timeout na wypadek nieskończonego loadingu (20 sekund)
-        const loaderTimeout = setTimeout(() => {
-          console.log("Wymuszenie ukrycia loadera po 20 sekundach");
-          document.getElementById('custom-loader').classList.add('fade-out');
-          setTimeout(() => {
-            document.getElementById('custom-loader').style.display = 'none';
-            document.getElementById('app').style.visibility = 'visible';
-          }, 500);
-        }, 20000);
-        
         try {
-          console.log('Loading data from Google Sheets...');
-          
-          // Timeout dla mobile
-          const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Timeout loading data')), 15000)
-          );
-          
-          const fetchPromise = fetch(sheetURL + '?nocache=' + Date.now(), { 
-            cache: 'no-store',
-            headers: {
-              'Accept': 'text/plain,text/csv,application/csv'
-            }
-          });
-          
-          const response = await Promise.race([fetchPromise, timeoutPromise]);
-          
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
+          const response = await fetch(sheetURL + '?nocache=' + Date.now(), { cache: 'no-store' });
 
           const csvText = await response.text();
-          console.log('CSV data loaded, parsing...');
-          
           const rows = csvText.trim().split('\n');
           const headers = rows.shift().split(',').map(h => h.trim().replace(/"/g, ''));
           allData = rows.map(row => {
@@ -3461,11 +3380,6 @@ renderOptions('legs-thumbnails', legs, item => {
             headers.forEach((header, index) => obj[header] = values[index]?.trim().replace(/"/g, '') || '');
             return obj;
           }).filter(item => item.Visible?.toLowerCase() !== 'false');
-
-          console.log('Data parsed, items:', allData.length);
-
-          // Wyczyść timeout loader jeśli dane się załadowały
-          clearTimeout(loaderTimeout);
 
           // Renderuj przyciski kategorii
           renderCategoryButtons();
@@ -3520,30 +3434,7 @@ if (toolbar) {
 }
 
 
-        } catch (e) { 
-          console.error("Błąd ładowania danych:", e); 
-          
-          // Wyczyść timeout loader
-          clearTimeout(loaderTimeout);
-          
-          // Ukryj loader nawet przy błędzie
-          document.getElementById('custom-loader').classList.add('fade-out');
-          setTimeout(() => {
-            document.getElementById('custom-loader').style.display = 'none';
-            document.getElementById('app').style.visibility = 'visible';
-          }, 500);
-          
-          // Pokaż komunikat błędu
-          document.body.innerHTML = `
-            <div style="text-align: center; padding: 50px; font-family: Arial, sans-serif;">
-              <h2>Błąd ładowania danych</h2>
-              <p>${e.message}</p>
-              <button onclick="window.location.reload()" style="padding: 10px 20px; margin-top: 20px;">
-                Spróbuj ponownie
-              </button>
-            </div>
-          `;
-        }
+        } catch (e) { console.error("Błąd ładowania danych:", e); document.body.innerHTML = `Błąd ładowania danych: ${e.message}`; }
       }
 
       document.getElementById('hdr-toggle')?.addEventListener('click', (e) => {
@@ -3832,13 +3723,13 @@ if (Array.isArray(mats)) {
 
         document.addEventListener('click', () => {
           hdrPanel?.classList.add('hidden');
-          if (hdrPanel) hdrPanel.style.display = 'none';
+          hdrPanel.style.display = 'none';
         });
 
         hdrClose?.addEventListener('click', (e) => {
           e.stopPropagation();
           hdrPanel?.classList.add('hidden');
-          if (hdrPanel) hdrPanel.style.display = 'none';
+          hdrPanel.style.display = 'none';
         });
       });
 
@@ -3951,10 +3842,7 @@ if (Array.isArray(mats)) {
 
 
       document.addEventListener('click', () => {
-        const hdrPanel = document.getElementById('hdr-panel');
-        if (hdrPanel) {
-          hdrPanel.classList.add('hidden');
-        }
+        hdrPanel.classList.add('hidden');
       });
 
 
@@ -4551,9 +4439,9 @@ function setDefaultMaterialsFromSheet() {
           );
         } else {
           // Pojedynczy termin wyszukiwania
-          return searchableFields.some(field => 
-            field && field.toLowerCase().includes(currentSearchFilter)
-          );
+        return searchableFields.some(field => 
+          field && field.toLowerCase().includes(currentSearchFilter)
+        );
         }
       }
 
@@ -4590,11 +4478,17 @@ function setDefaultMaterialsFromSheet() {
         
         container.innerHTML = '';
         
-        // Znajdź wszystkie unikalne kategorie
-        const categories = [...new Set(allData
+        // Znajdź wszystkie unikalne kategorie i rozdziel je jeśli są połączone
+        const allCategories = allData
           .filter(item => item.Kategoria && item.Typ === 'model')
-          .map(item => item.Kategoria)
-        )];
+          .flatMap(item => {
+            // Rozdziel kategorie połączone przecinkami
+            return item.Kategoria.split(',').map(cat => cat.trim()).filter(cat => cat.length > 0);
+          });
+        
+        const categories = [...new Set(allCategories)];
+        
+        console.log('🏷️ Found categories:', categories);
         
         // Dodaj przycisk "Wszystkie"
         const allButton = document.createElement('button');
@@ -4615,10 +4509,12 @@ function setDefaultMaterialsFromSheet() {
           
           // Sprawdź czy kategoria ma promocje
           const hasPromotion = allData.some(item => 
-            item.Kategoria === category && 
             item.Typ === 'model' && 
             item.Promocja && 
-            item.Promocja.trim() !== ''
+            item.Promocja.trim() !== '' &&
+            item.Kategoria &&
+            // Sprawdź czy kategoria elementu zawiera aktualną kategorię
+            item.Kategoria.split(',').map(cat => cat.trim()).includes(category)
           );
           
           if (hasPromotion) {
@@ -4639,8 +4535,9 @@ function setDefaultMaterialsFromSheet() {
       function renderAllModels() {
         const models = allData.filter(item => 
           item.Typ && item.Typ.toLowerCase() === 'model' &&
-          item.Kategoria && item.Kategoria.toLowerCase().includes('krzesła')
+          item.Kategoria // Pokazuj wszystkie modele które mają kategorię
         );
+        console.log('🏷️ Showing all models:', models.map(m => ({ Nazwa: m.Nazwa, Kategoria: m.Kategoria })));
         renderOptions('model-thumbnails', models, item => loadModel(item));
       }
 
@@ -4648,8 +4545,11 @@ function setDefaultMaterialsFromSheet() {
       function renderModelsByCategory(category) {
         const models = allData.filter(item => 
           item.Typ && item.Typ.toLowerCase() === 'model' &&
-          item.Kategoria === category
+          item.Kategoria && 
+          // Sprawdź czy kategoria elementu zawiera wybraną kategorię (obsługa kategorii rozdzielonych przecinkami)
+          item.Kategoria.split(',').map(cat => cat.trim()).includes(category)
         );
+        console.log(`🏷️ Showing models for category "${category}":`, models.map(m => m.Nazwa));
         renderOptions('model-thumbnails', models, item => loadModel(item));
       }
 
@@ -4678,12 +4578,11 @@ function setDefaultMaterialsFromSheet() {
       function refreshAllTiles() {
         console.log('🔄 Refreshing all tiles with filter:', currentSearchFilter);
         
-                  // Odśwież modele główne (krzesła/kubełki)
-          if (allData && Array.isArray(allData)) {
+        // Odśwież modele główne (krzesła/kubełki)
+        if (allData && Array.isArray(allData)) {
             console.log('🔍 Available groups:', [...new Set(allData.map(d => d.Grupa))]);
             const filteredByGroup = allData.filter(d => 
-              d.Kategoria && 
-              d.Kategoria.toLowerCase().includes('krzesła') && 
+              d.Kategoria && // Pokaż wszystkie modele które mają kategorię
               d.Typ && 
               d.Typ.toLowerCase() === 'model'
             );
@@ -4773,10 +4672,17 @@ function setDefaultMaterialsFromSheet() {
           
           if (isSearchOpen) {
             searchPanel.classList.add('active');
+            // Wymusz style bezpośrednio dla pewności
+            searchPanel.style.right = '20px';
+            searchPanel.style.opacity = '1';
+            searchPanel.style.visibility = 'visible';
             console.log('🔍 Panel opened');
             setTimeout(() => searchInput && searchInput.focus(), 200);
           } else {
             searchPanel.classList.remove('active');
+            searchPanel.style.right = '-320px';
+            searchPanel.style.opacity = '0';
+            searchPanel.style.visibility = 'hidden';
             console.log('🔍 Panel closed');
             if (searchInput) searchInput.value = '';
             if (searchResults) searchResults.innerHTML = '';
@@ -4800,6 +4706,9 @@ function setDefaultMaterialsFromSheet() {
             if (isSearchOpen) {
               isSearchOpen = false;
               searchPanel.classList.remove('active');
+              searchPanel.style.right = '-320px';
+              searchPanel.style.opacity = '0';
+              searchPanel.style.visibility = 'hidden';
               if (searchInput) searchInput.value = '';
               if (searchResults) searchResults.innerHTML = '';
               // Wyczyść filtr kafelków
@@ -4829,7 +4738,6 @@ function setDefaultMaterialsFromSheet() {
             const searchableFields = [
               { field: item.Nazwa, weight: 10 },
               { field: item.Grupa, weight: 8 },
-              { field: item.Kategoria, weight: 8 },
               { field: item.Kolekcja, weight: 6 },
               { field: item.Typ, weight: 4 },
               { field: item.Opis, weight: 2 }
@@ -4955,29 +4863,32 @@ function setDefaultMaterialsFromSheet() {
             resultDiv.className = 'search-result-item';
             
             const name = item.Nazwa || 'Bez nazwy';
-            const category = item.Kategoria || '';
+            const category = item.Kategoria || item.Grupa || '';
             const image = item.Obrazek || item.Image;
             
-            // Dodaj etykietę typu elementu (tylko dla materiałów i nóg)
+            // Dodaj etykietę typu elementu
             let typeLabel = '';
-            if (item.searchType === 'leg-material') {
+            if (item.searchType === 'chair') {
+              typeLabel = 'Krzesło';
+            } else if (item.searchType === 'leg-material') {
               typeLabel = 'Materiał nóg';
             } else if (item.searchType === 'leg') {
               typeLabel = 'Nogi';
             }
-            // Nie pokazuj typeLabel dla krzeseł - zostanie tylko kategoria
             
             if (image) {
-              // Kafelek z obrazkiem - tylko kategoria
+              // Kafelek z obrazkiem
               resultDiv.innerHTML = `
                 <img src="${image}" alt="${name}" onerror="this.style.display='none'">
+                <div class="result-name">${name}</div>
                 <div class="result-category">${category}</div>
                 ${typeLabel ? `<div class="result-type">${typeLabel}</div>` : ''}
               `;
             } else {
-              // Fallback tekstowy dla elementów bez obrazków - tylko kategoria
+              // Fallback tekstowy dla elementów bez obrazków
               resultDiv.className += ' text-only';
               resultDiv.innerHTML = `
+                <div class="result-name">${name}</div>
                 <div class="result-category">${category}</div>
                 ${typeLabel ? `<div class="result-type">${typeLabel}</div>` : ''}
               `;
@@ -4987,6 +4898,9 @@ function setDefaultMaterialsFromSheet() {
               selectSearchResult(item, query);
               isSearchOpen = false;
               searchPanel.classList.remove('active');
+              searchPanel.style.right = '-320px';
+              searchPanel.style.opacity = '0';
+              searchPanel.style.visibility = 'hidden';
               if (searchInput) searchInput.value = '';
               if (searchResults) searchResults.innerHTML = '';
               // Wyczyść filtr kafelków po wyborze wyniku
@@ -5025,11 +4939,10 @@ function setDefaultMaterialsFromSheet() {
 
         // Ustaw dane elementu
         const name = item.Nazwa || 'Bez nazwy';
-        const category = item.Kategoria || '';
+        const category = item.Kategoria || item.Grupa || '';
         const image = item.Obrazek || item.Image;
         
-        // Pokaż tylko kategorię (żółty tekst)
-        itemName.textContent = '';
+        itemName.textContent = name;
         itemCategory.textContent = category;
         
         if (image) {
@@ -5058,7 +4971,7 @@ function setDefaultMaterialsFromSheet() {
         } else {
           // Fallback na starą logikę
           const group = item.Grupa?.toLowerCase();
-          if (group === 'krzesło' || group === 'kubełek') {
+        if (group === 'krzesło' || group === 'kubełek') {
             goToChairBtn.style.display = 'block';
             goToChairBtn.textContent = 'Przejdź do krzesła';
             viewOptionsBtn.style.flex = '';
@@ -5096,6 +5009,9 @@ function setDefaultMaterialsFromSheet() {
           const searchInput = document.getElementById('search-input');
           if (searchPanel) {
             searchPanel.classList.remove('active');
+            searchPanel.style.right = '-320px';
+            searchPanel.style.opacity = '0';
+            searchPanel.style.visibility = 'hidden';
           }
           if (searchInput) searchInput.value = '';
           // Wyczyść wyniki wyszukiwania w panelu
@@ -5112,6 +5028,9 @@ function setDefaultMaterialsFromSheet() {
           const searchInput = document.getElementById('search-input');
           if (searchPanel) {
             searchPanel.classList.remove('active');
+            searchPanel.style.right = '-320px';
+            searchPanel.style.opacity = '0';
+            searchPanel.style.visibility = 'hidden';
           }
           if (searchInput) searchInput.value = '';
           // Wyczyść filtr wyszukiwania
@@ -5162,22 +5081,22 @@ function setDefaultMaterialsFromSheet() {
           const group = item.Grupa?.toLowerCase();
           
           if (group === 'krzesło' || group === 'kubełek') {
-            loadModel(item);
-          } else if (group === 'tkanina' || group === 'materiały_nóg') {
-            if (selectedChair) {
-              if (item.TargetMeshOrModel) {
-                applyMaterial(item);
-              }
-              showScreen('config');
-            } else {
-              alert('Najpierw wybierz model krzesła');
+          loadModel(item);
+        } else if (group === 'tkanina' || group === 'materiały_nóg') {
+          if (selectedChair) {
+            if (item.TargetMeshOrModel) {
+              applyMaterial(item);
             }
-          } else if (group === 'nogi') {
-            if (selectedChair && selectedChair.Grupa?.toLowerCase() === 'kubełek') {
-              setLegModel(item);
-              showScreen('config');
-            } else {
-              alert('Nogi można wybierać tylko dla kubełków');
+            showScreen('config');
+          } else {
+            alert('Najpierw wybierz model krzesła');
+          }
+        } else if (group === 'nogi') {
+          if (selectedChair && selectedChair.Grupa?.toLowerCase() === 'kubełek') {
+            setLegModel(item);
+            showScreen('config');
+          } else {
+            alert('Nogi można wybierać tylko dla kubełków');
             }
           }
         }
@@ -5355,16 +5274,8 @@ function setDefaultMaterialsFromSheet() {
 
     
 
-      // Sprawdzenie czy strona została załadowana z cache (wyłączone na mobile)
+      // Sprawdzenie czy strona została załadowana z cache
       window.addEventListener('load', function() {
-        // Sprawdź czy to mobile device
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        
-        if (isMobile) {
-          console.log('Mobile device detected, skipping cache reload logic');
-          return;
-        }
-        
         // Sprawdź czy to było nawigacja z cache
         const navigationEntries = performance.getEntriesByType('navigation');
         if (navigationEntries.length > 0) {
@@ -5404,59 +5315,41 @@ function setDefaultMaterialsFromSheet() {
         }
       }
 
-      // Sprawdzenie czy strona była odświeżona normalnie (nie hard refresh) - wyłączone na mobile
+      // Sprawdzenie czy strona była odświeżona normalnie (nie hard refresh)
       const perfEntries = performance.getEntriesByType('navigation');
       if (perfEntries.length > 0) {
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        
-        if (isMobile) {
-          console.log('Mobile device detected, skipping aggressive cache clearing');
-        } else {
-          const navType = perfEntries[0].type;
-          if (navType === 'reload' || navType === 'navigate') {
-            console.log('Clearing caches on normal reload...');
-            clearAllCaches();
-            forceSwUpdate();
-          }
+        const navType = perfEntries[0].type;
+        if (navType === 'reload' || navType === 'navigate') {
+          console.log('Clearing caches on normal reload...');
+          clearAllCaches();
+          forceSwUpdate();
         }
       }
 
-      // Rejestracja Service Workera z obsługą aktualizacji (mniej agresywne na mobile)
+      // Rejestracja Service Workera z obsługą aktualizacji
       if ('serviceWorker' in navigator) {
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        
         navigator.serviceWorker.register('service-worker.js')
           .then(registration => {
             console.log('Service Worker registered');
             
-            // Sprawdź aktualizacje (mniej agresywne na mobile)
+            // Sprawdź aktualizacje
             registration.addEventListener('updatefound', () => {
               const newWorker = registration.installing;
               newWorker.addEventListener('statechange', () => {
                 if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                  console.log('New SW available');
-                  if (!isMobile) {
-                    console.log('Reloading for SW update...');
-                    window.location.reload();
-                  } else {
-                    console.log('Mobile detected, skipping auto-reload for SW update');
-                  }
+                  console.log('New SW available, reloading...');
+                  window.location.reload();
                 }
               });
             });
           })
           .catch(err => console.error('SW registration failed:', err));
 
-        // Słuchaj komunikatów od SW (mniej agresywne na mobile)
+        // Słuchaj komunikatów od SW
         navigator.serviceWorker.addEventListener('message', event => {
           if (event.data.type === 'CACHE_UPDATED') {
-            console.log('Cache updated');
-            if (!isMobile) {
-              console.log('Reloading for cache update...');
-              window.location.reload();
-            } else {
-              console.log('Mobile detected, skipping auto-reload for cache update');
-            }
+            console.log('Cache updated, reloading...');
+            window.location.reload();
           }
         });
       }
