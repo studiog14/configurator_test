@@ -82,12 +82,327 @@
       height: 100vh;
       box-sizing: border-box;
       overflow-y: auto;
+      overflow-x: visible;
+      position: relative;
       /* NIE dodawaj background! */
     }
 
     #sidebar-content {
       flex-grow: 1;
       overflow-y: auto;
+    }
+
+    /* Pole wyszukiwania w lewym sidebar'ze po prawej stronie */
+    #search-container {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      z-index: 1300;
+    }
+
+    #search-toggle {
+      background: #F5C842;
+      border: none;
+      border-radius: 50%;
+      width: 44px;
+      height: 44px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      transition: all 0.3s ease;
+    }
+
+    #search-toggle:hover {
+      background: #E5B432;
+      transform: scale(1.05);
+    }
+
+    #search-toggle svg {
+      width: 20px;
+      height: 20px;
+      fill: #333;
+    }
+
+    #search-panel {
+      position: fixed !important;
+      top: 70px !important;
+      right: -320px !important;
+      width: 320px !important;
+      max-width: calc(100vw - 40px) !important;
+      background: rgba(255, 255, 255, 0.98) !important;
+      backdrop-filter: blur(15px) !important;
+      border-radius: 12px !important;
+      padding: 16px !important;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
+      opacity: 0 !important;
+      visibility: hidden !important;
+      transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+      z-index: 1400 !important;
+      transform: translateX(0) !important;
+    }
+
+    #search-panel.active {
+      right: 20px !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+      transform: translateX(0) !important;
+    }
+
+    #search-input {
+      width: 100%;
+      border: 2px solid #F5C842;
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 16px;
+      outline: none;
+      background: white;
+      box-sizing: border-box;
+    }
+
+    #search-input::placeholder {
+      color: #888;
+    }
+
+    #search-input:focus {
+      border-color: #E5B432;
+      box-shadow: 0 0 0 3px rgba(245, 200, 66, 0.2);
+    }
+
+    #search-results {
+      margin-top: 8px;
+      max-height: 300px;
+      overflow-y: auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+      gap: 8px;
+    }
+
+    .search-result-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 2px solid transparent;
+      background: rgba(255, 255, 255, 0.9);
+      text-align: center;
+    }
+
+    .search-result-item:hover {
+      background: rgba(245, 200, 66, 0.15);
+      border-color: #F5C842;
+      transform: translateY(-2px);
+    }
+
+    .search-result-item img {
+      width: 50px;
+      height: 50px;
+      object-fit: cover;
+      border-radius: 6px;
+      margin-bottom: 4px;
+    }
+
+    .search-result-item .result-name {
+      font-size: 11px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 2px;
+      line-height: 1.2;
+    }
+
+    .search-result-item .result-category {
+      font-size: 10px;
+      color: #666;
+      line-height: 1.1;
+    }
+
+    /* Fallback dla wyników bez obrazków */
+    .search-result-item.text-only {
+      grid-column: 1 / -1;
+      flex-direction: row;
+      justify-content: flex-start;
+      text-align: left;
+      padding: 8px 12px;
+    }
+
+    .search-result-item.text-only .result-name {
+      font-size: 14px;
+      margin-bottom: 0;
+      margin-right: 8px;
+    }
+
+    .search-result-item.text-only .result-category {
+      font-size: 12px;
+    }
+
+    .search-result-item .result-type {
+      font-size: 10px;
+      color: #F5C842;
+      font-weight: 600;
+      margin-top: 2px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Przyciski kategorii */
+    .category-button {
+      padding: 8px 16px;
+      border: 2px solid #F5C842;
+      background: white;
+      color: #333;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-transform: capitalize;
+    }
+
+    .category-button:hover {
+      background: #F5C842;
+      color: white;
+      transform: translateY(-1px);
+    }
+
+    .category-button.active {
+      background: #F5C842;
+      color: white;
+    }
+
+    .category-button.promotion {
+      border-color: #FF6B6B;
+      color: #FF6B6B;
+    }
+
+    .category-button.promotion:hover,
+    .category-button.promotion.active {
+      background: #FF6B6B;
+      color: white;
+    }
+
+    /* Modal wyboru akcji po wyszukiwaniu */
+    #search-choice-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+      backdrop-filter: blur(5px);
+    }
+
+    #search-choice-modal.active {
+      display: flex;
+    }
+
+    .search-choice-content {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      animation: modalSlideIn 0.3s ease;
+    }
+
+    @keyframes modalSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .search-choice-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: #333;
+    }
+
+    .search-choice-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 16px;
+      padding: 12px;
+      border-radius: 8px;
+      background: #f8f9fa;
+      border: 2px solid transparent;
+    }
+
+    .search-choice-item img {
+      width: 40px;
+      height: 40px;
+      object-fit: contain;
+      margin-right: 12px;
+      border-radius: 4px;
+    }
+
+    .search-choice-item-info {
+      flex: 1;
+      text-align: left;
+    }
+
+    .search-choice-item-name {
+      font-weight: 600;
+      font-size: 14px;
+      color: #333;
+      margin-bottom: 2px;
+    }
+
+    .search-choice-item-category {
+      font-size: 12px;
+      color: #666;
+    }
+
+    .search-choice-buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .search-choice-btn {
+      flex: 1;
+      padding: 12px 16px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .search-choice-btn.primary {
+      background: #F5C842;
+      color: #333;
+    }
+
+    .search-choice-btn.primary:hover {
+      background: #E5B432;
+      transform: translateY(-1px);
+    }
+
+    .search-choice-btn.secondary {
+      background: #f8f9fa;
+      color: #666;
+      border: 2px solid #e9ecef;
+    }
+
+    .search-choice-btn.secondary:hover {
+      background: #e9ecef;
+      color: #333;
     }
 
 
@@ -387,21 +702,7 @@
       border: 1px solid #eee;
     }
 
-    #model-image-container img {
-      width: 100%;
-      max-width: 100%;
-      height: 220px;
-      /* większa wysokość, dopasuj do UI */
-      object-fit: contain;
-      display: block;
-      margin: 0 auto 18px auto;
-      background: #fff;
-      border-radius: 16px;
-      border: 1.5px solid #ddd;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-      padding: 12px 0;
-      transition: box-shadow 0.2s;
-    }
+
 
     .modal {
       position: fixed;
@@ -765,6 +1066,11 @@
    #export-panel {
     display: none !important;
   }
+
+  /* Ukryj wyszukiwanie w trybie portrait */
+  #search-container {
+    display: none;
+  }
 }
 
 /* 🤖 Tryb POZIOMY — pokazujemy UI */
@@ -789,6 +1095,35 @@
   overflow-y: auto;
   padding: 8px;
 }
+
+  /* Responsywne style dla wyszukiwania na mobile */
+  #search-toggle {
+    width: 38px;
+    height: 38px;
+  }
+
+  #search-toggle svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  #search-panel {
+    width: 240px;
+  }
+
+  #search-input {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+
+  #search-results {
+    max-height: 150px;
+  }
+
+  .search-result-item {
+    padding: 6px 10px;
+    font-size: 14px;
+  }
 
 #bottom-toolbar #qr-button {
   display: none !important;
@@ -864,28 +1199,7 @@
     display: none !important;
   }
 
-  /* 🔧 Układ 3 modeli w rzędzie */
-  #model-image-container {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-start;
-  gap: 12px;
-}
 
-  .model-image {
-  width: 80px; /* sztywny wymiar kafelka */
-  height: 80px;
-  flex: 0 0 auto;
-  box-sizing: border-box;
-}
-
-
-   #model-image-container .model-image {
-    width: calc(33.33% - 12px);
-    max-width: 100px;
-    box-sizing: border-box;
-    margin-bottom: 12px;
-  }
 
   .thumbnail,
   #overview-icons img,
@@ -1321,8 +1635,7 @@
 }
 #material-preloader {
   display: none;
-  position: fixed; /* fixed zamiast absolute - zawsze na środku okna */
- 
+  position: fixed;
   z-index: 10000;
   left: 0; top: 0; right: 0; bottom: 0;
   width: 100vw; height: 100vh;
@@ -1334,20 +1647,19 @@
 #material-preloader .preloader-box {
   text-align: center;
   background: rgba(255,255,255,0.97);
-   transform: translateX(-10%);
-  border-radius: 24px;
-  padding: 48px 64px;
-  box-shadow: 0 0 24px #0003;
+  border-radius: 12px;
+  padding: 20px 30px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 #material-preloader .loader {
-  border: 12px solid #f3f3f3;
-  border-top: 12px solid #555;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #555;
   border-radius: 50%;
-  width: 48px;
-  height: 48px;
+  width: 24px;
+  height: 24px;
   animation: spin 1s linear infinite;
   display: inline-block;
-  margin-bottom: 24px;
+  margin-bottom: 12px;
 }
 @keyframes spin {
   0% { transform: rotate(0deg);}
@@ -1496,9 +1808,60 @@
     </div>
 
     <div id="sidebar">
-      <div id="selected-chair-name">Wybrany model: Brak</div>
-      <div id="model-image-container"></div> <!-- DODAJ TO TUTAJ -->
+      <!-- Pole wyszukiwania w prawym górnym rogu sidebar'a -->
+      <div id="search-container">
+        <button id="search-toggle" type="button" aria-label="Szukaj">
+          <svg viewBox="0 0 24 24">
+            <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+          </svg>
+        </button>
+        
+        <div id="search-panel">
+          <input 
+            type="text" 
+            id="search-input" 
+            placeholder="Szukaj modeli, materiałów, kolekcji..."
+            autocomplete="off"
+          />
+          <div id="search-results"></div>
+        </div>
+      </div>
+
+      <!-- Modal wyboru akcji po wyszukiwaniu -->
+      <div id="search-choice-modal">
+        <div class="search-choice-content">
+          <div class="search-choice-title">Co chcesz zrobić?</div>
+          <div class="search-choice-item">
+            <img id="search-choice-item-img" src="" alt="" onerror="this.style.display='none'">
+            <div class="search-choice-item-info">
+              <div class="search-choice-item-name" id="search-choice-item-name"></div>
+              <div class="search-choice-item-category" id="search-choice-item-category"></div>
+            </div>
+          </div>
+          <div class="search-choice-buttons">
+            <button class="search-choice-btn secondary" id="search-choice-view-options">Wyniki wyszukiwania</button>
+            <button class="search-choice-btn primary" id="search-choice-go-to-chair">Przejdź do krzesła</button>
+          </div>
+        </div>
+      </div>
+
+
+      
+      <!-- Wskaźnik aktywnego filtra wyszukiwania -->
+      <div id="search-filter-indicator" style="display: none; margin-bottom: 15px; padding: 8px 12px; background: rgba(245, 200, 66, 0.1); border: 1px solid #F5C842; border-radius: 8px; font-size: 14px;">
+        <span style="font-weight: 600;">🔍 Filtr aktywny:</span> 
+        <span id="search-filter-text"></span>
+        <button id="clear-search-filter" style="float: right; background: none; border: none; color: #666; cursor: pointer; font-size: 16px; padding: 0;" title="Wyczyść filtr">×</button>
+      </div>
+      
       <hr />
+      
+      <!-- Przyciski kategorii -->
+      <div id="category-buttons" style="margin-bottom: 20px;">
+        <h3 style="margin-bottom: 10px; font-size: 16px; color: #555;">Kategorie:</h3>
+        <div id="category-buttons-container" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
+      </div>
+      
       <div id="model-section">
         <div class="selection-section">
           <h3>Wybierz model:</h3>
@@ -1588,7 +1951,7 @@
 
 
 
-<div id="model-image-container"></div>
+
 
 
 
@@ -1848,11 +2211,11 @@
       const welcomeScreen = document.getElementById('welcome-screen');
       
       // Ukryj welcome screen przy przejściu do jakiegokolwiek ekranu
-      if (welcomeScreen) {
+      if (welcomeScreen && screenName !== 'search-results') {
         welcomeScreen.style.display = 'none';
       }
       
-      document.getElementById('model-section').style.display = screenName === 'models' ? 'block' : 'none';
+      document.getElementById('model-section').style.display = (screenName === 'models' || screenName === 'search-results') ? 'block' : 'none';
       document.getElementById('config-section').style.display = screenName === 'config' ? 'block' : 'none';
     }
 
@@ -2628,7 +2991,15 @@ function applyMaterialToSpecificMesh(variant, meshKey) {
         const container = document.getElementById(containerId);
         if (!container) return;
         container.innerHTML = '';
-        items.forEach((item, index) => {
+        
+        // Zastosuj filtr wyszukiwania jeśli jest aktywny
+        const filteredItems = currentSearchFilter 
+          ? items.filter(matchesSearchFilter)
+          : items;
+          
+        console.log(`📦 Rendering ${filteredItems.length}/${items.length} items in ${containerId} with filter: "${currentSearchFilter}"`);
+        
+        filteredItems.forEach((item, index) => {
           const wrapper = document.createElement('div');
           wrapper.className = 'thumbnail-wrapper';
           const button = document.createElement('div');
@@ -2746,6 +3117,68 @@ function applyMaterialToSpecificMesh(variant, meshKey) {
     isAllowedForGroup(d.GrupaDocelowa) &&
     d.Visible?.toLowerCase() !== 'false'
   );
+
+  // Zastosuj filtr wyszukiwania do materiałów nóg
+  if (currentSearchFilter && isLegs) {
+    materialOptions = allData.filter(d =>
+      d.Grupa?.toLowerCase() === 'materiały_nóg' &&
+      isAllowedForGroup(d.GrupaDocelowa) &&
+      d.Visible?.toLowerCase() !== 'false'
+    ).filter(matchesSearchFilter);
+    
+    console.log(`🦵 Filtered leg materials to ${materialOptions.length} for filter: "${currentSearchFilter}"`);
+    
+    // Zastosuj pozostałe filtry nóg
+    if (selectedLeg && selectedLeg.Typ) {
+      materialOptions = materialOptions.filter(mat =>
+        !mat.Typ || mat.Typ.toLowerCase().trim() === selectedLeg.Typ.toLowerCase().trim()
+      );
+    }
+
+    if (selectedLeg && selectedLeg.Nazwa) {
+      const currentLegName = selectedLeg.Nazwa.toLowerCase().trim();
+      materialOptions = materialOptions.filter(mat => {
+        const allowedLegs = mat.DlaModeluNóg
+          ? mat.DlaModeluNóg.split(',').map(s => s.trim().toLowerCase())
+          : [];
+        return allowedLegs.length === 0 || allowedLegs.includes(currentLegName);
+      });
+    }
+
+    if (selectedChair && selectedChair.Nazwa) {
+      const currentChairName = selectedChair.Nazwa.toLowerCase().trim();
+      materialOptions = materialOptions.filter(mat => {
+        if (!mat.DlaKrzesła || mat.DlaKrzesła.trim().length === 0) return false;
+        const allowedChairs = mat.DlaKrzesła.split(',').map(s => s.trim().toLowerCase());
+        return allowedChairs.includes(currentChairName);
+      });
+    }
+
+    const groupedByCollection = {};
+    materialOptions.forEach(mat => {
+      const key = mat.Kolekcja?.trim() || 'Inne';
+      if (!groupedByCollection[key]) groupedByCollection[key] = [];
+      groupedByCollection[key].push(mat);
+    });
+
+    renderCollectionsAndMaterials(groupedByCollection, 'legs');
+    return;
+  }
+
+  // 🧵 TKANINY (siedzisko, oparcie itd.)
+  materialOptions = allData.filter(d =>
+    d.Grupa?.toLowerCase() === 'tkanina' &&
+    d.TargetMeshOrModel &&
+    d.TargetMeshOrModel.split(',').map(t => t.trim()).includes(targetMesh) &&
+    isAllowedForGroup(d.GrupaDocelowa) &&
+    d.Visible?.toLowerCase() !== 'false'
+  );
+
+  // Zastosuj filtr wyszukiwania jeśli jest aktywny
+  if (currentSearchFilter) {
+    materialOptions = materialOptions.filter(matchesSearchFilter);
+    console.log(`🎨 Filtered materials from ${allData.length} to ${materialOptions.length} for filter: "${currentSearchFilter}"`);
+  }
 
   const groupedByCollection = {};
   materialOptions.forEach(mat => {
@@ -2948,8 +3381,12 @@ renderOptions('legs-thumbnails', legs, item => {
             return obj;
           }).filter(item => item.Visible?.toLowerCase() !== 'false');
 
-          const mainModels = allData.filter(d => ['krzesło', 'kubełek'].includes(d.Grupa.toLowerCase()));
-          renderOptions('model-thumbnails', mainModels, item => loadModel(item));
+          // Renderuj przyciski kategorii
+          renderCategoryButtons();
+          
+          // Renderuj promocje na starcie
+          renderPromotions();
+          
           showScreen('models');
 
           const hdrEntries = allData.filter(d => d.HDR && d.HDRIcon);
@@ -3027,7 +3464,6 @@ updateSummary();
 
         // Jeśli nie było interakcji, nie pokazuj szczegółów
         if (!userInteracted) {
-          document.getElementById("selected-chair-name").textContent = `Wybrany model: Brak`;
           overviewPanel.style.display = 'block';
           return;
         }
@@ -3115,9 +3551,6 @@ if (Array.isArray(mats)) {
         overviewDetailsDiv.appendChild(hr);
 
         overviewTotalPriceSpan.textContent = `${totalPrice.toFixed(2)} PLN`;
-        document.getElementById("selected-chair-name").textContent = `Wybrany model: ${selectedChair ? selectedChair.Nazwa : "Brak"}`;
-
-
 
         window.selectedChair = selectedChair;
         window.selectedLeg = selectedLeg;
@@ -3945,6 +4378,888 @@ function setDefaultMaterialsFromSheet() {
 
 
       init();
+
+      // Globalna zmienna do filtrowania kafelków w sidebarze
+      let currentSearchFilter = '';
+
+      // Funkcja do ustawiania filtra wyszukiwania
+      function setSearchFilter(query) {
+        currentSearchFilter = query.toLowerCase().trim();
+        console.log('🔍 Search filter set to:', currentSearchFilter);
+        
+        // Aktualizuj wskaźnik filtra
+        const indicator = document.getElementById('search-filter-indicator');
+        const filterText = document.getElementById('search-filter-text');
+        const clearButton = document.getElementById('clear-search-filter');
+        
+        if (currentSearchFilter) {
+          filterText.textContent = `"${query}"`;
+          indicator.style.display = 'block';
+        } else {
+          indicator.style.display = 'none';
+        }
+        
+        // Obsługa przycisku czyszczenia filtra
+        if (clearButton && !clearButton.hasAttribute('data-listener')) {
+          clearButton.addEventListener('click', () => {
+            setSearchFilter('');
+            // Wyczyść także pole wyszukiwania jeśli jest otwarte
+            const searchInput = document.getElementById('search-input');
+            if (searchInput) searchInput.value = '';
+            const searchResults = document.getElementById('search-results');
+            if (searchResults) searchResults.innerHTML = '';
+          });
+          clearButton.setAttribute('data-listener', 'true');
+        }
+        
+        // Odśwież wszystkie sekcje kafelków
+        refreshAllTiles();
+      }
+
+      // Funkcja sprawdzająca czy element pasuje do filtra
+      function matchesSearchFilter(item) {
+        if (!currentSearchFilter) return true;
+        
+        const searchableFields = [
+          item.Nazwa,
+          item.Grupa,
+          item.Kategoria,
+          item.Kolekcja,
+          item.Typ,
+          item.Opis
+        ];
+        
+        // Jeśli filtr zawiera spacje, traktuj jako listę nazw do wyszukania
+        if (currentSearchFilter.includes(' ')) {
+          const searchTerms = currentSearchFilter.split(' ').filter(term => term.trim().length > 0);
+          return searchTerms.some(term => 
+            searchableFields.some(field => 
+              field && field.toLowerCase().includes(term.toLowerCase())
+            )
+          );
+        } else {
+          // Pojedynczy termin wyszukiwania
+          return searchableFields.some(field => 
+            field && field.toLowerCase().includes(currentSearchFilter)
+          );
+        }
+      }
+
+      // Funkcja licząca relevance dla elementu względem filtra
+      function getRelevance(item, filter) {
+        if (!filter) return 0;
+        let relevance = 0;
+        const searchTerm = filter.toLowerCase().trim();
+        const searchableFields = [
+          { field: item.Nazwa, weight: 10 },
+          { field: item.Grupa, weight: 8 },
+          { field: item.Kategoria, weight: 8 },
+          { field: item.Kolekcja, weight: 6 },
+          { field: item.Typ, weight: 4 },
+          { field: item.Opis, weight: 2 }
+        ];
+        searchableFields.forEach(({ field, weight }) => {
+          if (field && field.toLowerCase().includes(searchTerm)) {
+            relevance += weight;
+            if (field.toLowerCase().startsWith(searchTerm)) {
+              relevance += weight;
+            }
+          }
+        });
+        return relevance;
+      }
+
+      // Funkcja renderująca przyciski kategorii
+      function renderCategoryButtons() {
+        if (!allData || !Array.isArray(allData)) return;
+        
+        const container = document.getElementById('category-buttons-container');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        
+        // Znajdź wszystkie unikalne kategorie
+        const categories = [...new Set(allData
+          .filter(item => item.Kategoria && item.Typ === 'model')
+          .map(item => item.Kategoria)
+        )];
+        
+        // Dodaj przycisk "Wszystkie"
+        const allButton = document.createElement('button');
+        allButton.className = 'category-button active';
+        allButton.textContent = 'Wszystkie';
+        allButton.onclick = () => {
+          document.querySelectorAll('.category-button').forEach(btn => btn.classList.remove('active'));
+          allButton.classList.add('active');
+          renderAllModels();
+        };
+        container.appendChild(allButton);
+        
+        // Dodaj przyciski dla każdej kategorii
+        categories.forEach(category => {
+          const button = document.createElement('button');
+          button.className = 'category-button';
+          button.textContent = category;
+          
+          // Sprawdź czy kategoria ma promocje
+          const hasPromotion = allData.some(item => 
+            item.Kategoria === category && 
+            item.Typ === 'model' && 
+            item.Promocja && 
+            item.Promocja.trim() !== ''
+          );
+          
+          if (hasPromotion) {
+            button.classList.add('promotion');
+          }
+          
+          button.onclick = () => {
+            document.querySelectorAll('.category-button').forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            renderModelsByCategory(category);
+          };
+          
+          container.appendChild(button);
+        });
+      }
+
+      // Funkcja renderująca wszystkie modele
+      function renderAllModels() {
+        const models = allData.filter(item => 
+          item.Typ && item.Typ.toLowerCase() === 'model' &&
+          item.Kategoria && item.Kategoria.toLowerCase().includes('krzesła')
+        );
+        renderOptions('model-thumbnails', models, item => loadModel(item));
+      }
+
+      // Funkcja renderująca modele według kategorii
+      function renderModelsByCategory(category) {
+        const models = allData.filter(item => 
+          item.Typ && item.Typ.toLowerCase() === 'model' &&
+          item.Kategoria === category
+        );
+        renderOptions('model-thumbnails', models, item => loadModel(item));
+      }
+
+      // Funkcja renderująca promocje na starcie
+      function renderPromotions() {
+        const promotionalModels = allData.filter(item => 
+          item.Typ && item.Typ.toLowerCase() === 'model' &&
+          item.Promocja && item.Promocja.trim() !== ''
+        );
+        
+        if (promotionalModels.length > 0) {
+          renderOptions('model-thumbnails', promotionalModels, item => loadModel(item));
+          
+          // Aktywuj przycisk "Wszystkie" po wyświetleniu promocji
+          setTimeout(() => {
+            const allButton = document.querySelector('.category-button');
+            if (allButton) {
+              document.querySelectorAll('.category-button').forEach(btn => btn.classList.remove('active'));
+              allButton.classList.add('active');
+            }
+          }, 100);
+        }
+      }
+
+      // Funkcja odświeżająca wszystkie kafelki z filtrem
+      function refreshAllTiles() {
+        console.log('🔄 Refreshing all tiles with filter:', currentSearchFilter);
+        
+                  // Odśwież modele główne (krzesła/kubełki)
+          if (allData && Array.isArray(allData)) {
+            console.log('🔍 Available groups:', [...new Set(allData.map(d => d.Grupa))]);
+            const filteredByGroup = allData.filter(d => 
+              d.Kategoria && 
+              d.Kategoria.toLowerCase().includes('krzesła') && 
+              d.Typ && 
+              d.Typ.toLowerCase() === 'model'
+            );
+            console.log('🔍 Filtered models before search filter:', filteredByGroup.map(d => ({ Nazwa: d.Nazwa, Grupa: d.Grupa, Kategoria: d.Kategoria, Typ: d.Typ })));
+            const mainModels = filteredByGroup.filter(matchesSearchFilter);
+            console.log('🔍 After search filter:', mainModels.map(d => ({ Nazwa: d.Nazwa, Grupa: d.Grupa })));
+          if (currentSearchFilter) {
+            mainModels.sort((a, b) => getRelevance(b, currentSearchFilter) - getRelevance(a, currentSearchFilter));
+          }
+          console.log('🔍 Rendering main models:', mainModels.length, 'with filter:', currentSearchFilter);
+          renderOptions('model-thumbnails', mainModels, item => loadModel(item));
+        }
+        
+        // Odśwież kafelki nóg jeśli są widoczne
+        const legsSection = document.getElementById('legs-section');
+        if (legsSection && legsSection.style.display !== 'none' && selectedChair) {
+          const legs = allData
+            .filter(d => d.Grupa.toLowerCase() === 'nogi')
+            .filter(d => !selectedChair || selectedChair.Grupa.toLowerCase() !== 'kubełek' || czyNogaPasujeDoKubełka(d, selectedChair.Nazwa))
+            .filter(matchesSearchFilter);
+          renderOptions('legs-thumbnails', legs, item => setLegModel(item));
+        }
+        
+        // Odśwież materiały jeśli są widoczne
+        const materialsSection = document.getElementById('materials-section');
+        if (materialsSection && materialsSection.style.display !== 'none') {
+          // Znajdź aktywną zakładkę części
+          const activeTab = document.querySelector('#part-tabs .thumbnail.selected');
+          if (activeTab) {
+            const targetMesh = activeTab.dataset.key;
+            renderFilteredMaterialOptions(targetMesh);
+          }
+        }
+      }
+
+      // Funkcjonalność wyszukiwania
+      function initializeSearch() {
+        console.log('🔍 Initializing search...');
+        console.log('DOM ready state:', document.readyState);
+        console.log('Available elements in DOM:', {
+          searchToggle: document.getElementById('search-toggle'),
+          searchPanel: document.getElementById('search-panel'),
+          searchInput: document.getElementById('search-input'),
+          searchResults: document.getElementById('search-results')
+        });
+        
+        const searchToggle = document.getElementById('search-toggle');
+        const searchPanel = document.getElementById('search-panel');
+        const searchInput = document.getElementById('search-input');
+        const searchResults = document.getElementById('search-results');
+        
+        console.log('Elements found:', {
+          toggle: !!searchToggle,
+          panel: !!searchPanel,
+          input: !!searchInput,
+          results: !!searchResults
+        });
+        
+        let isSearchOpen = false;
+
+        if (!searchToggle || !searchPanel) {
+          console.error('❌ Search elements not found');
+          console.log('HTML content around search:', document.getElementById('search-container')?.innerHTML);
+          return;
+        }
+
+        console.log('✅ Setting up search event listeners');
+        console.log('Initial panel styles:', {
+          position: window.getComputedStyle(searchPanel).position,
+          right: window.getComputedStyle(searchPanel).right,
+          opacity: window.getComputedStyle(searchPanel).opacity,
+          visibility: window.getComputedStyle(searchPanel).visibility,
+          zIndex: window.getComputedStyle(searchPanel).zIndex
+        });
+
+        // Toggle panel wyszukiwania
+        searchToggle.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log('🔍 Search toggle clicked!', {
+            wasOpen: isSearchOpen,
+            willBeOpen: !isSearchOpen,
+            currentClasses: searchPanel.className
+          });
+          
+          isSearchOpen = !isSearchOpen;
+          
+          if (isSearchOpen) {
+            searchPanel.classList.add('active');
+            // Wymusz style bezpośrednio dla pewności
+            searchPanel.style.right = '20px';
+            searchPanel.style.opacity = '1';
+            searchPanel.style.visibility = 'visible';
+            console.log('🔍 Panel opened');
+            setTimeout(() => searchInput && searchInput.focus(), 200);
+          } else {
+            searchPanel.classList.remove('active');
+            searchPanel.style.right = '-320px';
+            searchPanel.style.opacity = '0';
+            searchPanel.style.visibility = 'hidden';
+            console.log('🔍 Panel closed');
+            if (searchInput) searchInput.value = '';
+            if (searchResults) searchResults.innerHTML = '';
+            // Wyczyść filtr kafelków
+            setSearchFilter('');
+          }
+          
+          console.log('Panel state after toggle:', {
+            classes: searchPanel.className,
+            computedStyles: {
+              right: window.getComputedStyle(searchPanel).right,
+              opacity: window.getComputedStyle(searchPanel).opacity,
+              visibility: window.getComputedStyle(searchPanel).visibility
+            }
+          });
+        });
+
+        // Zamknij panel przy kliknięciu poza nim
+        document.addEventListener('click', (e) => {
+          if (!searchPanel.contains(e.target) && !searchToggle.contains(e.target)) {
+            if (isSearchOpen) {
+              isSearchOpen = false;
+              searchPanel.classList.remove('active');
+              searchPanel.style.right = '-320px';
+              searchPanel.style.opacity = '0';
+              searchPanel.style.visibility = 'hidden';
+              if (searchInput) searchInput.value = '';
+              if (searchResults) searchResults.innerHTML = '';
+              // Wyczyść filtr kafelków
+              setSearchFilter('');
+            }
+          }
+        });
+
+        // Funkcja wyszukiwania
+        function performSearch(query) {
+          if (!query.trim() || !allData) return [];
+          
+          const searchTerm = query.toLowerCase().trim();
+          const results = [];
+
+          console.log('🔍 Searching for:', searchTerm, 'in', allData.length, 'items');
+
+          // 1. Wyszukaj modele krzesła (Typ === 'model')
+          const modelItems = allData.filter(item => 
+            item.Typ && item.Typ.toLowerCase() === 'model'
+          );
+
+          console.log('🔍 Found', modelItems.length, 'model items out of', allData.length, 'total items');
+
+          modelItems.forEach(item => {
+            let relevance = 0;
+            const searchableFields = [
+              { field: item.Nazwa, weight: 10 },
+              { field: item.Grupa, weight: 8 },
+              { field: item.Kolekcja, weight: 6 },
+              { field: item.Typ, weight: 4 },
+              { field: item.Opis, weight: 2 }
+            ];
+
+            searchableFields.forEach(({ field, weight }) => {
+              if (field && field.toLowerCase().includes(searchTerm)) {
+                relevance += weight;
+                if (field.toLowerCase().startsWith(searchTerm)) {
+                  relevance += weight; // Bonus za dopasowanie od początku
+                }
+              }
+            });
+
+            if (relevance > 0) {
+              console.log('🔍 Found match:', item.Nazwa, 'Grupa:', item.Grupa, 'Kategoria:', item.Kategoria, 'relevance:', relevance);
+              // Dodaj informację o typie dla rozróżnienia w UI
+              item.searchType = 'chair';
+              results.push({ item, relevance });
+            }
+          });
+
+          console.log('🔍 Total results:', results.length);
+          // 2. Wyszukaj materiały nóg (Grupa === 'materiały_nóg')
+          const legMaterials = allData.filter(item => 
+            item.Grupa && item.Grupa.toLowerCase() === 'materiały_nóg'
+          );
+
+          legMaterials.forEach(item => {
+            let relevance = 0;
+            const searchableFields = [
+              { field: item.Nazwa, weight: 10 },
+              { field: item.Grupa, weight: 8 },
+              { field: item.Kategoria, weight: 8 },
+              { field: item.Kolekcja, weight: 6 },
+              { field: item.Typ, weight: 4 },
+              { field: item.Opis, weight: 2 }
+            ];
+
+            searchableFields.forEach(({ field, weight }) => {
+              if (field && field.toLowerCase().includes(searchTerm)) {
+                relevance += weight;
+                if (field.toLowerCase().startsWith(searchTerm)) {
+                  relevance += weight;
+                }
+              }
+            });
+
+            if (relevance > 0) {
+              console.log('🔍 Found leg material match:', item.Nazwa, 'Grupa:', item.Grupa, 'Kategoria:', item.Kategoria, 'relevance:', relevance);
+              // Dodaj informację o typie dla rozróżnienia w UI
+              item.searchType = 'leg-material';
+              results.push({ item, relevance });
+            }
+          });
+
+          // 3. Wyszukaj nogi (Grupa === 'nogi')
+          const legs = allData.filter(item => 
+            item.Grupa && item.Grupa.toLowerCase() === 'nogi'
+          );
+
+          legs.forEach(item => {
+            let relevance = 0;
+            const searchableFields = [
+              { field: item.Nazwa, weight: 10 },
+              { field: item.Grupa, weight: 8 },
+              { field: item.Kategoria, weight: 8 },
+              { field: item.Kolekcja, weight: 6 },
+              { field: item.Typ, weight: 4 },
+              { field: item.Opis, weight: 2 }
+            ];
+
+            searchableFields.forEach(({ field, weight }) => {
+              if (field && field.toLowerCase().includes(searchTerm)) {
+                relevance += weight;
+                if (field.toLowerCase().startsWith(searchTerm)) {
+                  relevance += weight;
+                }
+              }
+            });
+
+            if (relevance > 0) {
+              console.log('🔍 Found leg match:', item.Nazwa, 'Grupa:', item.Grupa, 'Kategoria:', item.Kategoria, 'relevance:', relevance);
+              // Dodaj informację o typie dla rozróżnienia w UI
+              item.searchType = 'leg';
+              results.push({ item, relevance });
+            }
+          });
+
+          return results
+            .sort((a, b) => b.relevance - a.relevance)
+            .slice(0, 10)
+            .map(r => r.item);
+        }
+
+        // Handler wpisywania w pole wyszukiwania
+        searchInput.addEventListener('input', (e) => {
+          const query = e.target.value;
+          searchResults.innerHTML = '';
+
+          // Ustaw filtr dla kafelków w sidebarze
+          setSearchFilter(query);
+
+          if (query.trim().length < 2) {
+            // Jeśli zapytanie za krótkie, wyczyść tylko wyniki popup'a ale zostaw filtr
+            return;
+          }
+
+          const results = performSearch(query);
+          
+          if (results.length === 0) {
+            const noResultsDiv = document.createElement('div');
+            noResultsDiv.className = 'search-result-item text-only';
+            noResultsDiv.innerHTML = '<div class="result-name">Brak wyników</div>';
+            noResultsDiv.style.cursor = 'default';
+            noResultsDiv.style.opacity = '0.7';
+            searchResults.appendChild(noResultsDiv);
+            return;
+          }
+
+          results.forEach(item => {
+            const resultDiv = document.createElement('div');
+            resultDiv.className = 'search-result-item';
+            
+            const name = item.Nazwa || 'Bez nazwy';
+            const category = item.Kategoria || item.Grupa || '';
+            const image = item.Obrazek || item.Image;
+            
+            // Dodaj etykietę typu elementu
+            let typeLabel = '';
+            if (item.searchType === 'chair') {
+              typeLabel = 'Krzesło';
+            } else if (item.searchType === 'leg-material') {
+              typeLabel = 'Materiał nóg';
+            } else if (item.searchType === 'leg') {
+              typeLabel = 'Nogi';
+            }
+            
+            if (image) {
+              // Kafelek z obrazkiem
+              resultDiv.innerHTML = `
+                <img src="${image}" alt="${name}" onerror="this.style.display='none'">
+                <div class="result-name">${name}</div>
+                <div class="result-category">${category}</div>
+                ${typeLabel ? `<div class="result-type">${typeLabel}</div>` : ''}
+              `;
+            } else {
+              // Fallback tekstowy dla elementów bez obrazków
+              resultDiv.className += ' text-only';
+              resultDiv.innerHTML = `
+                <div class="result-name">${name}</div>
+                <div class="result-category">${category}</div>
+                ${typeLabel ? `<div class="result-type">${typeLabel}</div>` : ''}
+              `;
+            }
+
+            resultDiv.addEventListener('click', () => {
+              selectSearchResult(item, query);
+              isSearchOpen = false;
+              searchPanel.classList.remove('active');
+              searchPanel.style.right = '-320px';
+              searchPanel.style.opacity = '0';
+              searchPanel.style.visibility = 'hidden';
+              if (searchInput) searchInput.value = '';
+              if (searchResults) searchResults.innerHTML = '';
+              // Wyczyść filtr kafelków po wyborze wyniku
+              setSearchFilter('');
+            });
+
+            searchResults.appendChild(resultDiv);
+          });
+        });
+
+        // Obsługa Enter w polu wyszukiwania
+        searchInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            const firstResult = searchResults.querySelector('.search-result-item:not([style*="cursor: default"])');
+            if (firstResult) {
+              firstResult.click();
+            }
+          }
+        });
+      }
+
+      // Funkcja obsługi wybranego wyniku wyszukiwania
+      function selectSearchResult(item, query) {
+        // Pokaż modal wyboru
+        showSearchChoiceModal(item, query);
+      }
+
+      // Funkcja pokazywania modala wyboru
+      function showSearchChoiceModal(item, query) {
+        const modal = document.getElementById('search-choice-modal');
+        const itemImg = document.getElementById('search-choice-item-img');
+        const itemName = document.getElementById('search-choice-item-name');
+        const itemCategory = document.getElementById('search-choice-item-category');
+        const viewOptionsBtn = document.getElementById('search-choice-view-options');
+        const goToChairBtn = document.getElementById('search-choice-go-to-chair');
+
+        // Ustaw dane elementu
+        const name = item.Nazwa || 'Bez nazwy';
+        const category = item.Kategoria || item.Grupa || '';
+        const image = item.Obrazek || item.Image;
+        
+        itemName.textContent = name;
+        itemCategory.textContent = category;
+        
+        if (image) {
+          itemImg.src = image;
+          itemImg.style.display = 'block';
+        } else {
+          itemImg.style.display = 'none';
+        }
+
+        // Pokaż modal
+        modal.classList.add('active');
+
+        // Dostosuj przyciski w zależności od typu elementu
+        if (item.searchType === 'chair') {
+          goToChairBtn.style.display = 'block';
+          goToChairBtn.textContent = 'Przejdź do krzesła';
+          viewOptionsBtn.style.flex = '';
+        } else if (item.searchType === 'leg-material') {
+          goToChairBtn.style.display = 'block';
+          goToChairBtn.textContent = 'Pokaż kompatybilne krzesła';
+          viewOptionsBtn.style.flex = '';
+        } else if (item.searchType === 'leg') {
+          goToChairBtn.style.display = 'block';
+          goToChairBtn.textContent = 'Pokaż kompatybilne krzesła';
+          viewOptionsBtn.style.flex = '';
+        } else {
+          // Fallback na starą logikę
+          const group = item.Grupa?.toLowerCase();
+          if (group === 'krzesło' || group === 'kubełek') {
+            goToChairBtn.style.display = 'block';
+            goToChairBtn.textContent = 'Przejdź do krzesła';
+            viewOptionsBtn.style.flex = '';
+          } else if (group === 'tkanina' || group === 'materiały_nóg') {
+            goToChairBtn.style.display = 'block';
+            goToChairBtn.textContent = 'Zastosuj materiał';
+            viewOptionsBtn.style.flex = '';
+          } else if (group === 'nogi') {
+            goToChairBtn.style.display = 'block';
+            goToChairBtn.textContent = 'Zastosuj nogi';
+            viewOptionsBtn.style.flex = '';
+          } else {
+            goToChairBtn.style.display = 'none';
+            viewOptionsBtn.style.flex = '1';
+          }
+        }
+
+        // Obsługa przycisku "Wyniki wyszukiwania"
+        viewOptionsBtn.onclick = () => {
+          modal.classList.remove('active');
+          document.removeEventListener('keydown', handleEscape);
+          // Pokaż welcome screen
+          const welcomeScreen = document.getElementById('welcome-screen');
+          if (welcomeScreen) {
+            welcomeScreen.style.display = 'flex';
+          }
+          // Przełącz na ekran modeli, żeby pokazać kafelki
+          showScreen('search-results');
+          // Ustaw filtr wyszukiwania na query (fraza z inputa)
+          setSearchFilter(query);
+          // Odśwież wszystkie kafelki z nowym filtrem
+          refreshAllTiles();
+          // Zamknij panel wyszukiwania
+          const searchPanel = document.getElementById('search-panel');
+          const searchInput = document.getElementById('search-input');
+          if (searchPanel) {
+            searchPanel.classList.remove('active');
+            searchPanel.style.right = '-320px';
+            searchPanel.style.opacity = '0';
+            searchPanel.style.visibility = 'hidden';
+          }
+          if (searchInput) searchInput.value = '';
+          // Wyczyść wyniki wyszukiwania w panelu
+          const searchResults = document.getElementById('search-results');
+          if (searchResults) searchResults.innerHTML = '';
+        };
+
+        // Obsługa przycisku "Przejdź do krzesła"
+        goToChairBtn.onclick = () => {
+          modal.classList.remove('active');
+          document.removeEventListener('keydown', handleEscape);
+          // Zamknij panel wyszukiwania
+          const searchPanel = document.getElementById('search-panel');
+          const searchInput = document.getElementById('search-input');
+          if (searchPanel) {
+            searchPanel.classList.remove('active');
+            searchPanel.style.right = '-320px';
+            searchPanel.style.opacity = '0';
+            searchPanel.style.visibility = 'hidden';
+          }
+          if (searchInput) searchInput.value = '';
+          // Wyczyść filtr wyszukiwania
+          setSearchFilter('');
+          // Wykonaj oryginalną logikę
+          executeSearchResultAction(item);
+          // Odśwież wszystkie kafelki bez filtra
+          refreshAllTiles();
+          // Ukryj welcome screen
+          const welcomeScreen = document.getElementById('welcome-screen');
+          if (welcomeScreen) {
+            welcomeScreen.style.display = 'none';
+          }
+        };
+
+        // Zamknij modal przy kliknięciu poza nim
+        modal.onclick = (e) => {
+          if (e.target === modal) {
+            modal.classList.remove('active');
+            document.removeEventListener('keydown', handleEscape);
+          }
+        };
+
+        // Zamknij modal przy naciśnięciu Escape
+        const handleEscape = (e) => {
+          if (e.key === 'Escape') {
+            modal.classList.remove('active');
+            document.removeEventListener('keydown', handleEscape);
+          }
+        };
+        document.addEventListener('keydown', handleEscape);
+      }
+
+      // Funkcja wykonująca akcję po wyborze w modalu
+      function executeSearchResultAction(item) {
+        // Sprawdź typ elementu na podstawie searchType
+        if (item.searchType === 'chair') {
+          // Wybierz model krzesła
+          loadModel(item);
+        } else if (item.searchType === 'leg-material') {
+          // Jeśli to materiał nóg, pokaż krzesła które mogą mieć ten materiał
+          showChairsWithMaterial(item);
+        } else if (item.searchType === 'leg') {
+          // Jeśli to nogi, pokaż krzesła które mogą mieć te nogi
+          showChairsWithLegs(item);
+        } else {
+          // Fallback na starą logikę
+          const group = item.Grupa?.toLowerCase();
+          
+          if (group === 'krzesło' || group === 'kubełek') {
+            loadModel(item);
+          } else if (group === 'tkanina' || group === 'materiały_nóg') {
+            if (selectedChair) {
+              if (item.TargetMeshOrModel) {
+                applyMaterial(item);
+              }
+              showScreen('config');
+            } else {
+              alert('Najpierw wybierz model krzesła');
+            }
+          } else if (group === 'nogi') {
+            if (selectedChair && selectedChair.Grupa?.toLowerCase() === 'kubełek') {
+              setLegModel(item);
+              showScreen('config');
+            } else {
+              alert('Nogi można wybierać tylko dla kubełków');
+            }
+          }
+        }
+      }
+
+      // Funkcja pokazująca krzesła z określonym materiałem nóg
+      function showChairsWithMaterial(material) {
+        console.log('🔍 Looking for chairs compatible with material:', material.Nazwa);
+        console.log('🔍 Material data:', material);
+        
+        // Znajdź krzesła które mogą mieć ten materiał
+        const allChairs = allData.filter(item => 
+          item.Typ && item.Typ.toLowerCase() === 'model' &&
+          item.Kategoria && item.Kategoria.toLowerCase().includes('krzesła')
+        );
+        
+        console.log('🔍 All chairs found:', allChairs.map(c => ({ Nazwa: c.Nazwa, Grupa: c.Grupa })));
+        
+        const compatibleChairs = allChairs.filter(chair => {
+          // Sprawdź czy materiał jest kompatybilny z krzesłem
+          if (!material.DlaKrzesła) {
+            console.log('🔍 No DlaKrzesła field for material:', material.Nazwa);
+            return false;
+          }
+          
+          const materialChairs = material.DlaKrzesła.toLowerCase().split(',').map(s => s.trim());
+          const chairName = chair.Nazwa.toLowerCase().trim();
+          
+          console.log('🔍 Checking chair:', chairName, 'against material chairs:', materialChairs);
+          
+          return materialChairs.some(materialChair => 
+            materialChair.includes(chairName) || chairName.includes(materialChair)
+          );
+        });
+
+        console.log('🔍 Compatible chairs:', compatibleChairs.map(c => c.Nazwa));
+
+        if (compatibleChairs.length > 0) {
+          // Pokaż welcome screen
+          const welcomeScreen = document.getElementById('welcome-screen');
+          if (welcomeScreen) {
+            welcomeScreen.style.display = 'flex';
+          }
+          showScreen('search-results');
+          
+          // Bezpośrednio wyświetl kompatybilne krzesła
+          console.log('🔍 Directly rendering compatible chairs:', compatibleChairs.map(c => c.Nazwa));
+          // Wyczyść kontener i wyświetl kompatybilne krzesła
+          const container = document.getElementById('model-thumbnails');
+          if (container) {
+            container.innerHTML = '';
+            compatibleChairs.forEach(item => {
+              const wrapper = document.createElement('div');
+              wrapper.className = 'thumbnail-wrapper';
+              const button = document.createElement('div');
+              button.className = 'thumbnail';
+              button.title = item.Nazwa;
+              
+              const img = document.createElement('img');
+              img.src = item.Obrazek && item.Obrazek.length > 4 ? item.Obrazek : 'icons/placeholder.svg';
+              img.alt = item.Nazwa;
+              button.appendChild(img);
+              
+              const caption = document.createElement('div');
+              caption.className = 'thumbnail-caption';
+              caption.textContent = item.Nazwa;
+              
+              wrapper.appendChild(button);
+              wrapper.appendChild(caption);
+              container.appendChild(wrapper);
+              
+              button.addEventListener('click', () => loadModel(item));
+            });
+          }
+          
+          alert(`Znaleziono ${compatibleChairs.length} krzeseł kompatybilnych z materiałem "${material.Nazwa}": ${compatibleChairs.map(c => c.Nazwa).join(', ')}`);
+        } else {
+          alert(`Nie znaleziono krzeseł kompatybilnych z materiałem "${material.Nazwa}"`);
+        }
+      }
+
+      // Funkcja pokazująca krzesła z określonymi nogami
+      function showChairsWithLegs(legs) {
+        console.log('🔍 Looking for chairs compatible with legs:', legs.Nazwa);
+        console.log('🔍 Legs data:', legs);
+        
+        // Znajdź krzesła które mogą mieć te nogi
+        const allChairs = allData.filter(item => 
+          item.Typ && item.Typ.toLowerCase() === 'model' &&
+          item.Kategoria && item.Kategoria.toLowerCase().includes('krzesła')
+        );
+        
+        console.log('🔍 All chairs found:', allChairs.map(c => ({ Nazwa: c.Nazwa, Grupa: c.Grupa })));
+        
+        const compatibleChairs = allChairs.filter(chair => {
+          // Sprawdź czy nogi są kompatybilne z krzesłem
+          if (!legs.DlaModeluNóg) {
+            console.log('🔍 No DlaModeluNóg field for legs:', legs.Nazwa);
+            return false;
+          }
+          
+          const legChairs = legs.DlaModeluNóg.toLowerCase().split(',').map(s => s.trim());
+          const chairName = chair.Nazwa.toLowerCase().trim();
+          
+          console.log('🔍 Checking chair:', chairName, 'against leg chairs:', legChairs);
+          
+          return legChairs.some(legChair => 
+            legChair.includes(chairName) || chairName.includes(legChair)
+          );
+        });
+
+        console.log('🔍 Compatible chairs:', compatibleChairs.map(c => c.Nazwa));
+
+        if (compatibleChairs.length > 0) {
+          // Pokaż welcome screen
+          const welcomeScreen = document.getElementById('welcome-screen');
+          if (welcomeScreen) {
+            welcomeScreen.style.display = 'flex';
+          }
+          showScreen('search-results');
+          
+          // Bezpośrednio wyświetl kompatybilne krzesła
+          console.log('🔍 Directly rendering compatible chairs:', compatibleChairs.map(c => c.Nazwa));
+          // Wyczyść kontener i wyświetl kompatybilne krzesła
+          const container = document.getElementById('model-thumbnails');
+          if (container) {
+            container.innerHTML = '';
+            compatibleChairs.forEach(item => {
+              const wrapper = document.createElement('div');
+              wrapper.className = 'thumbnail-wrapper';
+              const button = document.createElement('div');
+              button.className = 'thumbnail';
+              button.title = item.Nazwa;
+              
+              const img = document.createElement('img');
+              img.src = item.Obrazek && item.Obrazek.length > 4 ? item.Obrazek : 'icons/placeholder.svg';
+              img.alt = item.Nazwa;
+              button.appendChild(img);
+              
+              const caption = document.createElement('div');
+              caption.className = 'thumbnail-caption';
+              caption.textContent = item.Nazwa;
+              
+              wrapper.appendChild(button);
+              wrapper.appendChild(caption);
+              container.appendChild(wrapper);
+              
+              button.addEventListener('click', () => loadModel(item));
+            });
+          }
+          
+          alert(`Znaleziono ${compatibleChairs.length} krzeseł kompatybilnych z nogami "${legs.Nazwa}": ${compatibleChairs.map(c => c.Nazwa).join(', ')}`);
+        } else {
+          alert(`Nie znaleziono krzeseł kompatybilnych z nogami "${legs.Nazwa}"`);
+        }
+      }
+
+      // Inicjalizuj wyszukiwanie po załadowaniu danych
+      window.addEventListener('load', () => {
+        setTimeout(initializeSearch, 500);
+      });
+
+      // Dodatkowa inicjalizacja po DOM
+      document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(initializeSearch, 100);
+      });
+
+      // Jeszcze jedna inicjalizacja na wszelki wypadek
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => initializeSearch());
+      } else {
+        // DOM już załadowany
+        setTimeout(initializeSearch, 50);
+      }
 
     
 
