@@ -9,9 +9,46 @@
   <meta name="format-detection" content="telephone=no" />
   <title>Konfigurator krzeseł - Fajne Krzesła</title>
   <link rel="icon" href="icons/favicon.png" type="image/jpeg" />
+  <link rel="manifest" href="manifest.json" />
+  
+  <!-- iOS PWA Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="FK Krzesła" />
+  <link rel="apple-touch-icon" href="icons/favicon.png" />
+  
   <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="pragma" content="no-cache" />
   <meta http-equiv="expires" content="0" />
+  
+  <!-- iOS Fallback System -->
+  <script src="ios-fallback.js"></script>
+  <script src="pwa-install.js"></script>
+  
+  <script>
+    // Auto-redirect iOS to mobile version if main app fails
+    if (/iPhone|iPad|iPod/i.test(navigator.userAgent) || 
+        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) {
+      
+      console.log('iOS device detected');
+      
+      // Check if user explicitly wants full version
+      const urlParams = new URLSearchParams(window.location.search);
+      const forceFullVersion = urlParams.get('full') === '1';
+      
+      if (!forceFullVersion) {
+        // Set a timeout - if app doesn't load in 8 seconds, redirect to mobile
+        setTimeout(() => {
+          const loader = document.getElementById('custom-loader');
+          if (loader && loader.style.display !== 'none') {
+            console.log('iOS: App loading timeout, redirecting to mobile version');
+            const mobileUrl = window.location.href.replace('index.html', 'mobile.html').replace(/\?.*$/, '') + '?from=timeout';
+            window.location.href = mobileUrl;
+          }
+        }, 8000);
+      }
+    }
+  </script>
 
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
   <script type="importmap">
