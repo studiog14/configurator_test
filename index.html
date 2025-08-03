@@ -1654,34 +1654,6 @@
   display: inline-block;
   margin-bottom: 12px;
 }
-#material-preloader {
-  display: none;
-  position: fixed;
-  z-index: 10000;
-  left: 0; top: 0; right: 0; bottom: 0;
-  width: 100vw; height: 100vh;
-  background: rgba(255,255,255,0.85);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-#material-preloader .preloader-box {
-  text-align: center;
-  background: rgba(255,255,255,0.97);
-  border-radius: 12px;
-  padding: 20px 30px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
-#material-preloader .loader {
-  border: 3px solid #f3f3f3;
-  border-top: 3px solid #555;
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  animation: spin 1s linear infinite;
-  display: inline-block;
-  margin-bottom: 12px;
-}
 @keyframes spin {
   0% { transform: rotate(0deg);}
   100% { transform: rotate(360deg);}
@@ -1788,13 +1760,6 @@
     </div>
 
   <div id="app">
-
-<div id="material-preloader" style="display:none;">
-  <div class="preloader-box">
-    <span class="loader"></span>
-    <div style="margin-top: 16px; font-size: 2em;">Ładowanie materiału...</div>
-  </div>
-</div>
 
     <!-- CANVAS CONTAINER z WELCOME SCREEN -->
     <div id="canvas-container" style="flex: 1 1 0; position: relative; height: 100%; background: #ededed15;">
@@ -2749,26 +2714,24 @@ function hideModelLoader() {
 
 // Funkcje loadera materiałów
 function showMaterialLoader(text = 'Ładowanie materiału...') {
-  const el = document.getElementById('custom-loader');
+  const el = document.getElementById('model-loader');
   if (el) {
     const textEl = el.querySelector('p');
     if (textEl) textEl.textContent = text;
     el.style.display = 'flex';
-    document.getElementById('app').style.visibility = 'hidden';
   }
 }
 
 function hideMaterialLoader() {
-  const el = document.getElementById('custom-loader');
+  const el = document.getElementById('model-loader');
   if (el) {
     el.classList.add('fade-out');
     setTimeout(() => {
       el.style.display = 'none';
       el.classList.remove('fade-out');
-      document.getElementById('app').style.visibility = 'visible';
       // Przywróć oryginalny tekst
       const textEl = el.querySelector('p');
-      if (textEl) textEl.textContent = 'Ładowanie...';
+      if (textEl) textEl.textContent = 'Ładowanie modelu...';
     }, 500);
   }
 }
@@ -2987,7 +2950,7 @@ async function applyMaterial(variant) {
     });
 
     await Promise.all(meshPromises); // czekaj aż wszystkie meshe ogarną materiał
-hideMaterialLoader();
+    hideMaterialLoader();
     // 🗂️ Automatycznie przypisz Folder do eksportu
     Object.entries(selectedMaterials).forEach(([key, mat]) => {
       if (!mat.Folder && typeof mat.Wartość === 'string') {
