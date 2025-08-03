@@ -112,7 +112,7 @@ function showIOSInstallInstructions() {
         cursor: pointer;
       ">×</button>
       
-      <h2 style="margin-bottom: 20px; color: #007AFF;">📱 Instalacja na iOS</h2>
+      <h2 style="margin-bottom: 20px; color: #F5C842;">📱 Instalacja na iOS</h2>
       
       <div style="text-align: left; line-height: 1.6;">
         <p><strong>1.</strong> Naciśnij przycisk "Udostępnij" <span style="font-size: 20px;">⬆️</span></p>

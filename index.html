@@ -1650,15 +1650,15 @@
 @keyframes pulse {
   0% { 
     transform: scale(1);
-    box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3);
+    box-shadow: 0 4px 15px rgba(245, 200, 66, 0.4);
   }
   50% { 
     transform: scale(1.05);
-    box-shadow: 0 6px 20px rgba(0, 122, 255, 0.5);
+    box-shadow: 0 6px 20px rgba(245, 200, 66, 0.6);
   }
   100% { 
     transform: scale(1);
-    box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3);
+    box-shadow: 0 4px 15px rgba(245, 200, 66, 0.4);
   }
 }
 
@@ -1712,9 +1712,10 @@
         z-index: 30000;
         text-align: center;
         padding: 40px;
+        box-sizing: border-box;
     ">
         <img src="icons/FK_logo.png" alt="Fajne Krzesła" style="
-            max-width: 150px;
+            max-width: 120px;
             height: auto;
             margin-bottom: 30px;
             border-radius: 10px;
@@ -1724,13 +1725,15 @@
             font-size: 60px;
             margin-bottom: 20px;
             animation: rotatePhone 2s ease-in-out infinite;
+            line-height: 1;
         ">📱</div>
         
         <h2 style="
             color: #333;
             font-size: 24px;
-            margin-bottom: 15px;
+            margin: 0 0 15px 0;
             font-weight: 600;
+            font-family: 'Poppins', sans-serif;
         ">Obróć telefon</h2>
         
         <p style="
@@ -1738,6 +1741,8 @@
             font-size: 16px;
             line-height: 1.5;
             max-width: 300px;
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
         ">Dla lepszego doświadczenia użyj orientacji poziomej</p>
     </div>
 
@@ -1854,17 +1859,17 @@
           <!-- PWA Install Button -->
           <div id="pwa-install-container" style="margin-top: 30px; display: none;">
             <button id="welcome-install-btn" style="
-              background: linear-gradient(135deg, #007AFF, #5856D6);
-              color: white;
+              background: linear-gradient(135deg, #F5C842, #E5B432);
+              color: #333;
               border: none;
               padding: 12px 24px;
               border-radius: 25px;
               font-size: 14px;
               font-weight: 600;
               cursor: pointer;
-              box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3);
+              box-shadow: 0 4px 15px rgba(245, 200, 66, 0.4);
               transition: all 0.3s ease;
-            " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+            " onmouseover="this.style.transform='scale(1.05)'; this.style.background='linear-gradient(135deg, #E5B432, #D1A029)'" onmouseout="this.style.transform='scale(1)'; this.style.background='linear-gradient(135deg, #F5C842, #E5B432)'">
               📱 Zainstaluj jako aplikację
             </button>
           </div>
@@ -2357,50 +2362,46 @@
 
 
 
-    async function init() {
-      // Sprawdź orientację na początku
-      function checkOrientation() {
-        const rotationMessage = document.getElementById('rotation-message');
-        const customLoader = document.getElementById('custom-loader');
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        
-        if (isMobile && rotationMessage) {
-          if (window.innerHeight > window.innerWidth) {
-            // Orientacja portret - pokaż komunikat obrotu i ukryj loader
-            rotationMessage.style.display = 'flex';
-            if (customLoader) customLoader.style.display = 'none';
-            return false; // Nie kontynuuj inicjalizacji
-          } else {
-            // Orientacja krajobraz - ukryj komunikat i pokaż loader
-            rotationMessage.style.display = 'none';
-            if (customLoader) customLoader.style.display = 'flex';
-            return true; // Kontynuuj inicjalizację
-          }
-        }
-        return true; // Desktop - kontynuuj
-      }
+    // Natychmiastowe sprawdzenie orientacji na mobile
+    document.addEventListener('DOMContentLoaded', () => {
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
       
-      // Sprawdź orientację przy ładowaniu
-      if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-        if (!checkOrientation()) {
-          // Czekaj na zmianę orientacji
-          const orientationHandler = () => {
-            setTimeout(() => {
-              if (checkOrientation()) {
-                // Orientacja OK, usuń handler i kontynuuj inicjalizację
-                window.removeEventListener('orientationchange', orientationHandler);
-                window.removeEventListener('resize', orientationHandler);
-                initApp(); // Kontynuuj inicjalizację
-              }
-            }, 500);
-          };
+      if (isMobile) {
+        function checkOrientation() {
+          const rotationMessage = document.getElementById('rotation-message');
+          const customLoader = document.getElementById('custom-loader');
           
-          window.addEventListener('orientationchange', orientationHandler);
-          window.addEventListener('resize', orientationHandler);
-          return; // Zatrzymaj inicjalizację do czasu zmiany orientacji
+          if (rotationMessage) {
+            if (window.innerHeight > window.innerWidth) {
+              // Orientacja portret - pokaż komunikat obrotu i ukryj loader
+              rotationMessage.style.display = 'flex';
+              if (customLoader) customLoader.style.display = 'none';
+              return false;
+            } else {
+              // Orientacja krajobraz - ukryj komunikat i kontynuuj
+              rotationMessage.style.display = 'none';
+              if (customLoader) customLoader.style.display = 'flex';
+              return true;
+            }
+          }
+          return true;
         }
+        
+        // Sprawdź orientację natychmiast
+        checkOrientation();
+        
+        // Dodaj listenery
+        window.addEventListener('orientationchange', () => {
+          setTimeout(checkOrientation, 100);
+        });
+        window.addEventListener('resize', checkOrientation);
       }
       
+      // Uruchom inicjalizację
+      init();
+    });
+
+    async function init() {
       initApp(); // Uruchom właściwą inicjalizację
     }
     
@@ -2497,25 +2498,6 @@
       if (configOverview) {
         configOverview.style.display = 'none';
         configOverview.classList.add('hidden');
-      }
-      
-      // Dodaj stały handler orientacji po inicjalizacji
-      if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-        const continuousOrientationCheck = () => {
-          const rotationMessage = document.getElementById('rotation-message');
-          if (rotationMessage) {
-            if (window.innerHeight > window.innerWidth) {
-              rotationMessage.style.display = 'flex';
-            } else {
-              rotationMessage.style.display = 'none';
-            }
-          }
-        };
-        
-        window.addEventListener('orientationchange', () => {
-          setTimeout(continuousOrientationCheck, 500);
-        });
-        window.addEventListener('resize', continuousOrientationCheck);
       }
     }
 
@@ -3563,11 +3545,11 @@ renderOptions('legs-thumbnails', legs, item => {
           appElement.style.visibility = 'hidden';
         }
         
-        // Dodaj timeout na wypadek nieskończonego loadingu (20 sekund)
-        console.log('Setting up loader timeout (20s)...');
+        // Dodaj timeout na wypadek nieskończonego loadingu (15 sekund)
+        console.log('Setting up loader timeout (15s)...');
         const loaderTimeout = setTimeout(() => {
           console.log("=== LOADER TIMEOUT TRIGGERED ===");
-          console.log("Wymuszenie ukrycia loadera po 20 sekundach");
+          console.log("Wymuszenie ukrycia loadera po 15 sekundach");
           const loader = document.getElementById('custom-loader');
           if (loader) {
             loader.classList.add('fade-out');
@@ -3581,7 +3563,7 @@ renderOptions('legs-thumbnails', legs, item => {
               }
             }, 500);
           }
-        }, 20000);
+        }, 15000);
         
         try {
           console.log('Loading data from Google Sheets...');
@@ -3591,7 +3573,7 @@ renderOptions('legs-thumbnails', legs, item => {
                            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); // iPad detection
           
           // Timeout for mobile devices
-          const timeoutDuration = isMobile ? 20000 : 15000;
+          const timeoutDuration = isMobile ? 15000 : 10000;
           const timeoutPromise = new Promise((_, reject) => 
             setTimeout(() => reject(new Error(`Timeout loading data (${timeoutDuration/1000}s)`)), timeoutDuration)
           );
