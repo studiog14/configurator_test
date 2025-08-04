@@ -2362,15 +2362,17 @@
 
 
 
-    // Prosta inicjalizacja bez skomplikowanej logiki orientacji
+    // Podstawowa inicjalizacja - bez blokowania przez orientację
     document.addEventListener('DOMContentLoaded', () => {
-      console.log('DOMContentLoaded - starting app initialization');
-      
-      // Sprawdź czy to mobile
+      console.log('DOM loaded, starting app...');
+      init();
+    });
+
+    // Oddzielnie obsługa orientacji na mobile (nie blokuje aplikacji)
+    window.addEventListener('load', () => {
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
       
       if (isMobile) {
-        // Na mobile sprawdź orientację i pokaż komunikat jeśli trzeba
         function checkOrientation() {
           const rotationMessage = document.getElementById('rotation-message');
           
@@ -2392,10 +2394,6 @@
         });
         window.addEventListener('resize', checkOrientation);
       }
-      
-      // Uruchom aplikację zawsze (niezależnie od orientacji)
-      console.log('Starting app...');
-      init();
     });
 
     async function init() {
@@ -2404,8 +2402,8 @@
     
     async function initApp() {
       console.log('initApp() started');
+      
       const canvas = document.getElementById("canvas");
-
       viewer = new ThreeViewer({
         canvas: canvas,
         plugins: [ GBufferPlugin, SSAAPlugin, SSReflectionPlugin, BloomPlugin],
@@ -2422,7 +2420,6 @@
 
       const collapseBtn = document.getElementById('collapse-btn');
       const overviewPanel = document.getElementById('config-overview');
-
       collapseBtn.onclick = () => {
         overviewPanel.classList.toggle('collapsed');
         collapseBtn.textContent = overviewPanel.classList.contains('collapsed') ? '+' : '−';
@@ -2432,37 +2429,11 @@
 
       document.getElementById('buy-button').onclick = () => {
         const summary = generateSummaryText();
-        const emailAddress = 'mrpeter@o2.pl'; // adres docelowy
-
-        const subject = `Zapytanie o wycenę: ${selectedChair.Nazwa}`;
-        const body = `Dzień dobry,\n\nProszę o wycenę poniższej konfiguracji:\n\n${summary.text}\n-------------------\nSuma: ${summary.totalPrice.toFixed(2)} PLN\n\nPozdrawiam,\n[Imię i nazwisko]`;
-
-        console.log("Symulowana wysyłka wiadomości:");
-        console.log("Temat:", subject);
-        console.log("Treść:", body);
-
-        // Zamknij modal jeśli otwarty
-        const modal = document.getElementById('emailModal');
-        if (modal) modal.classList.add('hidden');
-
-        // Pokaż komunikat sukcesu (dodaj klasę visible i usuń hidden)
-        const successMessage = document.getElementById('success-message');
-        if (successMessage) {
-          successMessage.classList.add('visible');
-          successMessage.classList.remove('hidden');
-
-          // Po 0.5s otwórz mailto, by dać czas na pokazanie komunikatu
-          
-
-          // Ukryj komunikat po 3 sekundach
-          setTimeout(() => {
-            successMessage.classList.remove('visible');
-            successMessage.classList.add('hidden');
-          }, 3500);
-        } else {
-          // Jeżeli brak komunikatu, to od razu wywołaj mailto
-          window.location.href = `mailto:${emailAddress}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-        }
+        const emailAddress = 'mrpeter@o2.pl';
+        const subject = `Zapytanie o wycenę: ${selectedChair ? selectedChair.Nazwa : 'Konfiguracja'}`;
+        const body = `Dzień dobry,\n\nProszę o wycenę poniższej konfiguracji:\n\n${summary.text}\n-------------------\nSuma: ${summary.totalPrice.toFixed(2)} PLN\n\nPozdrawiam`;
+        
+        window.location.href = `mailto:${emailAddress}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
       };
 
 
@@ -2478,28 +2449,23 @@
       window.addEventListener("resize", resizeCanvas);
       resizeCanvas();
       
-      console.log('Loading data from sheets...');
       await loadDataFromSheet();
-      console.log('Data loaded successfully');
       
-      // Pokaż welcome screen jako domyślny ekran
+      // Pokaż welcome screen
       const welcomeScreen = document.getElementById('welcome-screen');
       if (welcomeScreen) {
         welcomeScreen.style.display = 'flex';
       }
       
-      // Ukryj toolbar na welcome screen
+      // Ukryj toolbar i panel konfiguracji na starcie
       const toolbar = document.getElementById('bottom-toolbar');
       if (toolbar) {
-        toolbar.classList.remove('visible');
         toolbar.style.display = 'none';
       }
       
-      // Ukryj panel konfiguracji na welcome screen
       const configOverview = document.getElementById('config-overview');
       if (configOverview) {
         configOverview.style.display = 'none';
-        configOverview.classList.add('hidden');
       }
     }
 
@@ -3532,45 +3498,14 @@ renderOptions('legs-thumbnails', legs, item => {
 
 
       async function loadDataFromSheet() {
+        console.log('Loading data from Google Sheets...');
+        
         const sheetId = '1lZMJ-4Qd0nDY-7Hl9iV-pJnZSTVzYiA-A3rDq_bC16U';
         const sheetURL = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=Baza Danych&v=${new Date().getTime()}`;
         
-        // Pokaż loader
-        const customLoaderElement = document.getElementById('custom-loader');
-        const appElement = document.getElementById('app');
-        
-        if (customLoaderElement) {
-          customLoaderElement.style.display = 'flex';
-        }
-        
-        if (appElement) {
-          appElement.style.visibility = 'hidden';
-        }
-        
-        // Timeout na wypadek problemów z ładowaniem (10 sekund)
-        const loaderTimeout = setTimeout(() => {
-          console.log("Loader timeout - hiding loader");
-          const loader = document.getElementById('custom-loader');
-          if (loader) {
-            loader.classList.add('fade-out');
-            setTimeout(() => {
-              loader.style.display = 'none';
-              const app = document.getElementById('app');
-              if (app) {
-                app.style.visibility = 'visible';
-              }
-            }, 500);
-          }
-        }, 10000);
-        
         try {
-          console.log('Loading data from Google Sheets...');
-          
-          const response = await fetch(sheetURL + '?nocache=' + Date.now(), { 
-            cache: 'no-store',
-            headers: {
-              'Accept': 'text/plain,text/csv,application/csv'
-            }
+          const response = await fetch(sheetURL, { 
+            cache: 'no-store'
           });
           
           if (!response.ok) {
@@ -3578,15 +3513,11 @@ renderOptions('legs-thumbnails', legs, item => {
           }
 
           const csvText = await response.text();
-          console.log('CSV data loaded, length:', csvText.length);
+          console.log('CSV data loaded, parsing...');
           
           const rows = csvText.trim().split('\n');
-          
-          if (rows.length === 0) {
-            throw new Error('CSV file appears to be empty');
-          }
-          
           const headers = rows.shift().split(',').map(h => h.trim().replace(/"/g, ''));
+          
           allData = rows.map(row => {
             const values = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
             const obj = {};
@@ -3595,13 +3526,6 @@ renderOptions('legs-thumbnails', legs, item => {
           }).filter(item => item.Visible?.toLowerCase() !== 'false');
 
           console.log('Data parsed successfully, items:', allData.length);
-          
-          if (allData.length === 0) {
-            throw new Error('No visible items found in data');
-          }
-
-          // Wyczyść timeout
-          clearTimeout(loaderTimeout);
 
           // Renderuj UI
           renderCategoryButtons();
@@ -3613,12 +3537,12 @@ renderOptions('legs-thumbnails', legs, item => {
 
           // Ukryj loader
           const customLoader = document.getElementById('custom-loader');
+          const appElement = document.getElementById('app');
           
           if (customLoader) {
             customLoader.classList.add('fade-out');
             setTimeout(() => {
               customLoader.style.display = 'none';
-              
               if (appElement) {
                 appElement.style.visibility = 'visible';
               }
@@ -3635,33 +3559,20 @@ renderOptions('legs-thumbnails', legs, item => {
           console.log('App initialization complete');
 
         } catch (e) { 
-          console.error("Error loading data:", e.message);
+          console.error("Error loading data:", e);
           
-          clearTimeout(loaderTimeout);
-          
-          // Ukryj loader nawet przy błędzie
+          // Ukryj loader przy błędzie
           const errorLoader = document.getElementById('custom-loader');
           if (errorLoader) {
-            errorLoader.classList.add('fade-out');
-            setTimeout(() => {
-              errorLoader.style.display = 'none';
-              const errorApp = document.getElementById('app');
-              if (errorApp) {
-                errorApp.style.visibility = 'visible';
-              }
-            }, 500);
+            errorLoader.style.display = 'none';
+            const errorApp = document.getElementById('app');
+            if (errorApp) {
+              errorApp.style.visibility = 'visible';
+            }
           }
           
-          // Pokaż komunikat błędu
-          document.body.innerHTML = `
-            <div style="text-align: center; padding: 50px; font-family: Arial, sans-serif;">
-              <h2>Błąd ładowania danych</h2>
-              <p>${e.message}</p>
-              <button onclick="window.location.reload()" style="padding: 10px 20px; margin-top: 20px;">
-                Spróbuj ponownie
-              </button>
-            </div>
-          `;
+          // Pokaż podstawowy komunikat błędu
+          alert('Błąd ładowania danych. Spróbuj odświeżyć stronę.');
         }
       }
 
