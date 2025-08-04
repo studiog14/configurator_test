@@ -2362,66 +2362,40 @@
 
 
 
-    // Natychmiastowe sprawdzenie orientacji na mobile
+    // Prosta inicjalizacja bez skomplikowanej logiki orientacji
     document.addEventListener('DOMContentLoaded', () => {
-      console.log('DOMContentLoaded fired');
+      console.log('DOMContentLoaded - starting app initialization');
+      
+      // Sprawdź czy to mobile
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-      console.log('Is mobile:', isMobile);
       
       if (isMobile) {
+        // Na mobile sprawdź orientację i pokaż komunikat jeśli trzeba
         function checkOrientation() {
-          console.log('checkOrientation called, window size:', window.innerWidth + 'x' + window.innerHeight);
           const rotationMessage = document.getElementById('rotation-message');
-          const customLoader = document.getElementById('custom-loader');
           
-          if (rotationMessage) {
-            if (window.innerHeight > window.innerWidth) {
-              // Orientacja portret - pokaż komunikat obrotu i ukryj loader
-              console.log('Portrait orientation - showing rotation message');
-              rotationMessage.style.display = 'flex';
-              if (customLoader) customLoader.style.display = 'none';
-              return false;
-            } else {
-              // Orientacja krajobraz - ukryj komunikat i pokaż loader, następnie uruchom aplikację
-              console.log('Landscape orientation - hiding rotation message');
-              rotationMessage.style.display = 'none';
-              if (customLoader) customLoader.style.display = 'flex';
-              
-              // Jeśli to pierwsze uruchomienie po zmianie orientacji, uruchom aplikację
-              if (!window.appInitialized) {
-                console.log('App not initialized yet, starting...');
-                window.appInitialized = true;
-                setTimeout(() => {
-                  initApp(); // Uruchom aplikację po krótkim opóźnieniu
-                }, 100);
-              }
-              return true;
-            }
+          if (window.innerHeight > window.innerWidth) {
+            // Portret - pokaż komunikat
+            if (rotationMessage) rotationMessage.style.display = 'flex';
+          } else {
+            // Krajobraz - ukryj komunikat
+            if (rotationMessage) rotationMessage.style.display = 'none';
           }
-          return true;
         }
         
-        // Sprawdź orientację natychmiast
-        const initialCheck = checkOrientation();
-        console.log('Initial check result:', initialCheck);
+        // Sprawdź orientację
+        checkOrientation();
         
-        // Jeśli orientacja jest OK lub to desktop, uruchom aplikację od razu
-        if (initialCheck || !isMobile) {
-          console.log('Starting app immediately');
-          window.appInitialized = true;
-          init();
-        }
-        
-        // Dodaj listenery
+        // Dodaj listenery orientacji
         window.addEventListener('orientationchange', () => {
           setTimeout(checkOrientation, 100);
         });
         window.addEventListener('resize', checkOrientation);
-      } else {
-        // Desktop - uruchom aplikację od razu
-        console.log('Desktop detected - starting app immediately');
-        init();
       }
+      
+      // Uruchom aplikację zawsze (niezależnie od orientacji)
+      console.log('Starting app...');
+      init();
     });
 
     async function init() {
@@ -2429,26 +2403,21 @@
     }
     
     async function initApp() {
-      console.log('=== initApp() called ===');
+      console.log('initApp() started');
       const canvas = document.getElementById("canvas");
-      console.log('Canvas element found:', !!canvas);
 
-      console.log('Creating ThreeViewer...');
       viewer = new ThreeViewer({
         canvas: canvas,
         plugins: [ GBufferPlugin, SSAAPlugin, SSReflectionPlugin, BloomPlugin],
         rendererSettings: { antialias: true }
       });
-      console.log('ThreeViewer created');
       
       if (viewer.controls) {
         viewer.controls.minDistance = MIN_ZOOM_DISTANCE;
         viewer.controls.maxDistance = MAX_ZOOM_DISTANCE;
         viewer.controls.dampingFactor = 0.1;
         viewer.controls.enableDamping = true;
-        // Dodaj nasłuchiwanie TUTAJ, po utworzeniu viewer i controls:
         viewer.controls.addEventListener('change', clampCameraDistance);
-        console.log('Viewer controls configured');
       }
 
       const collapseBtn = document.getElementById('collapse-btn');
@@ -2459,7 +2428,6 @@
         collapseBtn.textContent = overviewPanel.classList.contains('collapsed') ? '+' : '−';
       };
 
-      console.log('Configuring buy button...');
       document.getElementById('buy-button').innerHTML = '<span class="cart-icon">🛒</span>Zapytaj o produkt';
 
       document.getElementById('buy-button').onclick = () => {
@@ -2501,25 +2469,18 @@
 
 
       try {
-        console.log('Loading environment map...');
         await viewer.setEnvironmentMap("hdr/hamburg_hbf_1k.hdr", { isHDR: true });
-        console.log('Environment map loaded');
       } catch (e) { 
         console.error("Błąd ładowania HDR:", e); 
       }
 
-      console.log('Loading camera target...');
       await loadCameraTarget();
-      console.log('Camera target loaded');
-      
-      console.log('Setting up resize listener...');
       window.addEventListener("resize", resizeCanvas);
       resizeCanvas();
-      console.log('Resize configured');
       
-      console.log('BEFORE loadDataFromSheet - this might hang...');
+      console.log('Loading data from sheets...');
       await loadDataFromSheet();
-      console.log('AFTER loadDataFromSheet - if you see this, data loaded successfully');
+      console.log('Data loaded successfully');
       
       // Pokaż welcome screen jako domyślny ekran
       const welcomeScreen = document.getElementById('welcome-screen');
@@ -3586,70 +3547,46 @@ renderOptions('legs-thumbnails', legs, item => {
           appElement.style.visibility = 'hidden';
         }
         
-        // Dodaj timeout na wypadek nieskończonego loadingu (15 sekund)
-        console.log('Setting up loader timeout (15s)...');
+        // Timeout na wypadek problemów z ładowaniem (10 sekund)
         const loaderTimeout = setTimeout(() => {
-          console.log("=== LOADER TIMEOUT TRIGGERED ===");
-          console.log("Wymuszenie ukrycia loadera po 15 sekundach");
+          console.log("Loader timeout - hiding loader");
           const loader = document.getElementById('custom-loader');
           if (loader) {
             loader.classList.add('fade-out');
             setTimeout(() => {
               loader.style.display = 'none';
-              console.log('Loader hidden after timeout');
               const app = document.getElementById('app');
               if (app) {
                 app.style.visibility = 'visible';
-                console.log('App shown after timeout');
               }
             }, 500);
           }
-        }, 15000);
+        }, 10000);
         
         try {
           console.log('Loading data from Google Sheets...');
           
-          // Enhanced mobile detection
-          const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
-                           (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); // iPad detection
-          
-          // Timeout for mobile devices
-          const timeoutDuration = isMobile ? 15000 : 10000;
-          const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error(`Timeout loading data (${timeoutDuration/1000}s)`)), timeoutDuration)
-          );
-          
-          console.log('Making fetch request...');
-          
-          const fetchPromise = fetch(sheetURL + '?nocache=' + Date.now(), { 
+          const response = await fetch(sheetURL + '?nocache=' + Date.now(), { 
             cache: 'no-store',
             headers: {
-              'Accept': 'text/plain,text/csv,application/csv',
-              'User-Agent': navigator.userAgent
+              'Accept': 'text/plain,text/csv,application/csv'
             }
           });
           
-          console.log('Waiting for response...');
-          const response = await Promise.race([fetchPromise, timeoutPromise]);
-          console.log('Response received, status:', response.status);
-          
           if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}, statusText: ${response.statusText}`);
+            throw new Error(`HTTP error! status: ${response.status}`);
           }
 
-          console.log('Reading response text...');
           const csvText = await response.text();
-          console.log('CSV data loaded successfully, length:', csvText.length);
+          console.log('CSV data loaded, length:', csvText.length);
           
           const rows = csvText.trim().split('\n');
-          console.log('CSV rows found:', rows.length);
           
           if (rows.length === 0) {
             throw new Error('CSV file appears to be empty');
           }
           
           const headers = rows.shift().split(',').map(h => h.trim().replace(/"/g, ''));
-          console.log('CSV headers parsed:', headers.length);
           allData = rows.map(row => {
             const values = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
             const obj = {};
@@ -3658,54 +3595,32 @@ renderOptions('legs-thumbnails', legs, item => {
           }).filter(item => item.Visible?.toLowerCase() !== 'false');
 
           console.log('Data parsed successfully, items:', allData.length);
-          console.log('Sample data item:', allData[0]);
           
           if (allData.length === 0) {
             throw new Error('No visible items found in data');
           }
 
-          console.log('Data parsed, items:', allData.length);
-          
-          if (allData.length === 0) {
-            console.error('No data loaded - forcing timeout');
-            throw new Error('No data available');
-          }
-
-          // Wyczyść timeout loader jeśli dane się załadowały
+          // Wyczyść timeout
           clearTimeout(loaderTimeout);
-          console.log('Starting UI initialization...');
 
-          // Renderuj przyciski kategorii
-          console.log('About to render category buttons...');
+          // Renderuj UI
           renderCategoryButtons();
-          console.log('Category buttons rendered');
-          
-          // Renderuj promocje na starcie
-          console.log('About to render promotions...');
           renderPromotions();
-          console.log('Promotions rendered');
-          
-          console.log('About to show models screen...');
           showScreen('models');
-          console.log('Models screen shown');
 
           const hdrEntries = allData.filter(d => d.HDR && d.HDRIcon);
           renderHDROptions(hdrEntries);
-          console.log('HDR options rendered, entries:', hdrEntries.length);
 
           // Ukryj loader
           const customLoader = document.getElementById('custom-loader');
-          const appElement = document.getElementById('app');
           
           if (customLoader) {
             customLoader.classList.add('fade-out');
             setTimeout(() => {
               customLoader.style.display = 'none';
-              console.log('Loader hidden');
               
               if (appElement) {
                 appElement.style.visibility = 'visible';
-                console.log('App shown');
               }
             }, 500);
           }
@@ -3715,22 +3630,14 @@ renderOptions('legs-thumbnails', legs, item => {
           if (toolbar) {
             toolbar.style.display = 'flex';
             toolbar.classList.add('visible');
-            console.log('Toolbar shown');
           }
           
           console.log('App initialization complete');
 
-
         } catch (e) { 
-          console.error("=== ERROR IN LOAD DATA FROM SHEET ===");
-          console.error("Error type:", e.constructor.name);
-          console.error("Error message:", e.message);
-          console.error("Full error:", e);
-          console.error("Stack trace:", e.stack);
+          console.error("Error loading data:", e.message);
           
-          // Wyczyść timeout loader
           clearTimeout(loaderTimeout);
-          console.log('Timeout cleared after error');
           
           // Ukryj loader nawet przy błędzie
           const errorLoader = document.getElementById('custom-loader');
@@ -3742,7 +3649,6 @@ renderOptions('legs-thumbnails', legs, item => {
               if (errorApp) {
                 errorApp.style.visibility = 'visible';
               }
-              console.log('Loader hidden after error');
             }, 500);
           }
           
