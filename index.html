@@ -25,7 +25,7 @@
   <meta name="timestamp" content="2025-08-04-18:30" />
   
   <script src="pwa-install.js?v=2025080418"></script>
-  <!-- <script src="ios-fallback.js"></script> WYŁĄCZONY - nadpisuje welcome screen -->
+  <script src="ios-fallback.js?v=2025080418"></script>
 
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
   <script type="importmap">
@@ -1577,12 +1577,12 @@
   }
   
   #welcome-screen h1 {
-    font-size: 2em;
+    font-size: 1.6em; /* Zmniejszone z 2em */
   }
   
   #welcome-logo {
-    max-width: 150px;
-    margin-bottom: 20px;
+    max-width: 100px; /* Zmniejszone z 150px */
+    margin-bottom: 15px; /* Zmniejszone z 20px */
   }
   
   /* Przyciski kategorii na mobile */
@@ -1969,13 +1969,10 @@
           
           <!-- Mobile content -->
           <div id="welcome-mobile-content" style="display: none;">
-            <p style="margin: 15px 0; line-height: 1.5;">Zapoznaj się z naszymi promocjami i bestsellerami - najczęściej wybieranymi modelami krzeseł. Skonfiguruj swoje wymarzone krzesło w technologii 3D.</p>
-            <div style="margin: 20px 0; padding: 15px; background: rgba(245, 200, 66, 0.1); border-radius: 10px;">
-              <p style="margin: 0; font-weight: 600; color: #333;">📱 Zainstaluj aplikację na swoim urządzeniu</p>
-              <p style="margin: 5px 0 0 0; font-size: 14px; color: #666;">Aby zainstalować aplikację, dotknij przycisku "Udostępnij" w Safari, a następnie "Dodaj do ekranu głównego"</p>
-            </div>
+            <p style="margin: 15px 0; line-height: 1.5;">Wybierz kategorię oraz model krzesła z bocznego panelu, aby rozpocząć konfigurację w 3D</p>
+            <p style="margin: 15px 0; line-height: 1.5; color: #666;">Możesz również zapoznać się z naszymi promocjami i bestsellerami - najczęściej wybieranymi modelami krzeseł</p>
             
-            <button id="welcome-continue-btn" style="
+            <button onclick="showInstallInstructions()" style="
               background: linear-gradient(135deg, #F5C842, #E5B432);
               color: #333;
               border: none;
@@ -1986,8 +1983,24 @@
               cursor: pointer;
               box-shadow: 0 4px 15px rgba(245, 200, 66, 0.4);
               transition: all 0.3s ease;
-              margin-top: 20px;
+              margin: 10px;
             " onmouseover="this.style.transform='scale(1.05)'; this.style.background='linear-gradient(135deg, #E5B432, #D1A029)'" onmouseout="this.style.transform='scale(1)'; this.style.background='linear-gradient(135deg, #F5C842, #E5B432)'">
+              📱 Zainstaluj aplikację
+            </button>
+            
+            <button id="welcome-continue-btn" style="
+              background: #007AFF;
+              color: white;
+              border: none;
+              padding: 12px 24px;
+              border-radius: 25px;
+              font-size: 14px;
+              font-weight: 600;
+              cursor: pointer;
+              box-shadow: 0 4px 15px rgba(0, 122, 255, 0.4);
+              transition: all 0.3s ease;
+              margin: 10px;
+            " onmouseover="this.style.transform='scale(1.05)'; this.style.background='#0056D6'" onmouseout="this.style.transform='scale(1)'; this.style.background='#007AFF'">
               Kontynuuj do aplikacji
             </button>
           </div>
@@ -5934,6 +5947,119 @@ function setDefaultMaterialsFromSheet() {
           handleExport(format);
         });
       });
+
+      // Funkcje instalacji PWA
+      window.showInstallInstructions = function() {
+        console.log('📱 Showing install instructions...');
+        
+        // Try to trigger native install prompt first
+        if (window.deferredInstallPrompt) {
+          window.deferredInstallPrompt.prompt();
+          window.deferredInstallPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+              console.log('📱 User accepted the install prompt');
+            } else {
+              console.log('📱 User dismissed the install prompt');
+              // Show manual instructions
+              showManualInstallInstructions();
+            }
+            window.deferredInstallPrompt = null;
+          });
+        } else {
+          // Show manual instructions
+          showManualInstallInstructions();
+        }
+      };
+
+      function showManualInstallInstructions() {
+        const modal = document.createElement('div');
+        modal.style.cssText = `
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0, 0, 0, 0.7);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          z-index: 10000;
+          backdrop-filter: blur(5px);
+        `;
+        
+        modal.innerHTML = `
+          <div style="
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 350px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+          ">
+            <h3 style="margin: 0 0 16px 0; color: #333;">📱 Instalacja aplikacji</h3>
+            
+            <div style="text-align: left; margin: 16px 0; padding: 16px; background: #f8f9fa; border-radius: 8px;">
+              <p style="margin: 8px 0; font-size: 14px;"><strong>1.</strong> Otwórz w Safari</p>
+              <p style="margin: 8px 0; font-size: 14px;"><strong>2.</strong> Naciśnij przycisk "Udostępnij" ⬆️</p>
+              <p style="margin: 8px 0; font-size: 14px;"><strong>3.</strong> Wybierz "Dodaj do ekranu głównego"</p>
+              <p style="margin: 8px 0; font-size: 14px;"><strong>4.</strong> Potwierdź instalację</p>
+            </div>
+            
+            <button onclick="this.parentElement.parentElement.remove()" style="
+              background: #007AFF;
+              color: white;
+              border: none;
+              padding: 12px 24px;
+              border-radius: 8px;
+              font-size: 14px;
+              font-weight: 600;
+              cursor: pointer;
+              margin: 8px;
+            ">
+              Rozumiem
+            </button>
+            
+            <button onclick="tryAutoInstall()" style="
+              background: #F5C842;
+              color: #333;
+              border: none;
+              padding: 12px 24px;
+              border-radius: 8px;
+              font-size: 14px;
+              font-weight: 600;
+              cursor: pointer;
+              margin: 8px;
+            ">
+              Spróbuj automatycznie
+            </button>
+          </div>
+        `;
+        
+        document.body.appendChild(modal);
+      }
+
+      // Try auto install
+      window.tryAutoInstall = function() {
+        console.log('📱 Attempting auto install...');
+        
+        // Close modal first
+        const modal = document.querySelector('div[style*="position: fixed"]');
+        if (modal && modal.style.background.includes('rgba(0, 0, 0, 0.7)')) {
+          modal.remove();
+        }
+        
+        // Try various install methods
+        if (window.BeforeInstallPromptEvent) {
+          console.log('📱 Triggering BeforeInstallPromptEvent...');
+          window.dispatchEvent(new Event('beforeinstallprompt'));
+        }
+        
+        // Fallback: redirect to add to homescreen
+        setTimeout(() => {
+          alert('Dotknij przycisku Udostępnij (⬆️) w dolnej części Safari, a następnie "Dodaj do ekranu głównego"');
+        }, 500);
+      };
 
 
 

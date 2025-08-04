@@ -1,5 +1,5 @@
-// Zwiększ wersję przy każdej zmianie - WELCOME SCREEN FIX
-const CACHE_NAME = 'krzesla-v5-welcome-fix';
+// Zwiększ wersję przy każdej zmianie - iOS FALLBACK RESTORED
+const CACHE_NAME = 'krzesla-v6-ios-fallback';
 const urlsToCache = [
   './',
   'index.html',

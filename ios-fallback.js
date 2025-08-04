@@ -111,13 +111,52 @@ async function loadDataSimplified() {
     const welcomeScreen = document.getElementById('welcome-screen');
     if (welcomeScreen) {
       welcomeScreen.innerHTML = `
-        <div style="text-align: center; padding: 20px;">
-          <h2>✅ Aplikacja załadowana pomyślnie!</h2>
-          <p>Wykryto urządzenie iOS</p>
-          <p>Dane załadowane: ${lines.length} rekordów</p>
-          <button onclick="window.location.reload()" style="padding: 10px 20px; margin: 10px; background: #007AFF; color: white; border: none; border-radius: 8px;">
+        <img id="welcome-logo" src="icons/FK_logo.png" alt="Fajne Krzesła" style="max-width: 120px; height: auto; margin-bottom: 15px;">
+        <div class="title-with-accent">
+            <h1 id="welcome-title" style="font-size: 1.8em; margin: 10px 0;">Konfigurator Krzeseł</h1>
+            <div class="yellow-accent-line" style="width: 60px; height: 3px; background: #F5C842; margin: 10px auto;"></div>
+        </div>
+        
+        <div style="text-align: center; padding: 15px; max-width: 350px; margin: 0 auto;">
+          <p style="margin: 15px 0; line-height: 1.5; font-size: 14px;">Wybierz kategorię oraz model krzesła z bocznego panelu, aby rozpocząć konfigurację w 3D</p>
+          
+          <p style="margin: 15px 0; line-height: 1.5; font-size: 14px; color: #666;">Możesz również zapoznać się z naszymi promocjami i bestsellerami - najczęściej wybieranymi modelami krzeseł</p>
+          
+          <button onclick="showInstallInstructions()" style="
+            background: linear-gradient(135deg, #F5C842, #E5B432);
+            color: #333;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(245, 200, 66, 0.4);
+            transition: all 0.3s ease;
+            margin: 10px;
+          ">
+            📱 Zainstaluj aplikację
+          </button>
+          
+          <button onclick="continueToApp()" style="
+            background: #007AFF;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 122, 255, 0.4);
+            transition: all 0.3s ease;
+            margin: 10px;
+          ">
             Kontynuuj do aplikacji
           </button>
+          
+          <p style="font-size: 12px; color: #888; margin-top: 15px;">
+            ✅ Dane załadowane: ${lines.length} rekordów
+          </p>
         </div>
       `;
       welcomeScreen.style.display = 'flex';
@@ -176,6 +215,140 @@ window.openWebVersion = function() {
 window.installPWA = function() {
   console.log('📱 iOS: PWA install instructions...');
   alert('Aby zainstalować jako aplikację:\n\n1. Otwórz w Safari\n2. Naciśnij przycisk "Udostępnij" (kwadrat ze strzałką)\n3. Wybierz "Dodaj do ekranu głównego"\n4. Potwierdź instalację');
+};
+
+// Show install instructions popup
+window.showInstallInstructions = function() {
+  console.log('📱 iOS: Showing install instructions...');
+  
+  // Try to trigger native install prompt first
+  if (window.deferredInstallPrompt) {
+    window.deferredInstallPrompt.prompt();
+    window.deferredInstallPrompt.userChoice.then((choiceResult) => {
+      if (choiceResult.outcome === 'accepted') {
+        console.log('📱 User accepted the install prompt');
+      } else {
+        console.log('📱 User dismissed the install prompt');
+        // Show manual instructions
+        showManualInstallInstructions();
+      }
+      window.deferredInstallPrompt = null;
+    });
+  } else {
+    // Show manual instructions
+    showManualInstallInstructions();
+  }
+};
+
+function showManualInstallInstructions() {
+  const modal = document.createElement('div');
+  modal.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    backdrop-filter: blur(5px);
+  `;
+  
+  modal.innerHTML = `
+    <div style="
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 350px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    ">
+      <h3 style="margin: 0 0 16px 0; color: #333;">📱 Instalacja aplikacji</h3>
+      
+      <div style="text-align: left; margin: 16px 0; padding: 16px; background: #f8f9fa; border-radius: 8px;">
+        <p style="margin: 8px 0; font-size: 14px;"><strong>1.</strong> Otwórz w Safari</p>
+        <p style="margin: 8px 0; font-size: 14px;"><strong>2.</strong> Naciśnij przycisk "Udostępnij" ⬆️</p>
+        <p style="margin: 8px 0; font-size: 14px;"><strong>3.</strong> Wybierz "Dodaj do ekranu głównego"</p>
+        <p style="margin: 8px 0; font-size: 14px;"><strong>4.</strong> Potwierdź instalację</p>
+      </div>
+      
+      <button onclick="this.parentElement.parentElement.remove()" style="
+        background: #007AFF;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        margin: 8px;
+      ">
+        Rozumiem
+      </button>
+      
+      <button onclick="tryAutoInstall()" style="
+        background: #F5C842;
+        color: #333;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        margin: 8px;
+      ">
+        Spróbuj automatycznie
+      </button>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+}
+
+// Continue to app function
+window.continueToApp = function() {
+  console.log('📱 iOS: Continuing to app...');
+  const welcomeScreen = document.getElementById('welcome-screen');
+  if (welcomeScreen) {
+    welcomeScreen.style.display = 'none';
+  }
+  
+  // Show the main app
+  const app = document.getElementById('app');
+  if (app) {
+    app.style.visibility = 'visible';
+  }
+  
+  // Hide loader if still visible
+  const loader = document.getElementById('custom-loader');
+  if (loader) {
+    loader.style.display = 'none';
+  }
+};
+
+// Try auto install
+window.tryAutoInstall = function() {
+  console.log('📱 iOS: Attempting auto install...');
+  
+  // Close modal first
+  const modal = document.querySelector('div[style*="position: fixed"]');
+  if (modal) {
+    modal.remove();
+  }
+  
+  // Try various install methods
+  if (window.BeforeInstallPromptEvent) {
+    console.log('📱 iOS: Triggering BeforeInstallPromptEvent...');
+    window.dispatchEvent(new Event('beforeinstallprompt'));
+  }
+  
+  // Fallback: redirect to add to homescreen
+  setTimeout(() => {
+    alert('Dotknij przycisku Udostępnij (⬆️) w dolnej części Safari, a następnie "Dodaj do ekranu głównego"');
+  }, 500);
 };
 
 // Initialize on DOM ready
