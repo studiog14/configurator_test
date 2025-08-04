@@ -1,5 +1,5 @@
-// Zwiększ wersję przy każdej zmianie - iOS FALLBACK RESTORED
-const CACHE_NAME = 'krzesla-v6-ios-fallback';
+// Zwiększ wersję przy każdej zmianie - KATEGORIE FIX
+const CACHE_NAME = 'krzesla-v7-kategorie-fix';
 const urlsToCache = [
   './',
   'index.html',

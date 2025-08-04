@@ -153,10 +153,6 @@ async function loadDataSimplified() {
           ">
             Kontynuuj do aplikacji
           </button>
-          
-          <p style="font-size: 12px; color: #888; margin-top: 15px;">
-            ✅ Dane załadowane: ${lines.length} rekordów
-          </p>
         </div>
       `;
       welcomeScreen.style.display = 'flex';
