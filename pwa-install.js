@@ -12,7 +12,8 @@ window.addEventListener('beforeinstallprompt', (e) => {
   console.log('PWA: Install prompt available');
   e.preventDefault();
   deferredPrompt = e;
-  showWelcomeInstallButton();
+  // TYMCZASOWO WYŁĄCZONE - nie pokazuj przycisku instalacji
+  // showWelcomeInstallButton();
 });
 
 // Handle successful installation
@@ -46,6 +47,10 @@ function switchToInstalledContent() {
 
 // Show install button in welcome screen
 function showWelcomeInstallButton() {
+  // TYMCZASOWO WYŁĄCZONE - nie pokazuj przycisku instalacji
+  console.log('PWA: Install button display disabled');
+  return;
+  
   const container = document.getElementById('pwa-install-container');
   const button = document.getElementById('welcome-install-btn');
   
@@ -174,14 +179,15 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   
   // Show install button after 3 seconds if not installed and on mobile
-  setTimeout(() => {
-    if (!isAppInstalled() && isMobile) {
-      // For browsers that don't fire beforeinstallprompt (like iOS Safari)
-      if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-        showWelcomeInstallButton();
-      }
-    }
-  }, 3000);
+  // TYMCZASOWO WYŁĄCZONE - nie uruchamiaj timera instalacji
+  // setTimeout(() => {
+  //   if (!isAppInstalled() && isMobile) {
+  //     // For browsers that don't fire beforeinstallprompt (like iOS Safari)
+  //     if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+  //       showWelcomeInstallButton();
+  //     }
+  //   }
+  // }, 3000);
   
   // Hide button if already installed or on desktop
   if (isAppInstalled() || !isMobile) {
