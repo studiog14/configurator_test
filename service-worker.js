@@ -1,5 +1,5 @@
-// Zwiększ wersję przy każdej zmianie - KATEGORIE FIX
-const CACHE_NAME = 'krzesla-v7-kategorie-fix';
+// Zwiększ wersję przy każdej zmianie - DEBUG KATEGORIE
+const CACHE_NAME = 'krzesla-v8-debug-kategorie';
 const urlsToCache = [
   './',
   'index.html',

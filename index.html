@@ -2616,6 +2616,24 @@
         window.location.href = `mailto:${emailAddress}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
       };
 
+      // Obsługa przycisku "Kontynuuj do aplikacji" na welcome screen
+      const welcomeContinueBtn = document.getElementById('welcome-continue-btn');
+      if (welcomeContinueBtn) {
+        console.log('🎯 Welcome continue button found and adding listener');
+        welcomeContinueBtn.onclick = () => {
+          console.log('🎯 Welcome continue button clicked');
+          const welcomeScreen = document.getElementById('welcome-screen');
+          if (welcomeScreen) {
+            console.log('🎯 Hiding welcome screen');
+            welcomeScreen.style.display = 'none';
+          } else {
+            console.log('❌ Welcome screen not found');
+          }
+        };
+      } else {
+        console.log('❌ Welcome continue button not found');
+      }
+
       try {
         await viewer.setEnvironmentMap("hdr/hamburg_hbf_1k.hdr", { isHDR: true });
       } catch (e) { 
@@ -4982,16 +5000,16 @@ function setDefaultMaterialsFromSheet() {
 
       // Funkcja renderująca przyciski kategorii
       function renderCategoryButtons() {
-        console.log('renderCategoryButtons called, allData:', allData?.length);
+        console.log('🎯 renderCategoryButtons called, allData:', allData?.length);
         if (!allData || !Array.isArray(allData)) {
-          console.error('allData is not available or not an array');
+          console.error('❌ allData is not available or not an array');
           return;
         }
         
         const container = document.getElementById('category-buttons-container');
-        console.log('category-buttons-container:', container);
+        console.log('🎯 category-buttons-container:', container ? 'FOUND' : 'NOT FOUND');
         if (!container) {
-          console.error('category-buttons-container not found');
+          console.error('❌ category-buttons-container not found');
           return;
         }
         

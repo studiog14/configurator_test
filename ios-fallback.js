@@ -103,10 +103,29 @@ async function loadDataSimplified() {
     
     // Parse CSV simply
     const lines = csvText.split('\n');
-    const headers = lines[0].split(',');
+    const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
     
     console.log('📱 iOS: Parsed', lines.length, 'lines with headers:', headers.length);
     
+    // Parse data and set global allData variable
+    const rows = lines.slice(1); // Skip header
+    if (typeof window !== 'undefined') {
+      window.allData = rows.map(row => {
+        const values = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
+        const obj = {};
+        headers.forEach((header, index) => obj[header] = values[index]?.trim().replace(/"/g, '') || '');
+        return obj;
+      }).filter(item => item.Visible?.toLowerCase() !== 'false');
+      
+      console.log('📱 iOS: Global window.allData set with', window.allData.length, 'items');
+      
+      // Also try to set the direct allData variable if available
+      if (typeof allData !== 'undefined') {
+        allData = window.allData;
+        console.log('📱 iOS: Direct allData variable also set');
+      }
+    }
+
     // Show success message
     const welcomeScreen = document.getElementById('welcome-screen');
     if (welcomeScreen) {
@@ -156,6 +175,24 @@ async function loadDataSimplified() {
         </div>
       `;
       welcomeScreen.style.display = 'flex';
+    }
+    
+    // BARDZO WAŻNE: Renderuj kategorie po załadowaniu danych iOS
+    console.log('📱 iOS: Triggering category rendering...');
+    if (typeof renderCategoryButtons === 'function') {
+      renderCategoryButtons();
+    } else {
+      console.warn('📱 iOS: renderCategoryButtons function not available');
+    }
+    
+    // Also render promotions
+    if (typeof renderPromotions === 'function') {
+      renderPromotions();
+    }
+    
+    // Show models screen
+    if (typeof showScreen === 'function') {
+      showScreen('models');
     }
     
   } catch (error) {
