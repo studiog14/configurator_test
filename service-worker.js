@@ -1,11 +1,13 @@
 // Zwiększ wersję przy każdej zmianie
-const CACHE_NAME = 'krzesla-v2';
+const CACHE_NAME = 'krzesla-v4';
 const urlsToCache = [
+  './',
   'index.html',
-  'favicon.jpg',
-  'room-viewer.css',
-  'room-viewer.js',
-  'viewerInstance.js'
+  'manifest.json',
+  'pwa-install.js',
+  'icons/FK_logo.png',
+  'icons/favicon.png',
+  'icons/favicon.jpg'
 ];
 
 self.addEventListener('install', e => {
@@ -14,9 +16,23 @@ self.addEventListener('install', e => {
     caches.open(CACHE_NAME)
       .then(cache => {
         console.log('SW: Caching files');
-        return cache.addAll(urlsToCache);
+        // Cache files one by one to see which ones fail
+        return Promise.allSettled(
+          urlsToCache.map(url => 
+            cache.add(url).catch(err => {
+              console.warn('SW: Failed to cache:', url, err);
+              return null;
+            })
+          )
+        );
       })
-      .then(() => self.skipWaiting())
+      .then(() => {
+        console.log('SW: Cache complete');
+        return self.skipWaiting();
+      })
+      .catch(err => {
+        console.error('SW: Install failed:', err);
+      })
   );
 });
 

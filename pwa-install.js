@@ -19,7 +19,30 @@ window.addEventListener('beforeinstallprompt', (e) => {
 window.addEventListener('appinstalled', (e) => {
   console.log('PWA: App installed successfully');
   hideWelcomeInstallButton();
+  // Przełącz treść na komunikat sukcesu
+  switchToInstalledContent();
 });
+
+// Function to switch to PWA success screen
+function switchToInstalledContent() {
+  // Ukryj welcome screen
+  const welcomeScreen = document.getElementById('welcome-screen');
+  if (welcomeScreen) {
+    welcomeScreen.style.display = 'none';
+  }
+  
+  // Pokaż PWA success screen
+  const pwaBScreen = document.getElementById('pwa-success-screen');
+  if (pwaBScreen) {
+    pwaBScreen.classList.add('show');
+    pwaBScreen.style.display = 'flex';
+  }
+  
+  // Ukryj przycisk instalacji na welcome screen
+  hideWelcomeInstallButton();
+  
+  console.log('PWA: Switched to success screen after installation');
+}
 
 // Show install button in welcome screen
 function showWelcomeInstallButton() {
@@ -145,6 +168,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
                    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   
+  // Check if app is already installed and switch content accordingly
+  if (isAppInstalled() && isMobile) {
+    switchToInstalledContent();
+  }
+  
   // Show install button after 3 seconds if not installed and on mobile
   setTimeout(() => {
     if (!isAppInstalled() && isMobile) {
@@ -160,9 +188,64 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('PWA: App is already installed or on desktop');
     hideWelcomeInstallButton();
   }
+  
+  // Dodaj obsługę przycisku "Kontynuuj" na welcome screen
+  const welcomeContinueBtn = document.getElementById('welcome-continue-btn');
+  if (welcomeContinueBtn) {
+    welcomeContinueBtn.addEventListener('click', () => {
+      // Ukryj welcome screen
+      const welcomeScreen = document.getElementById('welcome-screen');
+      if (welcomeScreen) {
+        welcomeScreen.style.display = 'none';
+      }
+      
+      console.log('PWA: User continued from welcome screen without installing');
+    });
+  }
+  
+  // Dodaj obsługę przycisku "Kontynuuj" w PWA success screen
+  const pwaContinueBtn = document.getElementById('pwa-success-continue-btn');
+  if (pwaContinueBtn) {
+    pwaContinueBtn.addEventListener('click', () => {
+      // Ukryj PWA success screen
+      const pwaBScreen = document.getElementById('pwa-success-screen');
+      if (pwaBScreen) {
+        pwaBScreen.classList.remove('show');
+        pwaBScreen.style.display = 'none';
+      }
+      
+      // Pokaż welcome screen lub przejdź do aplikacji
+      const welcomeScreen = document.getElementById('welcome-screen');
+      if (welcomeScreen) {
+        welcomeScreen.style.display = 'flex';
+      }
+      
+      console.log('PWA: User continued from success screen');
+    });
+  }
 });
 
 // Export functions for global use
 window.installPWA = installPWA;
 window.showWelcomeInstallButton = showWelcomeInstallButton;
 window.hideWelcomeInstallButton = hideWelcomeInstallButton;
+window.switchToInstalledContent = switchToInstalledContent;
+window.isAppInstalled = isAppInstalled;
+
+// Check installation state on page load
+document.addEventListener('DOMContentLoaded', () => {
+  // Delay check to ensure DOM is fully loaded
+  setTimeout(() => {
+    if (isAppInstalled()) {
+      console.log('PWA: App is installed, switching to installed content');
+      switchToInstalledContent();
+    }
+  }, 200);
+});
+
+// Also check when the page becomes visible (in case of navigation)
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && isAppInstalled()) {
+    switchToInstalledContent();
+  }
+});
