@@ -2277,6 +2277,7 @@
     let currentModel = null;
     let selectedLegVariant = null;
     let lastOpenedCollection = null;
+    let currentSearchFilter = '';
 
 
 
@@ -2420,20 +2421,6 @@
       };
 
       document.getElementById('buy-button').innerHTML = '<span class="cart-icon">🛒</span>Zapytaj o produkt';
-        viewer.controls.addEventListener('change', clampCameraDistance);
-        console.log('Viewer controls configured');
-      }
-
-      const collapseBtn = document.getElementById('collapse-btn');
-      const overviewPanel = document.getElementById('config-overview');
-
-      collapseBtn.onclick = () => {
-        overviewPanel.classList.toggle('collapsed');
-        collapseBtn.textContent = overviewPanel.classList.contains('collapsed') ? '+' : '−';
-      };
-
-      console.log('Configuring buy button...');
-      document.getElementById('buy-button').innerHTML = '<span class="cart-icon">🛒</span>Zapytaj o produkt';
 
       document.getElementById('buy-button').onclick = () => {
         const summary = generateSummaryText();
@@ -2474,7 +2461,6 @@
       if (configOverview) {
         configOverview.style.display = 'none';
       }
-    }
     }
 
     function setCameraView(targetPosition) {
@@ -3735,7 +3721,6 @@ renderOptions('legs-thumbnails', legs, item => {
             </div>
           `;
         }
-      }
 
       document.getElementById('hdr-toggle')?.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -4710,9 +4695,6 @@ function setDefaultMaterialsFromSheet() {
           }
         });
       }
-
-      // Globalna zmienna do filtrowania kafelków w sidebarze
-      let currentSearchFilter = '';
 
       // Funkcja do ustawiania filtra wyszukiwania
       function setSearchFilter(query) {
