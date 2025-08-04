@@ -2278,6 +2278,8 @@
     let selectedLegVariant = null;
     let lastOpenedCollection = null;
     let currentSearchFilter = '';
+    let activeCollectionsByMesh = {};
+    let materialsByMeshAndCollection = {};
 
 
 
@@ -4459,9 +4461,6 @@ if (Array.isArray(mats)) {
         });
       }
 
-
-const activeCollectionsByMesh = {};
-const materialsByMeshAndCollection = {};
 
 function renderCollectionsAndMaterials(groupedByCollection, targetMesh) {
   // ⏱️ Zapisz dane materiałów dla danego elementu
