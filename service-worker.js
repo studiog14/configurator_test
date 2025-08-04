@@ -1,5 +1,5 @@
-// Zwiększ wersję przy każdej zmianie
-const CACHE_NAME = 'krzesla-v4';
+// Zwiększ wersję przy każdej zmianie - WELCOME SCREEN FIX
+const CACHE_NAME = 'krzesla-v5-welcome-fix';
 const urlsToCache = [
   './',
   'index.html',

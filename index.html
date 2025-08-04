@@ -21,8 +21,11 @@
   <meta http-equiv="pragma" content="no-cache" />
   <meta http-equiv="expires" content="0" />
   
-  <script src="pwa-install.js"></script>
-  <script src="ios-fallback.js"></script>
+  <!-- Cache buster for welcome screen fix -->
+  <meta name="timestamp" content="2025-08-04-18:30" />
+  
+  <script src="pwa-install.js?v=2025080418"></script>
+  <!-- <script src="ios-fallback.js"></script> WYŁĄCZONY - nadpisuje welcome screen -->
 
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
   <script type="importmap">
@@ -2238,7 +2241,7 @@
 
   <div id="dimension-overlay" style="display: none;"></div>
 
-  <link rel="manifest" href="manifest.json?v=2025080201" />
+  <link rel="manifest" href="manifest.json?v=2025080418&fix=welcome" />
   <link rel="apple-touch-icon" href="icons/favicon.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"">
