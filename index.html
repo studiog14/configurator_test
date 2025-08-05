@@ -1752,51 +1752,78 @@
 #pwa-success-screen .thumbnail {
   width: 80px;
   height: 80px;
+  object-fit: contain;
   cursor: pointer;
-  border: 2px solid #ddd;
-  border-radius: 12px;
-  transition: all 0.3s ease;
-  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  transition: all 0.2s;
+  background-color: transparent;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  position: relative;
-  overflow: hidden;
+  padding: 4px;
+  box-sizing: border-box;
+  opacity: 1;
 }
 
 #pwa-success-screen .thumbnail:hover {
-  border-color: #4CAF50;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+  transform: scale(1.05);
+  border-color: #444;
 }
 
 #pwa-success-screen .thumbnail img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  border-radius: 10px;
-}
-
-#pwa-success-screen .thumbnail-label {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: rgba(0,0,0,0.7);
-  color: white;
-  font-size: 10px;
-  padding: 4px;
-  border-radius: 0 0 10px 10px;
+  object-fit: contain;
+  border-radius: 8px;
 }
 
 #pwa-success-screen .thumbnail-caption {
-  font-size: 12px;
-  color: #666;
-  margin-top: 5px;
+  font-size: 15px;
+  color: #555;
+  margin-top: 6px;
+  font-weight: 500;
+  opacity: 1;
   max-width: 80px;
   line-height: 1.2;
+}
+
+/* Przyciski kategorii w PWA - IDENTYCZNE jak desktop */
+#pwa-success-screen .category-button {
+  padding: 8px 16px;
+  border: 2px solid #F5C842;
+  background: white;
+  color: #333;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: capitalize;
+  margin: 4px;
+}
+
+#pwa-success-screen .category-button:hover {
+  background: #F5C842;
+  color: white;
+  transform: translateY(-1px);
+}
+
+#pwa-success-screen .category-button.active {
+  background: #F5C842;
+  color: white;
+}
+
+#pwa-success-screen .category-button.promotion {
+  border-color: #FF6B6B;
+  color: #FF6B6B;
+}
+
+#pwa-success-screen .category-button.promotion:hover,
+#pwa-success-screen .category-button.promotion.active {
+  background: #FF6B6B;
+  color: white;
 }
 
 @keyframes successPulse {
@@ -5296,6 +5323,7 @@ function setDefaultMaterialsFromSheet() {
         container.innerHTML = '';
         modelsContainer.innerHTML = '';
         
+        // IDENTYCZNA logika jak w renderCategoryButtons
         // Znajdź wszystkie unikalne kategorie
         const categories = [...new Set(allData
           .filter(item => item.Kategoria && item.Typ === 'model')
@@ -5304,7 +5332,7 @@ function setDefaultMaterialsFromSheet() {
         
         console.log('🎯 PWA Categories found:', categories);
         
-        // Dodaj przycisk "Wszystkie"
+        // Dodaj przycisk "Wszystkie" - IDENTYCZNY jak desktop
         const allButton = document.createElement('button');
         allButton.className = 'category-button active';
         allButton.textContent = 'Wszystkie';
@@ -5313,15 +5341,57 @@ function setDefaultMaterialsFromSheet() {
           container.querySelectorAll('.category-button').forEach(btn => btn.classList.remove('active'));
           allButton.classList.add('active');
           
-          // Renderuj wszystkie modele
-          const allModels = allData.filter(item => item.Typ === 'model');
+          // Renderuj wszystkie modele - IDENTYCZNA logika jak renderAllModels
+          const allModels = allData.filter(item => 
+            item.Typ && item.Typ.toLowerCase() === 'model'
+          );
+          console.log('📦 PWA Rendering all models:', allModels.length, 'items');
           renderPWAModelThumbnails(allModels);
         };
         container.appendChild(allButton);
         
-        // Dodaj przyciski dla każdej kategorii  
+        // Dodaj przyciski dla każdej kategorii - IDENTYCZNA logika jak desktop
         categories.forEach(category => {
           const button = document.createElement('button');
+          button.className = 'category-button';
+          button.textContent = category;
+          
+          // Sprawdź czy kategoria ma promocje - IDENTYCZNE jak desktop
+          const hasPromotion = allData.some(item => 
+            item.Kategoria === category && 
+            item.Typ === 'model' && 
+            item.Promocja && 
+            item.Promocja.trim() !== ''
+          );
+          
+          if (hasPromotion) {
+            button.classList.add('promotion');
+          }
+          
+          button.onclick = () => {
+            // Usuń active z innych przycisków
+            container.querySelectorAll('.category-button').forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            
+            // Renderuj modele z wybranej kategorii - IDENTYCZNA logika jak renderModelsByCategory
+            const categoryModels = allData.filter(item => 
+              item.Typ && item.Typ.toLowerCase() === 'model' &&
+              item.Kategoria === category
+            );
+            console.log(`📦 PWA Rendering models for category "${category}":`, categoryModels.length, 'items');
+            renderPWAModelThumbnails(categoryModels);
+          };
+          
+          container.appendChild(button);
+        });
+        
+        // Renderuj wszystkie modele domyślnie - IDENTYCZNA logika jak desktop renderAllModels
+        const allModels = allData.filter(item => 
+          item.Typ && item.Typ.toLowerCase() === 'model'
+        );
+        console.log('📦 PWA Rendering all models by default:', allModels.length, 'items');
+        renderPWAModelThumbnails(allModels);
+      }
           button.className = 'category-button';
           button.textContent = category;
           
@@ -5357,7 +5427,7 @@ function setDefaultMaterialsFromSheet() {
         renderPWAModelThumbnails(allModels);
       }
       
-      // Funkcja renderująca ikony krzeseł w PWA
+      // Funkcja renderująca ikony krzeseł w PWA - IDENTYCZNA z desktopem
       function renderPWAModelThumbnails(models) {
         console.log('🎯 renderPWAModelThumbnails called with', models.length, 'models');
         
@@ -5369,9 +5439,12 @@ function setDefaultMaterialsFromSheet() {
         
         container.innerHTML = '';
         
+        console.log(`📦 Rendering ${models.length} items in PWA model thumbnails`);
+        
         models.forEach((item, index) => {
           console.log(`📷 PWA Item ${index}: "${item.Nazwa}", Image URL: "${item.Obrazek}"`);
           
+          // IDENTYCZNA struktura jak w renderOptions
           const wrapper = document.createElement('div');
           wrapper.className = 'thumbnail-wrapper';
           
@@ -5435,25 +5508,26 @@ function setDefaultMaterialsFromSheet() {
           const imageUrl = item.Obrazek && item.Obrazek.length > 4 ? item.Obrazek : 'icons/placeholder.svg';
           img.src = imageUrl;
           img.alt = item.Nazwa;
-          img.loading = 'lazy';
           
-          img.onload = () => {
-            console.log(`✅ PWA Successfully loaded image: ${imageUrl} for item: ${item.Nazwa}`);
+          // Debug obrazka - IDENTYCZNY jak w renderOptions
+          img.onerror = () => {
+            console.error(`❌ Failed to load image: ${imageUrl} for item: ${item.Nazwa}`);
+            img.src = 'icons/placeholder.svg';
           };
           
-          img.onerror = () => {
-            console.warn(`⚠️ PWA Failed to load image: ${imageUrl} for item: ${item.Nazwa}, using placeholder`);
-            img.src = 'icons/placeholder.svg';
+          img.onload = () => {
+            console.log(`✅ Successfully loaded image: ${imageUrl} for item: ${item.Nazwa}`);
           };
           
           button.appendChild(img);
           
-          const label = document.createElement('div');
-          label.className = 'thumbnail-label';
-          label.textContent = item.Nazwa;
-          button.appendChild(label);
+          // IDENTYCZNA struktura caption jak w renderOptions
+          const caption = document.createElement('div');
+          caption.className = 'thumbnail-caption';
+          caption.textContent = item.Nazwa;
           
           wrapper.appendChild(button);
+          wrapper.appendChild(caption);  // caption POZA buttonem
           container.appendChild(wrapper);
         });
         
