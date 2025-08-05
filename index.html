@@ -3873,6 +3873,10 @@ renderOptions('legs-thumbnails', legs, item => {
 
           console.log('🎯 Data parsed successfully, items:', allData.length);
 
+          // Eksportuj dane dla PWA
+          window.allData = allData;
+          console.log('✅ allData exported to window for PWA');
+
           // Renderuj UI
           renderCategoryButtons();
           renderPromotions();
@@ -3981,6 +3985,10 @@ renderOptions('legs-thumbnails', legs, item => {
 
           console.log('Data parsed successfully, items:', allData.length);
           console.log('Sample data item:', allData[0]);
+          
+          // Eksportuj dane dla PWA
+          window.allData = allData;
+          console.log('✅ allData exported to window for PWA (second loading)');
           
           if (allData.length === 0) {
             throw new Error('No visible items found in data');
@@ -6409,6 +6417,7 @@ function setDefaultMaterialsFromSheet() {
       window.loadModel = loadModel;
       window.showScreen = showScreen;
       window.renderPWACategoryButtons = renderPWACategoryButtons;
+      window.allData = allData; // Eksport danych dla PWA
       window.viewer = null; // Będzie ustawione w initApp
 
   </script>

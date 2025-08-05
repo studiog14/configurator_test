@@ -1,5 +1,5 @@
 // Zwiększ wersję przy każdej zmianie - BŁĘDY JS FIX
-const CACHE_VERSION = 'v25-duplicate-functions-fixed';
+const CACHE_VERSION = 'v26-pwa-data-fix';
 const urlsToCache = [
   './',
   'index.html',

@@ -53,6 +53,22 @@ function switchToInstalledContent() {
     
     // Renderuj kategorie i krzesła w PWA success screen po pokazaniu overlay
     setTimeout(() => {
+      console.log('🎯 PWA: About to call renderPWACategoryButtons');
+      console.log('🎯 PWA: allData available?', !!window.allData, 'length:', window.allData?.length);
+      console.log('🎯 PWA: Function available?', typeof window.renderPWACategoryButtons === 'function');
+      
+      // Jeśli dane nie są dostępne, poczekaj dłużej
+      if (!window.allData || !Array.isArray(window.allData) || window.allData.length === 0) {
+        console.log('🎯 PWA: Data not ready, waiting longer...');
+        setTimeout(() => {
+          console.log('🎯 PWA: Retry - allData available?', !!window.allData, 'length:', window.allData?.length);
+          if (typeof window.renderPWACategoryButtons === 'function') {
+            window.renderPWACategoryButtons();
+          }
+        }, 2000);
+        return;
+      }
+      
       if (typeof renderPWACategoryButtons === 'function') {
         console.log('PWA: Calling renderPWACategoryButtons...');
         renderPWACategoryButtons();
