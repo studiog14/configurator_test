@@ -21,25 +21,25 @@ function initIOSFallback() {
   
   console.log('📱 iOS device detected, initializing fallback...');
   
-  // Force hide loader after 5 seconds on iOS
+  // Immediately try to load data for iOS (don't wait 5 seconds)
+  showIOSSimplifiedUI();
+  
+  // Also force hide loader after 3 seconds as backup
   setTimeout(() => {
-    console.log('📱 iOS: Force hiding loader after 5s');
+    console.log('📱 iOS: Force hiding loader after 3s (backup)');
     const loader = document.getElementById('custom-loader');
     const app = document.getElementById('app');
     
-    if (loader) {
+    if (loader && loader.style.display !== 'none') {
       loader.style.display = 'none';
-      console.log('📱 iOS: Loader hidden');
+      console.log('📱 iOS: Loader hidden (backup)');
     }
     
-    if (app) {
+    if (app && app.style.visibility !== 'visible') {
       app.style.visibility = 'visible';
-      console.log('📱 iOS: App shown');
+      console.log('📱 iOS: App shown (backup)');
     }
-    
-    // Show simplified UI for iOS
-    showIOSSimplifiedUI();
-  }, 5000);
+  }, 3000);
   
   // Disable service worker on iOS (can cause issues)
   if ('serviceWorker' in navigator) {
@@ -202,6 +202,17 @@ async function loadDataSimplified() {
       showScreen('models');
     }
     
+    // Initialize search for iOS after data loading
+    console.log('📱 iOS: Initializing search...');
+    setTimeout(() => {
+      if (typeof initializeSearch === 'function') {
+        initializeSearch();
+        console.log('📱 iOS: Search initialized');
+      } else {
+        console.warn('📱 iOS: initializeSearch function not available');
+      }
+    }, 1000);
+    
   } catch (error) {
     console.error('📱 iOS: Error loading data:', error);
     
@@ -254,7 +265,7 @@ window.openWebVersion = function() {
 // Install PWA
 window.installPWA = function() {
   console.log('📱 iOS: PWA install instructions...');
-  alert('Aby zainstalować jako aplikację:\n\n1. Otwórz w Safari\n2. Naciśnij przycisk "Udostępnij" (kwadrat ze strzałką)\n3. Wybierz "Dodaj do ekranu głównego"\n4. Potwierdź instalację');
+  alert('Aby zainstalować jako aplikację:\n\n1. Otwórz w Safari\n2. Naciśnij przycisk "Udostępnij" (kwadrat ze strzałką)\n3. Wybierz "Dodaj do ekranu początkowego"\n4. Potwierdź instalację');
 };
 
 // Show install instructions popup
@@ -311,7 +322,7 @@ function showManualInstallInstructions() {
       <div style="text-align: left; margin: 16px 0; padding: 16px; background: #f8f9fa; border-radius: 8px;">
         <p style="margin: 8px 0; font-size: 14px;"><strong>1.</strong> Otwórz w Safari</p>
         <p style="margin: 8px 0; font-size: 14px;"><strong>2.</strong> Naciśnij przycisk "Udostępnij" ⬆️</p>
-        <p style="margin: 8px 0; font-size: 14px;"><strong>3.</strong> Wybierz "Dodaj do ekranu głównego"</p>
+        <p style="margin: 8px 0; font-size: 14px;"><strong>3.</strong> Wybierz "Dodaj do ekranu początkowego"</p>
         <p style="margin: 8px 0; font-size: 14px;"><strong>4.</strong> Potwierdź instalację</p>
       </div>
       
@@ -362,6 +373,13 @@ window.continueToApp = function() {
     app.style.visibility = 'visible';
   }
   
+  // Show sidebar and categories
+  const sidebar = document.getElementById('sidebar');
+  if (sidebar) {
+    sidebar.style.display = 'flex';
+    console.log('📱 iOS: Sidebar shown');
+  }
+  
   // Hide loader if still visible
   const loader = document.getElementById('custom-loader');
   if (loader) {
@@ -387,7 +405,7 @@ window.tryAutoInstall = function() {
   
   // Fallback: redirect to add to homescreen
   setTimeout(() => {
-    alert('Dotknij przycisku Udostępnij (⬆️) w dolnej części Safari, a następnie "Dodaj do ekranu głównego"');
+    alert('Dotknij przycisku Udostępnij (⬆️) w dolnej części Safari, a następnie "Dodaj do ekranu początkowego"');
   }, 500);
 };
 

@@ -2048,22 +2048,6 @@
         <h3 style="margin: 0 0 15px 0; font-size: 18px; color: #333; text-align: center;">Wybierz kategorię krzesła:</h3>
         <div id="pwa-category-buttons-container" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;"></div>
       </div>
-      
-      <button id="pwa-success-continue-btn" style="
-        background: linear-gradient(135deg, #28a745, #20a83a);
-        color: white;
-        border: none;
-        padding: 15px 30px;
-        border-radius: 25px;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
-        transition: all 0.3s ease;
-        margin-top: 20px;
-      " onmouseover="this.style.transform='scale(1.05)'; this.style.background='linear-gradient(135deg, #20a83a, #1e7e34)'" onmouseout="this.style.transform='scale(1)'; this.style.background='linear-gradient(135deg, #28a745, #20a83a)'">
-        Kontynuuj do konfiguratora
-      </button>
     </div>
     
     <div id="config-overview" class="collapsed hidden">
@@ -2638,30 +2622,6 @@
         };
       } else {
         console.log('❌ Welcome continue button not found');
-      }
-
-      // Obsługa przycisku "Kontynuuj do konfiguratora" w PWA success screen
-      const pwaSuccessContinueBtn = document.getElementById('pwa-success-continue-btn');
-      if (pwaSuccessContinueBtn) {
-        console.log('🎯 PWA success continue button found and adding listener');
-        pwaSuccessContinueBtn.onclick = () => {
-          console.log('🎯 PWA success continue button clicked');
-          const pwaScreen = document.getElementById('pwa-success-screen');
-          if (pwaScreen) {
-            console.log('🎯 Hiding PWA success screen');
-            pwaScreen.style.display = 'none';
-          }
-          
-          const welcomeScreen = document.getElementById('welcome-screen');
-          if (welcomeScreen) {
-            welcomeScreen.style.display = 'none';
-          }
-          
-          // Pokaż główny interfejs
-          showScreen('models');
-        };
-      } else {
-        console.log('❌ PWA success continue button not found');
       }
 
       try {
@@ -6141,7 +6101,7 @@ function setDefaultMaterialsFromSheet() {
             <div style="text-align: left; margin: 16px 0; padding: 16px; background: #f8f9fa; border-radius: 8px;">
               <p style="margin: 8px 0; font-size: 14px;"><strong>1.</strong> Otwórz w Safari</p>
               <p style="margin: 8px 0; font-size: 14px;"><strong>2.</strong> Naciśnij przycisk "Udostępnij" ⬆️</p>
-              <p style="margin: 8px 0; font-size: 14px;"><strong>3.</strong> Wybierz "Dodaj do ekranu głównego"</p>
+              <p style="margin: 8px 0; font-size: 14px;"><strong>3.</strong> Wybierz "Dodaj do ekranu początkowego"</p>
               <p style="margin: 8px 0; font-size: 14px;"><strong>4.</strong> Potwierdź instalację</p>
             </div>
             
@@ -6196,7 +6156,7 @@ function setDefaultMaterialsFromSheet() {
         
         // Fallback: redirect to add to homescreen
         setTimeout(() => {
-          alert('Dotknij przycisku Udostępnij (⬆️) w dolnej części Safari, a następnie "Dodaj do ekranu głównego"');
+          alert('Dotknij przycisku Udostępnij (⬆️) w dolnej części Safari, a następnie "Dodaj do ekranu początkowego"');
         }, 500);
       };
 

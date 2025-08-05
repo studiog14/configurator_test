@@ -12,8 +12,7 @@ window.addEventListener('beforeinstallprompt', (e) => {
   console.log('PWA: Install prompt available');
   e.preventDefault();
   deferredPrompt = e;
-  // TYMCZASOWO WYŁĄCZONE - nie pokazuj przycisku instalacji
-  // showWelcomeInstallButton();
+  showWelcomeInstallButton();
 });
 
 // Handle successful installation
@@ -47,9 +46,7 @@ function switchToInstalledContent() {
 
 // Show install button in welcome screen
 function showWelcomeInstallButton() {
-  // TYMCZASOWO WYŁĄCZONE - nie pokazuj przycisku instalacji
-  console.log('PWA: Install button display disabled');
-  return;
+  console.log('PWA: Showing install button');
   
   const container = document.getElementById('pwa-install-container');
   const button = document.getElementById('welcome-install-btn');
@@ -149,7 +146,7 @@ function showIOSInstallInstructions() {
       <div style="text-align: left; line-height: 1.6;">
         <p><strong>1.</strong> Naciśnij przycisk "Udostępnij" <span style="font-size: 20px;">⬆️</span></p>
         <p><strong>2.</strong> Przewiń w dół</p>
-        <p><strong>3.</strong> Wybierz "Dodaj do ekranu głównego"</p>
+        <p><strong>3.</strong> Wybierz "Dodaj do ekranu początkowego"</p>
         <p><strong>4.</strong> Potwierdź nazwę i naciśnij "Dodaj"</p>
       </div>
       

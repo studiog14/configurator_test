@@ -1,5 +1,5 @@
-// Zwiększ wersję przy każdej zmianie - PWA KATEGORIE FIX
-const CACHE_NAME = 'krzesla-v9-pwa-kategorie';
+// Zwiększ wersję przy każdej zmianie - iOS FIX + SEARCH FIX
+const CACHE_NAME = 'krzesla-v10-ios-search-fix';
 const urlsToCache = [
   './',
   'index.html',
