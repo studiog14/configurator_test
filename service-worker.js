@@ -1,5 +1,5 @@
 // Zwiększ wersję przy każdej zmianie - BŁĘDY JS FIX
-const CACHE_VERSION = 'v26-pwa-data-fix';
+const CACHE_VERSION = 'v27-pwa-desktop-logic';
 const urlsToCache = [
   './',
   'index.html',

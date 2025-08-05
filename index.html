@@ -5266,7 +5266,7 @@ function setDefaultMaterialsFromSheet() {
         container.innerHTML = '';
         modelsContainer.innerHTML = '';
         
-        // IDENTYCZNA logika jak w renderCategoryButtons
+        // IDENTYCZNA logika jak w renderCategoryButtons desktop
         // Znajdź wszystkie unikalne kategorie
         const categories = [...new Set(allData
           .filter(item => item.Kategoria && item.Typ === 'model')
@@ -5284,12 +5284,27 @@ function setDefaultMaterialsFromSheet() {
           container.querySelectorAll('.category-button').forEach(btn => btn.classList.remove('active'));
           allButton.classList.add('active');
           
-          // Renderuj wszystkie modele - IDENTYCZNA logika jak renderAllModels
+          // Renderuj wszystkie modele - UŻYWAJ renderOptions jak desktop!
           const allModels = allData.filter(item => 
             item.Typ && item.Typ.toLowerCase() === 'model'
           );
           console.log('📦 PWA Rendering all models:', allModels.length, 'items');
-          renderPWAModelThumbnails(allModels);
+          renderOptions('pwa-model-thumbnails', allModels, item => {
+            console.log('🎯 PWA Model clicked:', item.Nazwa);
+            // Ukryj PWA success screen overlay
+            const pwaScreen = document.getElementById('pwa-success-screen');
+            if (pwaScreen) {
+              pwaScreen.style.display = 'none';
+            }
+            // Załaduj model używając tej samej funkcji co desktop
+            if (typeof window.loadModel === 'function') {
+              window.loadModel(item);
+            }
+            // Przejdź do konfiguracji
+            if (typeof window.showScreen === 'function') {
+              window.showScreen('config');
+            }
+          });
         };
         container.appendChild(allButton);
         
@@ -5316,131 +5331,54 @@ function setDefaultMaterialsFromSheet() {
             container.querySelectorAll('.category-button').forEach(btn => btn.classList.remove('active'));
             button.classList.add('active');
             
-            // Renderuj modele z wybranej kategorii - IDENTYCZNA logika jak renderModelsByCategory
+            // Renderuj modele z wybranej kategorii - UŻYWAJ renderOptions jak desktop!
             const categoryModels = allData.filter(item => 
               item.Typ && item.Typ.toLowerCase() === 'model' &&
               item.Kategoria === category
             );
             console.log(`📦 PWA Rendering models for category "${category}":`, categoryModels.length, 'items');
-            renderPWAModelThumbnails(categoryModels);
+            renderOptions('pwa-model-thumbnails', categoryModels, item => {
+              console.log('🎯 PWA Model clicked:', item.Nazwa);
+              // Ukryj PWA success screen overlay
+              const pwaScreen = document.getElementById('pwa-success-screen');
+              if (pwaScreen) {
+                pwaScreen.style.display = 'none';
+              }
+              // Załaduj model używając tej samej funkcji co desktop
+              if (typeof window.loadModel === 'function') {
+                window.loadModel(item);
+              }
+              // Przejdź do konfiguracji
+              if (typeof window.showScreen === 'function') {
+                window.showScreen('config');
+              }
+            });
           };
           
           container.appendChild(button);
         });
         
-        // Renderuj wszystkie modele domyślnie - IDENTYCZNA logika jak desktop renderAllModels
+        // Renderuj wszystkie modele domyślnie - UŻYWAJ renderOptions jak desktop!
         const allModels = allData.filter(item => 
           item.Typ && item.Typ.toLowerCase() === 'model'
         );
         console.log('📦 PWA Rendering all models by default:', allModels.length, 'items');
-        renderPWAModelThumbnails(allModels);
-      }
-      
-      // Funkcja renderująca ikony krzeseł w PWA - IDENTYCZNA z desktopem
-      function renderPWAModelThumbnails(models) {
-        console.log('🎯 renderPWAModelThumbnails called with', models.length, 'models');
-        
-        const container = document.getElementById('pwa-model-thumbnails');
-        if (!container) {
-          console.error('❌ pwa-model-thumbnails container not found');
-          return;
-        }
-        
-        container.innerHTML = '';
-        
-        console.log(`📦 Rendering ${models.length} items in PWA model thumbnails`);
-        
-        models.forEach((item, index) => {
-          console.log(`📷 PWA Item ${index}: "${item.Nazwa}", Image URL: "${item.Obrazek}"`);
-          
-          // IDENTYCZNA struktura jak w renderOptions
-          const wrapper = document.createElement('div');
-          wrapper.className = 'thumbnail-wrapper';
-          
-          const button = document.createElement('div');
-          button.className = 'thumbnail';
-          button.title = item.Nazwa;
-          
-          button.addEventListener('click', () => {
-            console.log('🎯 PWA Model clicked:', item.Nazwa);
-            console.log('🎯 PWA: Available window functions:', Object.keys(window).filter(k => k.includes('load') || k.includes('show')));
-            console.log('🎯 PWA: window.viewer:', !!window.viewer);
-            console.log('🎯 PWA: window.loadModel:', typeof window.loadModel);
-            console.log('🎯 PWA: window.showScreen:', typeof window.showScreen);
-            
-            // Ukryj PWA success screen overlay
-            const pwaScreen = document.getElementById('pwa-success-screen');
-            if (pwaScreen) {
-              pwaScreen.style.display = 'none';
-              console.log('🎯 PWA: Success screen hidden');
-            }
-            
-            // Sprawdź czy viewer jest zainicjalizowany
-            if (!window.viewer) {
-              console.warn('⚠️ PWA: Viewer not ready yet, waiting...');
-              // Czekaj na viewer i spróbuj ponownie
-              const waitForViewer = setInterval(() => {
-                if (window.viewer) {
-                  clearInterval(waitForViewer);
-                  console.log('✅ PWA: Viewer ready, loading model');
-                  // Przejdź do konfiguracji wybranego modelu
-                  if (typeof window.showScreen === 'function') {
-                    window.showScreen('config');
-                  } else {
-                    showScreen('config');
-                  }
-                  if (typeof window.loadModel === 'function') {
-                    window.loadModel(item);
-                  } else {
-                    loadModel(item);
-                  }
-                }
-              }, 500);
-              return;
-            }
-            
-            // Viewer jest gotowy - przejdź do konfiguracji
-            console.log('✅ PWA: Viewer ready, calling functions directly');
-            if (typeof window.showScreen === 'function') {
-              window.showScreen('config');
-            } else {
-              showScreen('config');
-            }
-            if (typeof window.loadModel === 'function') {
-              window.loadModel(item);
-            } else {
-              loadModel(item);
-            }
-          });
-          
-          const img = document.createElement('img');
-          const imageUrl = item.Obrazek && item.Obrazek.length > 4 ? item.Obrazek : 'icons/placeholder.svg';
-          img.src = imageUrl;
-          img.alt = item.Nazwa;
-          
-          // Debug obrazka - IDENTYCZNY jak w renderOptions
-          img.onerror = () => {
-            console.error(`❌ Failed to load image: ${imageUrl} for item: ${item.Nazwa}`);
-            img.src = 'icons/placeholder.svg';
-          };
-          
-          img.onload = () => {
-            console.log(`✅ Successfully loaded image: ${imageUrl} for item: ${item.Nazwa}`);
-          };
-          
-          button.appendChild(img);
-          
-          // IDENTYCZNA struktura caption jak w renderOptions
-          const caption = document.createElement('div');
-          caption.className = 'thumbnail-caption';
-          caption.textContent = item.Nazwa;
-          
-          wrapper.appendChild(button);
-          wrapper.appendChild(caption);  // caption POZA buttonem
-          container.appendChild(wrapper);
+        renderOptions('pwa-model-thumbnails', allModels, item => {
+          console.log('🎯 PWA Model clicked:', item.Nazwa);
+          // Ukryj PWA success screen overlay
+          const pwaScreen = document.getElementById('pwa-success-screen');
+          if (pwaScreen) {
+            pwaScreen.style.display = 'none';
+          }
+          // Załaduj model używając tej samej funkcji co desktop
+          if (typeof window.loadModel === 'function') {
+            window.loadModel(item);
+          }
+          // Przejdź do konfiguracji
+          if (typeof window.showScreen === 'function') {
+            window.showScreen('config');
+          }
         });
-        
-        console.log(`🎯 PWA Rendered ${models.length} model thumbnails`);
       }
 
       // Funkcja odświeżająca wszystkie kafelki z filtrem
