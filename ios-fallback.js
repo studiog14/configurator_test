@@ -185,6 +185,13 @@ async function loadDataSimplified() {
       console.warn('📱 iOS: renderCategoryButtons function not available');
     }
     
+    // Renderuj kategorie dla PWA success screen
+    if (typeof renderPWACategoryButtons === 'function') {
+      renderPWACategoryButtons();
+    } else {
+      console.warn('📱 iOS: renderPWACategoryButtons function not available');
+    }
+    
     // Also render promotions
     if (typeof renderPromotions === 'function') {
       renderPromotions();

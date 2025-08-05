@@ -2043,6 +2043,12 @@
         <p style="margin: 8px 0 0 0; font-size: 14px; color: #666;">Skonfiguruj swoje wymarzone krzesło w technologii 3D</p>
       </div>
       
+      <!-- 🎯 KATEGORIE W PWA SUCCESS SCREEN -->
+      <div id="pwa-category-section" style="margin: 20px 0; padding: 20px; background: #f8f9fa; border-radius: 12px;">
+        <h3 style="margin: 0 0 15px 0; font-size: 18px; color: #333; text-align: center;">Wybierz kategorię krzesła:</h3>
+        <div id="pwa-category-buttons-container" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;"></div>
+      </div>
+      
       <button id="pwa-success-continue-btn" style="
         background: linear-gradient(135deg, #28a745, #20a83a);
         color: white;
@@ -2632,6 +2638,30 @@
         };
       } else {
         console.log('❌ Welcome continue button not found');
+      }
+
+      // Obsługa przycisku "Kontynuuj do konfiguratora" w PWA success screen
+      const pwaSuccessContinueBtn = document.getElementById('pwa-success-continue-btn');
+      if (pwaSuccessContinueBtn) {
+        console.log('🎯 PWA success continue button found and adding listener');
+        pwaSuccessContinueBtn.onclick = () => {
+          console.log('🎯 PWA success continue button clicked');
+          const pwaScreen = document.getElementById('pwa-success-screen');
+          if (pwaScreen) {
+            console.log('🎯 Hiding PWA success screen');
+            pwaScreen.style.display = 'none';
+          }
+          
+          const welcomeScreen = document.getElementById('welcome-screen');
+          if (welcomeScreen) {
+            welcomeScreen.style.display = 'none';
+          }
+          
+          // Pokaż główny interfejs
+          showScreen('models');
+        };
+      } else {
+        console.log('❌ PWA success continue button not found');
       }
 
       try {
@@ -3741,6 +3771,7 @@ renderOptions('legs-thumbnails', legs, item => {
 
           // Renderuj UI
           renderCategoryButtons();
+          renderPWACategoryButtons(); // Kategorie dla PWA success screen
           renderPromotions();
           showScreen('models');
 
@@ -5107,6 +5138,96 @@ function setDefaultMaterialsFromSheet() {
           console.log('🎉 No promotional models, showing all models instead');
           renderAllModels();
         }
+      }
+
+      // Funkcja renderująca kategorie w PWA Success Screen
+      function renderPWACategoryButtons() {
+        console.log('🎯 renderPWACategoryButtons called, allData:', allData?.length);
+        if (!allData || !Array.isArray(allData)) {
+          console.error('❌ allData is not available for PWA categories');
+          return;
+        }
+        
+        const container = document.getElementById('pwa-category-buttons-container');
+        console.log('🎯 pwa-category-buttons-container:', container ? 'FOUND' : 'NOT FOUND');
+        if (!container) {
+          console.error('❌ pwa-category-buttons-container not found');
+          return;
+        }
+        
+        container.innerHTML = '';
+        
+        // Znajdź wszystkie unikalne kategorie
+        const categories = [...new Set(allData
+          .filter(item => item.Kategoria && item.Typ === 'model')
+          .map(item => item.Kategoria)
+        )];
+        
+        console.log('🎯 PWA Categories found:', categories);
+        
+        // Dodaj przyciski dla każdej kategorii
+        categories.forEach(category => {
+          const button = document.createElement('button');
+          button.className = 'pwa-category-button';
+          button.textContent = category;
+          
+          // Sprawdź czy kategoria ma promocje
+          const hasPromotion = allData.some(item => 
+            item.Kategoria === category && 
+            item.Typ === 'model' && 
+            item.Promocja && 
+            item.Promocja.trim() !== ''
+          );
+          
+          // Style dla przycisku PWA kategorii
+          button.style.cssText = `
+            background: ${hasPromotion ? 'linear-gradient(135deg, #FF6B6B, #FF5252)' : 'linear-gradient(135deg, #F5C842, #E5B432)'};
+            color: ${hasPromotion ? 'white' : '#333'};
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(245, 200, 66, 0.3);
+            transition: all 0.3s ease;
+            margin: 5px;
+          `;
+          
+          button.onclick = () => {
+            console.log('🎯 PWA Category clicked:', category);
+            // Ukryj PWA success screen
+            const pwaScreen = document.getElementById('pwa-success-screen');
+            if (pwaScreen) {
+              pwaScreen.style.display = 'none';
+            }
+            
+            // Ukryj welcome screen jeśli jest pokazany
+            const welcomeScreen = document.getElementById('welcome-screen');
+            if (welcomeScreen) {
+              welcomeScreen.style.display = 'none';
+            }
+            
+            // Pokaż główny interfejs i kategorie
+            showScreen('models');
+            
+            // Aktywuj wybraną kategorię w sidebar
+            setTimeout(() => {
+              const sidebarButtons = document.querySelectorAll('.category-button');
+              sidebarButtons.forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent === category) {
+                  btn.classList.add('active');
+                }
+              });
+              
+              // Renderuj modele z wybranej kategorii
+              renderModelsByCategory(category);
+            }, 100);
+          };
+          
+          container.appendChild(button);
+        });
       }
 
       // Funkcja odświeżająca wszystkie kafelki z filtrem
