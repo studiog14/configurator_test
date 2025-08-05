@@ -50,6 +50,16 @@ function switchToInstalledContent() {
     pwaBScreen.style.zIndex = '9999';
     pwaBScreen.style.backgroundColor = 'rgba(255, 255, 255, 0.98)';
     console.log('PWA: Success screen shown as overlay');
+    
+    // Renderuj kategorie i krzesła w PWA success screen po pokazaniu overlay
+    setTimeout(() => {
+      if (typeof renderPWACategoryButtons === 'function') {
+        renderPWACategoryButtons();
+        console.log('PWA: Categories rendered after overlay shown');
+      } else {
+        console.error('PWA: renderPWACategoryButtons function not available');
+      }
+    }, 100);
   } else {
     console.error('PWA: Success screen element not found!');
   }
@@ -85,7 +95,6 @@ function showWelcomeInstallButton() {
     }, 1000);
   } else {
     console.log('PWA: Install button NOT displayed - container:', !!container, 'button:', !!button, 'conditions met:', !appInstalled && isMobile);
-  }
   }
 }
 

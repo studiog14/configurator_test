@@ -3765,7 +3765,6 @@ renderOptions('legs-thumbnails', legs, item => {
 
           // Renderuj UI
           renderCategoryButtons();
-          renderPWACategoryButtons(); // Kategorie dla PWA success screen
           renderPromotions();
           showScreen('models');
 
@@ -5044,6 +5043,16 @@ function setDefaultMaterialsFromSheet() {
       // Funkcja renderująca przyciski kategorii
       function renderCategoryButtons() {
         console.log('🎯 renderCategoryButtons called, allData:', allData?.length);
+        
+        // Sprawdź czy DOM jest gotowy
+        if (document.readyState === 'loading') {
+          console.log('🎯 DOM not ready yet, waiting...');
+          document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(renderCategoryButtons, 100);
+          });
+          return;
+        }
+        
         if (!allData || !Array.isArray(allData)) {
           console.error('❌ allData is not available or not an array');
           return;
@@ -5052,7 +5061,8 @@ function setDefaultMaterialsFromSheet() {
         const container = document.getElementById('category-buttons-container');
         console.log('🎯 category-buttons-container:', container ? 'FOUND' : 'NOT FOUND');
         if (!container) {
-          console.error('❌ category-buttons-container not found');
+          console.error('❌ category-buttons-container not found, retrying in 500ms...');
+          setTimeout(renderCategoryButtons, 500);
           return;
         }
         
