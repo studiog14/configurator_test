@@ -47,7 +47,7 @@ function switchToInstalledContent() {
     pwaBScreen.style.left = '0';
     pwaBScreen.style.width = '100%';
     pwaBScreen.style.height = '100%';
-    pwaBScreen.style.zIndex = '9999';
+    pwaBScreen.style.zIndex = '2147483648';
     pwaBScreen.style.backgroundColor = 'rgba(255, 255, 255, 0.98)';
     console.log('PWA: Success screen shown as overlay');
     

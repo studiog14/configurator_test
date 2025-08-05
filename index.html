@@ -1671,7 +1671,7 @@
 
 /* � PWA SUCCESS SCREEN */
 #pwa-success-screen {
-  position: absolute;
+  position: fixed;
   top: 0; left: 0;
   width: 100%;
   height: 100%;
@@ -1680,7 +1680,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  z-index: 150;
+  z-index: 2147483648;
   font-family: 'Poppins', Arial, sans-serif;
   text-align: center;
   padding: 20px;
@@ -2557,8 +2557,21 @@
         welcomeScreen.style.display = 'none';
       }
       
-      document.getElementById('model-section').style.display = (screenName === 'models' || screenName === 'search-results') ? 'block' : 'none';
-      document.getElementById('config-section').style.display = screenName === 'config' ? 'block' : 'none';
+      // Bezpieczne sprawdzenie elementów przed manipulacją
+      const modelSection = document.getElementById('model-section');
+      const configSection = document.getElementById('config-section');
+      
+      if (modelSection) {
+        modelSection.style.display = (screenName === 'models' || screenName === 'search-results') ? 'block' : 'none';
+      } else {
+        console.warn('⚠️ model-section element not found');
+      }
+      
+      if (configSection) {
+        configSection.style.display = screenName === 'config' ? 'block' : 'none';
+      } else {
+        console.warn('⚠️ config-section element not found');
+      }
       
       // Upewnij się że loader jest ukryty gdy pokazujemy główny ekran
       if (screenName === 'models') {
@@ -2568,7 +2581,10 @@
           loader.classList.add('fade-out');
           setTimeout(() => {
             loader.style.display = 'none';
-            document.getElementById('app').style.visibility = 'visible';
+            const appElement = document.getElementById('app');
+            if (appElement) {
+              appElement.style.visibility = 'visible';
+            }
           }, 500);
         }
       }
@@ -5108,14 +5124,15 @@ function setDefaultMaterialsFromSheet() {
       }
 
       // Funkcja renderująca przyciski kategorii
-      function renderCategoryButtons() {
-        console.log('🎯 renderCategoryButtons called, allData:', allData?.length);
+      function renderCategoryButtons(retryCount = 0) {
+        const maxRetries = 10;
+        console.log(`🎯 renderCategoryButtons called (attempt ${retryCount + 1}/${maxRetries}), allData:`, allData?.length);
         
         // Sprawdź czy DOM jest gotowy
         if (document.readyState === 'loading') {
           console.log('🎯 DOM not ready yet, waiting...');
           document.addEventListener('DOMContentLoaded', () => {
-            setTimeout(renderCategoryButtons, 100);
+            setTimeout(() => renderCategoryButtons(retryCount), 100);
           });
           return;
         }
@@ -5128,8 +5145,12 @@ function setDefaultMaterialsFromSheet() {
         const container = document.getElementById('category-buttons-container');
         console.log('🎯 category-buttons-container:', container ? 'FOUND' : 'NOT FOUND');
         if (!container) {
-          console.error('❌ category-buttons-container not found, retrying in 500ms...');
-          setTimeout(renderCategoryButtons, 500);
+          if (retryCount < maxRetries) {
+            console.error(`❌ category-buttons-container not found, retrying in 500ms... (${retryCount + 1}/${maxRetries})`);
+            setTimeout(() => renderCategoryButtons(retryCount + 1), 500);
+          } else {
+            console.error('❌ category-buttons-container not found after maximum retries, giving up');
+          }
           return;
         }
         
@@ -5232,8 +5253,33 @@ function setDefaultMaterialsFromSheet() {
       // Funkcja renderująca kategorie i krzesła w PWA Success Screen
       function renderPWACategoryButtons() {
         console.log('🎯 renderPWACategoryButtons called, allData:', allData?.length);
-        if (!allData || !Array.isArray(allData)) {
-          console.error('❌ allData is not available for PWA categories');
+        
+        // Czekaj na załadowanie danych jeśli jeszcze nie są dostępne
+        if (!allData || !Array.isArray(allData) || allData.length === 0) {
+          console.log('⏳ allData not ready yet, waiting...');
+          
+          // Sprawdzaj co 100ms czy dane są dostępne, max 10 sekund
+          let attempts = 0;
+          const maxAttempts = 100; // 10 sekund
+          
+          const waitForData = setInterval(() => {
+            attempts++;
+            console.log(`⏳ Waiting for data, attempt ${attempts}/${maxAttempts}`);
+            
+            if (allData && Array.isArray(allData) && allData.length > 0) {
+              console.log('✅ Data ready, calling renderPWACategoryButtons again');
+              clearInterval(waitForData);
+              renderPWACategoryButtons();
+              return;
+            }
+            
+            if (attempts >= maxAttempts) {
+              console.error('❌ Timeout waiting for allData in PWA');
+              clearInterval(waitForData);
+              return;
+            }
+          }, 100);
+          
           return;
         }
         
