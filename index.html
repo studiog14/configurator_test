@@ -2137,24 +2137,14 @@
         <p style="margin: 8px 0 0 0; font-size: 14px; color: #666;">Skonfiguruj swoje wymarzone krzesło w technologii 3D</p>
       </div>
       
-      <!-- 🎯 KATEGORIE I KRZESŁA W PWA SUCCESS SCREEN - IDENTYCZNE jak DESKTOP -->
+      <!-- 🎯 KATEGORIE I KRZESŁA W PWA SUCCESS SCREEN - UŻYWA DESKTOP KONTENERÓW -->
       <div id="pwa-category-section" style="margin: 20px 0; padding: 20px; background: #f8f9fa; border-radius: 12px;">
         <h3 style="margin: 0 0 15px 0; font-size: 18px; color: #333; text-align: center;">Wybierz krzesło:</h3>
         
-        <!-- IDENTYCZNE struktury jak desktop -->
-        <!-- Przyciski kategorii - IDENTYCZNE jak desktop -->
-        <div id="category-buttons" style="margin-bottom: 20px;">
-          <h3 style="margin-bottom: 10px; font-size: 16px; color: #555;">Kategorie:</h3>
-          <div id="category-buttons-container" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
-        </div>
-        
-        <!-- Sekcja modeli - IDENTYCZNA jak desktop -->
-        <div id="model-section">
-          <div class="selection-section">
-            <h3>Wybierz model:</h3>
-            <div id="model-thumbnails" class="options-grid"></div>
-          </div>
-        </div>
+        <!-- PWA pokazuje desktop kontenery bez duplikowania -->
+        <p style="text-align: center; color: #666; font-style: italic;">
+          Ładowanie kategorii i modeli...
+        </p>
       </div>
       
       <!-- 🎯 PRZYCISK KONTYNUUJ -->
@@ -5229,7 +5219,7 @@ function setDefaultMaterialsFromSheet() {
         }
       }
 
-      // Funkcja renderująca kategorie i krzesła w PWA Success Screen - UŻYWA DESKTOP LOGIKI
+      // Funkcja renderująca kategorie i krzesła w PWA Success Screen - POKAZUJE DESKTOP UI
       function renderPWACategoryButtons() {
         console.log('🎯 renderPWACategoryButtons called, allData:', allData?.length);
         
@@ -5262,7 +5252,28 @@ function setDefaultMaterialsFromSheet() {
           return;
         }
         
-        // PWA używa tych samych kontenerów co desktop!
+        // POKAŻ DESKTOP SIDEBAR Z KATEGORIAMI
+        console.log('🎯 PWA: Showing desktop sidebar for category selection...');
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar) {
+          sidebar.style.display = 'block';
+          sidebar.style.position = 'relative';
+          sidebar.style.width = '100%';
+          sidebar.style.height = 'auto';
+          sidebar.style.background = 'white';
+          sidebar.style.borderRadius = '12px';
+          sidebar.style.padding = '20px';
+          sidebar.style.margin = '0';
+          sidebar.style.boxShadow = 'none';
+          
+          // Ukryj elementy nie potrzebne w PWA
+          const searchContainer = sidebar.querySelector('#search-container');
+          if (searchContainer) searchContainer.style.display = 'none';
+          
+          console.log('🎯 PWA: Desktop sidebar shown in PWA success screen');
+        }
+        
+        // Wywołaj desktop renderowanie
         console.log('🎯 PWA: Calling desktop renderCategoryButtons function...');
         renderCategoryButtons();
         
@@ -5272,28 +5283,43 @@ function setDefaultMaterialsFromSheet() {
         console.log('🎯 PWA: Desktop functions called successfully');
         
         // Dodaj funkcjonalność ukrycia PWA overlay po kliknięciu w model
-        const modelsContainer = document.getElementById('model-thumbnails');
-        if (modelsContainer) {
-          // Przepisz event listenery żeby ukrywały PWA overlay
-          const thumbnails = modelsContainer.querySelectorAll('.thumbnail');
-          thumbnails.forEach(thumbnail => {
-            const originalOnClick = thumbnail.onclick;
-            thumbnail.onclick = (e) => {
-              console.log('🎯 PWA: Model thumbnail clicked');
-              // Ukryj PWA success screen overlay
-              const pwaScreen = document.getElementById('pwa-success-screen');
-              if (pwaScreen) {
-                pwaScreen.style.display = 'none';
-                console.log('🎯 PWA: Success screen hidden');
-              }
-              // Wywołaj oryginalne kliknięcie
-              if (originalOnClick) {
-                originalOnClick.call(thumbnail, e);
-              }
-            };
-          });
-          console.log('🎯 PWA: Model thumbnails event listeners updated:', thumbnails.length);
-        }
+        setTimeout(() => {
+          const modelsContainer = document.getElementById('model-thumbnails');
+          if (modelsContainer) {
+            // Przepisz event listenery żeby ukrywały PWA overlay
+            const thumbnails = modelsContainer.querySelectorAll('.thumbnail');
+            thumbnails.forEach(thumbnail => {
+              const originalOnClick = thumbnail.onclick;
+              thumbnail.onclick = (e) => {
+                console.log('🎯 PWA: Model thumbnail clicked');
+                // Ukryj PWA success screen overlay
+                const pwaScreen = document.getElementById('pwa-success-screen');
+                if (pwaScreen) {
+                  pwaScreen.style.display = 'none';
+                  console.log('🎯 PWA: Success screen hidden');
+                }
+                // Przywróć desktop styling sidebar
+                const sidebar = document.getElementById('sidebar');
+                if (sidebar) {
+                  sidebar.style.display = '';
+                  sidebar.style.position = '';
+                  sidebar.style.width = '';
+                  sidebar.style.height = '';
+                  sidebar.style.background = '';
+                  sidebar.style.borderRadius = '';
+                  sidebar.style.padding = '';
+                  sidebar.style.margin = '';
+                  sidebar.style.boxShadow = '';
+                }
+                // Wywołaj oryginalne kliknięcie
+                if (originalOnClick) {
+                  originalOnClick.call(thumbnail, e);
+                }
+              };
+            });
+            console.log('🎯 PWA: Model thumbnails event listeners updated:', thumbnails.length);
+          }
+        }, 100);
       }
 
       // Funkcja odświeżająca wszystkie kafelki z filtrem
