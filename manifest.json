@@ -1,6 +1,6 @@
 {
   "name": "Konfigurator - Fajne Krzesła",
-  "short_name": "FK",
+  "short_name": "Konfigurator krzeseł - Fajne Krzesła",
   "description": "Konfigurator krzeseł 3D - Fajne Krzesła",
   "start_url": "./",
   "display": "standalone",

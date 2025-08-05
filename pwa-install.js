@@ -25,22 +25,27 @@ window.addEventListener('appinstalled', (e) => {
 
 // Function to switch to PWA success screen
 function switchToInstalledContent() {
+  console.log('PWA: switchToInstalledContent called');
+  
   // Ukryj welcome screen
   const welcomeScreen = document.getElementById('welcome-screen');
   if (welcomeScreen) {
     welcomeScreen.style.display = 'none';
+    console.log('PWA: Welcome screen hidden');
   }
   
   // Ukryj główną aplikację żeby nie nachodzila na ekran sukcesu
   const app = document.getElementById('app');
   if (app) {
     app.style.display = 'none';
+    console.log('PWA: Main app hidden');
   }
   
   // Ukryj sidebar
   const sidebar = document.getElementById('sidebar');
   if (sidebar) {
     sidebar.style.display = 'none';
+    console.log('PWA: Sidebar hidden');
   }
   
   // Pokaż PWA success screen
@@ -48,6 +53,9 @@ function switchToInstalledContent() {
   if (pwaBScreen) {
     pwaBScreen.classList.add('show');
     pwaBScreen.style.display = 'flex';
+    console.log('PWA: Success screen shown');
+  } else {
+    console.error('PWA: Success screen element not found!');
   }
   
   // Ukryj przycisk instalacji na welcome screen
@@ -67,14 +75,21 @@ function showWelcomeInstallButton() {
   const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
                    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   
-  if (container && button && !isAppInstalled() && isMobile) {
+  const appInstalled = isAppInstalled();
+  console.log('PWA: Install button check - isMobile:', isMobile, 'isAppInstalled:', appInstalled);
+  
+  if (container && button && !appInstalled && isMobile) {
     container.style.display = 'block';
     button.addEventListener('click', installPWA);
+    console.log('PWA: Install button displayed');
     
     // Animate button
     setTimeout(() => {
       button.style.animation = 'pulse 2s infinite';
     }, 1000);
+  } else {
+    console.log('PWA: Install button NOT displayed - container:', !!container, 'button:', !!button, 'conditions met:', !appInstalled && isMobile);
+  }
   }
 }
 

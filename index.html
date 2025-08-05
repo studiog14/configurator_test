@@ -3989,6 +3989,12 @@ updateSummary();
         const overviewDetailsDiv = document.getElementById("overview-details");
         const overviewTotalPriceSpan = document.getElementById("overview-total-price");
 
+        // Sprawdź czy elementy istnieją
+        if (!overviewIconsDiv || !overviewDetailsDiv || !overviewTotalPriceSpan) {
+          console.warn('updateSummary: Required elements not found');
+          return;
+        }
+
         overviewIconsDiv.innerHTML = '';
         overviewDetailsDiv.innerHTML = '';
         overviewTotalPriceSpan.textContent = `0.00 PLN`;
@@ -5203,6 +5209,18 @@ function setDefaultMaterialsFromSheet() {
             const welcomeScreen = document.getElementById('welcome-screen');
             if (welcomeScreen) {
               welcomeScreen.style.display = 'none';
+            }
+            
+            // Pokaż główną aplikację i sidebar
+            const app = document.getElementById('app');
+            if (app) {
+              app.style.display = 'block';
+              app.style.visibility = 'visible';
+            }
+            
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) {
+              sidebar.style.display = 'flex';
             }
             
             // Pokaż główny interfejs i kategorie
