@@ -4086,15 +4086,6 @@ renderOptions('legs-thumbnails', legs, item => {
           `;
         }
 
-      document.getElementById('hdr-toggle')?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const panel = document.getElementById('hdr-panel');
-        panel.classList.toggle('hidden');
-        document.getElementById('hdr-panel').style.display = 'block';
-
-      });
-
-
 setDefaultMaterialsFromSheet();
 updateSummary();
 
@@ -4419,52 +4410,8 @@ if (Array.isArray(mats)) {
         showDimensions();
       });
 
-
-
-
-
-
-
-
-
-
-
-
-
-      // 🔧 Ukrywanie panelu
-      document.getElementById('dimensions-show')?.addEventListener('click', () => {
-        const overlay = document.getElementById('dimension-overlay');
-        const labels = overlay.querySelectorAll('.dimension-label');
-
-        // 🧾 Pobierz z arkusza
-        const item = allData.find(i => {
-          const g = (i.Grupa || '').toLowerCase();
-          return (g === 'krzesło' || g === 'kubełek') && i.Wymiary;
-        });
-
-        const dims = item?.Wymiary?.match(/x\s*=\s*(\d+[\.,]?\d*)\s*cm.*?y\s*=\s*(\d+[\.,]?\d*)\s*cm.*?z\s*=\s*(\d+[\.,]?\d*)\s*cm/i);
-
-        if (dims) {
-          labels[0].textContent = `x = ${dims[1]} cm`;
-          labels[1].textContent = `y = ${dims[2]} cm`;
-          labels[2].textContent = `z = ${dims[3]} cm`;
-        }
-
-        overlay.style.display = 'block';
-
-        // ⏱ Opcjonalnie ukryj po 6 sek.
-        setTimeout(() => overlay.style.display = 'none', 6000);
-      });
-
-
-
-
-
-
-
       window.addEventListener('load', () => {
-        const showQRBtn = document.getElementById('qr-button').addEventListener('click', showQR);
-
+        const showQRBtn = document.getElementById('qr-button');
 
         if (!showQRBtn) return;
 
@@ -4980,18 +4927,6 @@ window.addEventListener('resize', updateRotateMessage);
 window.addEventListener('load', updateRotateMessage);
 
 
-function checkOrientation() {
-  const rotateMsg = document.getElementById('rotate-message');
-  if (!rotateMsg) return;
-
-  const isLandscape = window.innerWidth > window.innerHeight;
-  rotateMsg.style.display = isLandscape ? 'none' : 'flex';
-}
-window.addEventListener('load', checkOrientation);
-window.addEventListener('resize', checkOrientation);
-
-
-
 window.addEventListener('DOMContentLoaded', () => {
   // przygotowanie canvas i kontenerów
   
@@ -5390,40 +5325,6 @@ function setDefaultMaterialsFromSheet() {
           item.Typ && item.Typ.toLowerCase() === 'model'
         );
         console.log('📦 PWA Rendering all models by default:', allModels.length, 'items');
-        renderPWAModelThumbnails(allModels);
-      }
-          button.className = 'category-button';
-          button.textContent = category;
-          
-          // Sprawdź czy kategoria ma promocje
-          const hasPromotion = allData.some(item => 
-            item.Kategoria === category && 
-            item.Typ === 'model' && 
-            item.Promocja && 
-            item.Promocja.trim() !== ''
-          );
-          
-          if (hasPromotion) {
-            button.classList.add('promotion');
-          }
-          
-          button.onclick = () => {
-            // Usuń active z innych przycisków
-            container.querySelectorAll('.category-button').forEach(btn => btn.classList.remove('active'));
-            button.classList.add('active');
-            
-            // Renderuj modele z wybranej kategorii
-            const categoryModels = allData.filter(item => 
-              item.Kategoria === category && item.Typ === 'model'
-            );
-            renderPWAModelThumbnails(categoryModels);
-          };
-          
-          container.appendChild(button);
-        });
-        
-        // Renderuj wszystkie modele domyślnie
-        const allModels = allData.filter(item => item.Typ === 'model');
         renderPWAModelThumbnails(allModels);
       }
       

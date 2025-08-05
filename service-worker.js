@@ -1,5 +1,5 @@
-// Zwiększ wersję przy każdej zmianie - PWA CSS IDENTYCZNY
-const CACHE_NAME = 'krzesla-v22-pwa-css-desktop';
+// Zwiększ wersję przy każdej zmianie - BŁĘDY JS FIX
+const CACHE_VERSION = 'v25-duplicate-functions-fixed';
 const urlsToCache = [
   './',
   'index.html',
