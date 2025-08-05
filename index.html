@@ -2043,10 +2043,15 @@
         <p style="margin: 8px 0 0 0; font-size: 14px; color: #666;">Skonfiguruj swoje wymarzone krzesło w technologii 3D</p>
       </div>
       
-      <!-- 🎯 KATEGORIE W PWA SUCCESS SCREEN -->
+      <!-- 🎯 KATEGORIE I KRZESŁA W PWA SUCCESS SCREEN -->
       <div id="pwa-category-section" style="margin: 20px 0; padding: 20px; background: #f8f9fa; border-radius: 12px;">
-        <h3 style="margin: 0 0 15px 0; font-size: 18px; color: #333; text-align: center;">Wybierz kategorię krzesła:</h3>
-        <div id="pwa-category-buttons-container" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;"></div>
+        <h3 style="margin: 0 0 15px 0; font-size: 18px; color: #333; text-align: center;">Wybierz krzesło:</h3>
+        
+        <!-- Przyciski kategorii dla PWA -->
+        <div id="pwa-category-buttons-container" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 20px;"></div>
+        
+        <!-- Sekcja z ikonami krzeseł dla PWA -->
+        <div id="pwa-model-thumbnails" class="options-grid" style="margin-top: 15px;"></div>
       </div>
       
       <!-- 🎯 PRZYCISK KONTYNUUJ -->
@@ -5143,7 +5148,7 @@ function setDefaultMaterialsFromSheet() {
         }
       }
 
-      // Funkcja renderująca kategorie w PWA Success Screen
+      // Funkcja renderująca kategorie i krzesła w PWA Success Screen
       function renderPWACategoryButtons() {
         console.log('🎯 renderPWACategoryButtons called, allData:', allData?.length);
         if (!allData || !Array.isArray(allData)) {
@@ -5152,13 +5157,17 @@ function setDefaultMaterialsFromSheet() {
         }
         
         const container = document.getElementById('pwa-category-buttons-container');
+        const modelsContainer = document.getElementById('pwa-model-thumbnails');
         console.log('🎯 pwa-category-buttons-container:', container ? 'FOUND' : 'NOT FOUND');
-        if (!container) {
-          console.error('❌ pwa-category-buttons-container not found');
+        console.log('🎯 pwa-model-thumbnails:', modelsContainer ? 'FOUND' : 'NOT FOUND');
+        
+        if (!container || !modelsContainer) {
+          console.error('❌ PWA containers not found');
           return;
         }
         
         container.innerHTML = '';
+        modelsContainer.innerHTML = '';
         
         // Znajdź wszystkie unikalne kategorie
         const categories = [...new Set(allData
@@ -5168,10 +5177,25 @@ function setDefaultMaterialsFromSheet() {
         
         console.log('🎯 PWA Categories found:', categories);
         
-        // Dodaj przyciski dla każdej kategorii
+        // Dodaj przycisk "Wszystkie"
+        const allButton = document.createElement('button');
+        allButton.className = 'category-button active';
+        allButton.textContent = 'Wszystkie';
+        allButton.onclick = () => {
+          // Usuń active z innych przycisków
+          container.querySelectorAll('.category-button').forEach(btn => btn.classList.remove('active'));
+          allButton.classList.add('active');
+          
+          // Renderuj wszystkie modele
+          const allModels = allData.filter(item => item.Typ === 'model');
+          renderPWAModelThumbnails(allModels);
+        };
+        container.appendChild(allButton);
+        
+        // Dodaj przyciski dla każdej kategorii  
         categories.forEach(category => {
           const button = document.createElement('button');
-          button.className = 'pwa-category-button';
+          button.className = 'category-button';
           button.textContent = category;
           
           // Sprawdź czy kategoria ma promocje
@@ -5182,36 +5206,62 @@ function setDefaultMaterialsFromSheet() {
             item.Promocja.trim() !== ''
           );
           
-          // Style dla przycisku PWA kategorii
-          button.style.cssText = `
-            background: ${hasPromotion ? 'linear-gradient(135deg, #FF6B6B, #FF5252)' : 'linear-gradient(135deg, #F5C842, #E5B432)'};
-            color: ${hasPromotion ? 'white' : '#333'};
-            border: none;
-            padding: 12px 20px;
-            border-radius: 25px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(245, 200, 66, 0.3);
-            transition: all 0.3s ease;
-            margin: 5px;
-          `;
+          if (hasPromotion) {
+            button.classList.add('promotion');
+          }
           
           button.onclick = () => {
-            console.log('🎯 PWA Category clicked:', category);
+            // Usuń active z innych przycisków
+            container.querySelectorAll('.category-button').forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            
+            // Renderuj modele z wybranej kategorii
+            const categoryModels = allData.filter(item => 
+              item.Kategoria === category && item.Typ === 'model'
+            );
+            renderPWAModelThumbnails(categoryModels);
+          };
+          
+          container.appendChild(button);
+        });
+        
+        // Renderuj wszystkie modele domyślnie
+        const allModels = allData.filter(item => item.Typ === 'model');
+        renderPWAModelThumbnails(allModels);
+      }
+      
+      // Funkcja renderująca ikony krzeseł w PWA
+      function renderPWAModelThumbnails(models) {
+        console.log('🎯 renderPWAModelThumbnails called with', models.length, 'models');
+        
+        const container = document.getElementById('pwa-model-thumbnails');
+        if (!container) {
+          console.error('❌ pwa-model-thumbnails container not found');
+          return;
+        }
+        
+        container.innerHTML = '';
+        
+        models.forEach((item, index) => {
+          console.log(`📷 PWA Item ${index}: "${item.Nazwa}", Image URL: "${item.Obrazek}"`);
+          
+          const wrapper = document.createElement('div');
+          wrapper.className = 'thumbnail-wrapper';
+          
+          const button = document.createElement('div');
+          button.className = 'thumbnail';
+          button.title = item.Nazwa;
+          
+          button.addEventListener('click', () => {
+            console.log('🎯 PWA Model clicked:', item.Nazwa);
+            
             // Ukryj PWA success screen
             const pwaScreen = document.getElementById('pwa-success-screen');
             if (pwaScreen) {
               pwaScreen.style.display = 'none';
             }
             
-            // Ukryj welcome screen jeśli jest pokazany
-            const welcomeScreen = document.getElementById('welcome-screen');
-            if (welcomeScreen) {
-              welcomeScreen.style.display = 'none';
-            }
-            
-            // Pokaż główną aplikację i sidebar
+            // Pokaż główną aplikację
             const app = document.getElementById('app');
             if (app) {
               app.style.display = 'block';
@@ -5223,26 +5273,38 @@ function setDefaultMaterialsFromSheet() {
               sidebar.style.display = 'flex';
             }
             
-            // Pokaż główny interfejs i kategorie
-            showScreen('models');
-            
-            // Aktywuj wybraną kategorię w sidebar
-            setTimeout(() => {
-              const sidebarButtons = document.querySelectorAll('.category-button');
-              sidebarButtons.forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.textContent === category) {
-                  btn.classList.add('active');
-                }
-              });
-              
-              // Renderuj modele z wybranej kategorii
-              renderModelsByCategory(category);
-            }, 100);
+            // Przejdź do konfiguracji wybranego modelu
+            showScreen('config');
+            loadModel(item);
+          });
+          
+          const img = document.createElement('img');
+          const imageUrl = item.Obrazek && item.Obrazek.length > 4 ? item.Obrazek : 'icons/placeholder.svg';
+          img.src = imageUrl;
+          img.alt = item.Nazwa;
+          img.loading = 'lazy';
+          
+          img.onload = () => {
+            console.log(`✅ PWA Successfully loaded image: ${imageUrl} for item: ${item.Nazwa}`);
           };
           
-          container.appendChild(button);
+          img.onerror = () => {
+            console.warn(`⚠️ PWA Failed to load image: ${imageUrl} for item: ${item.Nazwa}, using placeholder`);
+            img.src = 'icons/placeholder.svg';
+          };
+          
+          button.appendChild(img);
+          
+          const label = document.createElement('div');
+          label.className = 'thumbnail-label';
+          label.textContent = item.Nazwa;
+          button.appendChild(label);
+          
+          wrapper.appendChild(button);
+          container.appendChild(wrapper);
         });
+        
+        console.log(`🎯 PWA Rendered ${models.length} model thumbnails`);
       }
 
       // Funkcja odświeżająca wszystkie kafelki z filtrem

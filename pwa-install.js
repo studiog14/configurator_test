@@ -200,6 +200,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // Check if app is already installed and switch content accordingly
   if (isAppInstalled() && isMobile) {
     switchToInstalledContent();
+    
+    // Sprawdź czy to pierwsze uruchomienie po instalacji
+    if (!localStorage.getItem('pwa-first-run-shown')) {
+      setTimeout(() => {
+        showFirstRunThanks();
+        localStorage.setItem('pwa-first-run-shown', 'true');
+      }, 1000); // Opóźnienie żeby PWA success screen się załadował
+    }
   }
   
   // Show install button after 3 seconds if not installed and on mobile
@@ -291,3 +299,122 @@ document.addEventListener('visibilitychange', () => {
     switchToInstalledContent();
   }
 });
+
+// Show first run thanks popup
+function showFirstRunThanks() {
+  console.log('PWA: Showing first run thanks popup');
+  
+  const modal = document.createElement('div');
+  modal.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 30000;
+    padding: 20px;
+    animation: fadeIn 0.3s ease;
+  `;
+  
+  modal.innerHTML = `
+    <style>
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      @keyframes slideUp {
+        from { transform: translateY(20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+    </style>
+    <div style="
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      max-width: 400px;
+      text-align: center;
+      position: relative;
+      animation: slideUp 0.4s ease;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    ">
+      <div style="
+        background: linear-gradient(135deg, #F5C842, #E5B432);
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        margin: 0 auto 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 40px;
+      ">
+        🎉
+      </div>
+      
+      <h2 style="margin-bottom: 15px; color: #333; font-size: 24px; font-weight: 700;">
+        Dziękujemy za zainstalowanie aplikacji!
+      </h2>
+      
+      <p style="margin-bottom: 25px; color: #666; font-size: 16px; line-height: 1.5;">
+        Aplikacja <strong>Fajne Krzesła</strong> została pomyślnie zainstalowana na Twoim urządzeniu. 
+        Teraz możesz korzystać z konfiguratora w trybie offline!
+      </p>
+      
+      <div style="
+        background: rgba(245, 200, 66, 0.1);
+        border-radius: 12px;
+        padding: 15px;
+        margin: 20px 0;
+        border-left: 4px solid #F5C842;
+      ">
+        <p style="margin: 0; font-size: 14px; color: #333;">
+          💡 <strong>Wskazówka:</strong> Znajdziesz aplikację na ekranie głównym jako "Fajne Krzesła App"
+        </p>
+      </div>
+      
+      <button onclick="this.parentElement.parentElement.remove()" style="
+        background: linear-gradient(135deg, #F5C842, #E5B432);
+        color: #333;
+        border: none;
+        padding: 15px 30px;
+        border-radius: 25px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(245, 200, 66, 0.4);
+        transition: all 0.3s ease;
+        margin-top: 10px;
+      ">
+        Rozpocznij konfigurację!
+      </button>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  
+  // Auto close after 8 seconds
+  setTimeout(() => {
+    if (modal.parentNode) {
+      modal.style.animation = 'fadeOut 0.3s ease';
+      setTimeout(() => {
+        if (modal.parentNode) {
+          modal.remove();
+        }
+      }, 300);
+    }
+  }, 8000);
+}
+
+// Add fadeOut animation
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
+`;
+document.head.appendChild(style);

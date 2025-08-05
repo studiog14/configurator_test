@@ -1,5 +1,5 @@
 // Zwiększ wersję przy każdej zmianie - iOS FALLBACK FIX
-const CACHE_NAME = 'krzesla-v14-pwa-icons-fix';
+const CACHE_NAME = 'krzesla-v15-full-pwa-ui';
 const urlsToCache = [
   './',
   'index.html',
