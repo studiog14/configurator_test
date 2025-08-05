@@ -165,55 +165,49 @@ async function loadDataSimplified() {
           ">
             📱 Zainstaluj aplikację
           </button>
-          
-          <button onclick="continueToApp()" style="
-            background: #007AFF;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 25px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0, 122, 255, 0.4);
-            transition: all 0.3s ease;
-            margin: 10px;
-          ">
-            Kontynuuj do aplikacji
-          </button>
         </div>
       `;
       welcomeScreen.style.display = 'flex';
     }
     
-    // BARDZO WAŻNE: Czekaj na funkcje głównego kodu, potem renderuj kategorie
-    console.log('📱 iOS: Waiting for main app functions...');
+    // BARDZO WAŻNE: Sprawdź czy główna aplikacja już załadowała dane
+    console.log('📱 iOS: Checking if main app has loaded data...');
     
-    function waitForMainFunctions() {
-      if (typeof renderCategoryButtons === 'function' && 
-          typeof renderPWACategoryButtons === 'function' && 
-          typeof initializeSearch === 'function') {
-        console.log('📱 iOS: Main app functions available, triggering rendering...');
+    function waitForMainAppData() {
+      // Sprawdź czy główna aplikacja już ma dane i kontenery
+      const categoryContainer = document.getElementById('category-buttons-container');
+      const pwaContainer = document.getElementById('pwa-category-buttons-container');
+      const mainAppLoaded = window.allData && Array.isArray(window.allData) && window.allData.length > 0;
+      
+      if (mainAppLoaded && categoryContainer && pwaContainer) {
+        console.log('📱 iOS: Main app data loaded, checking if UI is rendered...');
         
-        renderCategoryButtons();
-        renderPWACategoryButtons();
-        renderPromotions();
-        showScreen('models');
+        // Sprawdź czy kontenery mają już zawartość (przyciski)
+        const categoryButtonsRendered = categoryContainer.children.length > 0;
+        const pwaButtonsRendered = pwaContainer.children.length > 0;
         
-        // Initialize search
-        setTimeout(() => {
-          initializeSearch();
-          console.log('📱 iOS: Search initialized');
-        }, 1000);
-        
+        if (categoryButtonsRendered && pwaButtonsRendered) {
+          console.log('📱 iOS: Main app UI already rendered, no fallback needed');
+          return; // Główna aplikacja już działa
+        } else {
+          console.log('📱 iOS: Main app data loaded but UI not rendered, using fallback rendering...');
+          // Użyj danych z głównej aplikacji do renderowania
+          iosRenderCategoryButtons(window.allData);
+          iosRenderPWACategoryButtons(window.allData);
+          return;
+        }
       } else {
-        console.log('📱 iOS: Main app functions not ready, waiting...');
-        setTimeout(waitForMainFunctions, 1000); // Check again in 1 second
+        console.log('📱 iOS: Main app not ready, checking again...', {
+          mainAppLoaded,
+          categoryContainer: !!categoryContainer,
+          pwaContainer: !!pwaContainer
+        });
+        setTimeout(waitForMainAppData, 1000); // Sprawdź ponownie za sekundę
       }
     }
     
-    // Start waiting for functions
-    waitForMainFunctions();
+    // Start checking for main app data
+    waitForMainAppData();
     
   } catch (error) {
     console.error('📱 iOS: Error loading data:', error);
@@ -410,6 +404,105 @@ window.tryAutoInstall = function() {
     alert('Dotknij przycisku Udostępnij (⬆️) w dolnej części Safari, a następnie "Dodaj do ekranu początkowego"');
   }, 500);
 };
+
+// iOS fallback functions for rendering UI when main app fails
+function iosRenderCategoryButtons(data) {
+  console.log('📱 iOS: Rendering category buttons fallback...');
+  
+  const container = document.getElementById('category-buttons-container');
+  if (!container || !data) {
+    console.log('📱 iOS: Category container or data not available');
+    return;
+  }
+  
+  // Find unique categories
+  const categories = [...new Set(data
+    .filter(item => item.Kategoria && item.Typ === 'model')
+    .map(item => item.Kategoria)
+  )];
+  
+  console.log('📱 iOS: Found categories:', categories);
+  
+  container.innerHTML = '';
+  
+  // Add "Wszystkie" button
+  const allButton = document.createElement('button');
+  allButton.className = 'category-btn active';
+  allButton.textContent = 'Wszystkie';
+  allButton.onclick = () => filterByCategory('all');
+  container.appendChild(allButton);
+  
+  // Add category buttons
+  categories.forEach(category => {
+    const button = document.createElement('button');
+    button.className = 'category-btn';
+    button.textContent = category;
+    button.onclick = () => filterByCategory(category);
+    container.appendChild(button);
+  });
+  
+  console.log('📱 iOS: Category buttons rendered');
+}
+
+function iosRenderPWACategoryButtons(data) {
+  console.log('📱 iOS: Rendering PWA category buttons fallback...');
+  
+  const container = document.getElementById('pwa-category-buttons-container');
+  if (!container || !data) {
+    console.log('📱 iOS: PWA container or data not available');
+    return;
+  }
+  
+  // Find unique categories
+  const categories = [...new Set(data
+    .filter(item => item.Kategoria && item.Typ === 'model')
+    .map(item => item.Kategoria)
+  )];
+  
+  console.log('📱 iOS: Found PWA categories:', categories);
+  
+  container.innerHTML = '';
+  
+  // Add category buttons for PWA screen
+  categories.forEach((category, index) => {
+    const button = document.createElement('button');
+    button.className = 'pwa-category-btn';
+    button.innerHTML = `
+      <div class="category-icon">📦</div>
+      <div class="category-text">${category}</div>
+    `;
+    button.onclick = () => {
+      // Hide PWA success screen
+      const pwaScreen = document.getElementById('pwa-success-screen');
+      if (pwaScreen) {
+        pwaScreen.style.display = 'none';
+      }
+      
+      // Show main app and filter by category
+      filterByCategory(category);
+    };
+    container.appendChild(button);
+  });
+  
+  console.log('📱 iOS: PWA category buttons rendered');
+}
+
+// Simple filter function for iOS fallback
+function filterByCategory(category) {
+  console.log('📱 iOS: Filtering by category:', category);
+  
+  // This is a simplified version - you might need to adjust based on your main app's logic
+  if (window.showScreen) {
+    window.showScreen('models');
+  }
+  
+  // Hide welcome and PWA screens
+  const welcomeScreen = document.getElementById('welcome-screen');
+  const pwaScreen = document.getElementById('pwa-success-screen');
+  
+  if (welcomeScreen) welcomeScreen.style.display = 'none';
+  if (pwaScreen) pwaScreen.style.display = 'none';
+}
 
 // Initialize on DOM ready
 if (document.readyState === 'loading') {

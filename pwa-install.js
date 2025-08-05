@@ -31,6 +31,18 @@ function switchToInstalledContent() {
     welcomeScreen.style.display = 'none';
   }
   
+  // Ukryj główną aplikację żeby nie nachodzila na ekran sukcesu
+  const app = document.getElementById('app');
+  if (app) {
+    app.style.display = 'none';
+  }
+  
+  // Ukryj sidebar
+  const sidebar = document.getElementById('sidebar');
+  if (sidebar) {
+    sidebar.style.display = 'none';
+  }
+  
   // Pokaż PWA success screen
   const pwaBScreen = document.getElementById('pwa-success-screen');
   if (pwaBScreen) {
@@ -206,7 +218,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
   
-  // Dodaj obsługę przycisku "Kontynuuj" w PWA success screen
+  // Dodaj obsługę przycisku "Przejdź do konfiguratora" w PWA success screen
   const pwaContinueBtn = document.getElementById('pwa-success-continue-btn');
   if (pwaContinueBtn) {
     pwaContinueBtn.addEventListener('click', () => {
@@ -217,13 +229,25 @@ document.addEventListener('DOMContentLoaded', () => {
         pwaBScreen.style.display = 'none';
       }
       
-      // Pokaż welcome screen lub przejdź do aplikacji
-      const welcomeScreen = document.getElementById('welcome-screen');
-      if (welcomeScreen) {
-        welcomeScreen.style.display = 'flex';
+      // Pokaż główną aplikację
+      const app = document.getElementById('app');
+      if (app) {
+        app.style.display = 'block';
       }
       
-      console.log('PWA: User continued from success screen');
+      // Pokaż sidebar
+      const sidebar = document.getElementById('sidebar');
+      if (sidebar) {
+        sidebar.style.display = 'flex';
+      }
+      
+      // Ukryj welcome screen
+      const welcomeScreen = document.getElementById('welcome-screen');
+      if (welcomeScreen) {
+        welcomeScreen.style.display = 'none';
+      }
+      
+      console.log('PWA: User continued from success screen to main app');
     });
   }
 });
