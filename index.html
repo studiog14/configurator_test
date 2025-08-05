@@ -2638,18 +2638,17 @@
       await loadDataFromSheet();
       console.log('✅ Data loaded successfully');
       
-      // Pokaż welcome screen
+      // Pokaż welcome screen z odpowiednią zawartością
       const welcomeScreen = document.getElementById('welcome-screen');
       if (welcomeScreen) {
-        welcomeScreen.style.display = 'flex';
-        
-        // Wykryj urządzenie mobilne i ustaw odpowiednią treść
+        // Wykryj urządzenie mobilne PRZED pokazaniem ekranu
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
                          (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
         
         const desktopContent = document.getElementById('welcome-desktop-content');
         const mobileContent = document.getElementById('welcome-mobile-content');
         
+        // Ustaw zawartość PRZED pokazaniem welcome screen
         if (isMobile) {
           if (desktopContent) desktopContent.style.display = 'none';
           if (mobileContent) mobileContent.style.display = 'block';
@@ -2657,6 +2656,9 @@
           if (desktopContent) desktopContent.style.display = 'block';
           if (mobileContent) mobileContent.style.display = 'none';
         }
+        
+        // Teraz pokaż welcome screen z prawidłową zawartością
+        welcomeScreen.style.display = 'flex';
       }
       
       // Ukryj toolbar i panel na starcie

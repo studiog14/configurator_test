@@ -21,25 +21,34 @@ function initIOSFallback() {
   
   console.log('📱 iOS device detected, initializing fallback...');
   
-  // Immediately try to load data for iOS (don't wait 5 seconds)
-  showIOSSimplifiedUI();
-  
-  // Also force hide loader after 3 seconds as backup
+  // Wait for main app to try loading first, then fallback if needed
   setTimeout(() => {
-    console.log('📱 iOS: Force hiding loader after 3s (backup)');
+    // Check if main app loaded successfully
+    if (typeof allData !== 'undefined' && allData && allData.length > 0) {
+      console.log('📱 iOS: Main app loaded successfully, no fallback needed');
+      return;
+    }
+    
+    console.log('📱 iOS: Main app failed to load, using fallback...');
+    showIOSSimplifiedUI();
+  }, 8000); // Wait 8 seconds for main app
+  
+  // Also force hide loader after 10 seconds as ultimate backup
+  setTimeout(() => {
+    console.log('📱 iOS: Force hiding loader after 10s (ultimate backup)');
     const loader = document.getElementById('custom-loader');
     const app = document.getElementById('app');
     
     if (loader && loader.style.display !== 'none') {
       loader.style.display = 'none';
-      console.log('📱 iOS: Loader hidden (backup)');
+      console.log('📱 iOS: Loader hidden (ultimate backup)');
     }
     
     if (app && app.style.visibility !== 'visible') {
       app.style.visibility = 'visible';
-      console.log('📱 iOS: App shown (backup)');
+      console.log('📱 iOS: App shown (ultimate backup)');
     }
-  }, 3000);
+  }, 10000);
   
   // Disable service worker on iOS (can cause issues)
   if ('serviceWorker' in navigator) {
@@ -177,41 +186,34 @@ async function loadDataSimplified() {
       welcomeScreen.style.display = 'flex';
     }
     
-    // BARDZO WAŻNE: Renderuj kategorie po załadowaniu danych iOS
-    console.log('📱 iOS: Triggering category rendering...');
-    if (typeof renderCategoryButtons === 'function') {
-      renderCategoryButtons();
-    } else {
-      console.warn('📱 iOS: renderCategoryButtons function not available');
-    }
+    // BARDZO WAŻNE: Czekaj na funkcje głównego kodu, potem renderuj kategorie
+    console.log('📱 iOS: Waiting for main app functions...');
     
-    // Renderuj kategorie dla PWA success screen
-    if (typeof renderPWACategoryButtons === 'function') {
-      renderPWACategoryButtons();
-    } else {
-      console.warn('📱 iOS: renderPWACategoryButtons function not available');
-    }
-    
-    // Also render promotions
-    if (typeof renderPromotions === 'function') {
-      renderPromotions();
-    }
-    
-    // Show models screen
-    if (typeof showScreen === 'function') {
-      showScreen('models');
-    }
-    
-    // Initialize search for iOS after data loading
-    console.log('📱 iOS: Initializing search...');
-    setTimeout(() => {
-      if (typeof initializeSearch === 'function') {
-        initializeSearch();
-        console.log('📱 iOS: Search initialized');
+    function waitForMainFunctions() {
+      if (typeof renderCategoryButtons === 'function' && 
+          typeof renderPWACategoryButtons === 'function' && 
+          typeof initializeSearch === 'function') {
+        console.log('📱 iOS: Main app functions available, triggering rendering...');
+        
+        renderCategoryButtons();
+        renderPWACategoryButtons();
+        renderPromotions();
+        showScreen('models');
+        
+        // Initialize search
+        setTimeout(() => {
+          initializeSearch();
+          console.log('📱 iOS: Search initialized');
+        }, 1000);
+        
       } else {
-        console.warn('📱 iOS: initializeSearch function not available');
+        console.log('📱 iOS: Main app functions not ready, waiting...');
+        setTimeout(waitForMainFunctions, 1000); // Check again in 1 second
       }
-    }, 1000);
+    }
+    
+    // Start waiting for functions
+    waitForMainFunctions();
     
   } catch (error) {
     console.error('📱 iOS: Error loading data:', error);

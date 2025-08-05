@@ -1,5 +1,5 @@
-// Zwiększ wersję przy każdej zmianie - iOS FIX + SEARCH FIX
-const CACHE_NAME = 'krzesla-v10-ios-search-fix';
+// Zwiększ wersję przy każdej zmianie - iOS FALLBACK FIX
+const CACHE_NAME = 'krzesla-v11-ios-fallback-fix';
 const urlsToCache = [
   './',
   'index.html',
