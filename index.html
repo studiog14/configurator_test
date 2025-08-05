@@ -2601,6 +2601,10 @@
         rendererSettings: { antialias: true }
       });
       
+      // Eksport viewer dla PWA
+      window.viewer = viewer;
+      console.log('🎯 Viewer initialized and exported to window');
+      
       if (viewer.controls) {
         viewer.controls.minDistance = MIN_ZOOM_DISTANCE;
         viewer.controls.maxDistance = MAX_ZOOM_DISTANCE;
@@ -5255,25 +5259,29 @@ function setDefaultMaterialsFromSheet() {
           button.addEventListener('click', () => {
             console.log('🎯 PWA Model clicked:', item.Nazwa);
             
-            // Ukryj PWA success screen
+            // Ukryj PWA success screen overlay
             const pwaScreen = document.getElementById('pwa-success-screen');
             if (pwaScreen) {
               pwaScreen.style.display = 'none';
             }
             
-            // Pokaż główną aplikację
-            const app = document.getElementById('app');
-            if (app) {
-              app.style.display = 'block';
-              app.style.visibility = 'visible';
+            // Sprawdź czy viewer jest zainicjalizowany
+            if (!window.viewer) {
+              console.warn('⚠️ PWA: Viewer not ready yet, waiting...');
+              // Czekaj na viewer i spróbuj ponownie
+              const waitForViewer = setInterval(() => {
+                if (window.viewer) {
+                  clearInterval(waitForViewer);
+                  console.log('✅ PWA: Viewer ready, loading model');
+                  // Przejdź do konfiguracji wybranego modelu
+                  showScreen('config');
+                  loadModel(item);
+                }
+              }, 500);
+              return;
             }
             
-            const sidebar = document.getElementById('sidebar');
-            if (sidebar) {
-              sidebar.style.display = 'flex';
-            }
-            
-            // Przejdź do konfiguracji wybranego modelu
+            // Viewer jest gotowy - przejdź do konfiguracji
             showScreen('config');
             loadModel(item);
           });
@@ -6277,7 +6285,10 @@ function setDefaultMaterialsFromSheet() {
         }, 500);
       };
 
-
+      // Eksport funkcji dla PWA
+      window.loadModel = loadModel;
+      window.showScreen = showScreen;
+      window.viewer = null; // Będzie ustawione w initApp
 
   </script>
 </body>

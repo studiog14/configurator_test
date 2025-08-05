@@ -34,26 +34,22 @@ function switchToInstalledContent() {
     console.log('PWA: Welcome screen hidden');
   }
   
-  // Ukryj główną aplikację żeby nie nachodzila na ekran sukcesu
-  const app = document.getElementById('app');
-  if (app) {
-    app.style.display = 'none';
-    console.log('PWA: Main app hidden');
-  }
+  // NIE ukrywaj głównej aplikacji - niech się ładuje w tle
+  // Tylko pokaż PWA success screen jako overlay
   
-  // Ukryj sidebar
-  const sidebar = document.getElementById('sidebar');
-  if (sidebar) {
-    sidebar.style.display = 'none';
-    console.log('PWA: Sidebar hidden');
-  }
-  
-  // Pokaż PWA success screen
+  // Pokaż PWA success screen jako overlay
   const pwaBScreen = document.getElementById('pwa-success-screen');
   if (pwaBScreen) {
     pwaBScreen.classList.add('show');
     pwaBScreen.style.display = 'flex';
-    console.log('PWA: Success screen shown');
+    pwaBScreen.style.position = 'fixed';
+    pwaBScreen.style.top = '0';
+    pwaBScreen.style.left = '0';
+    pwaBScreen.style.width = '100%';
+    pwaBScreen.style.height = '100%';
+    pwaBScreen.style.zIndex = '9999';
+    pwaBScreen.style.backgroundColor = 'rgba(255, 255, 255, 0.98)';
+    console.log('PWA: Success screen shown as overlay');
   } else {
     console.error('PWA: Success screen element not found!');
   }
@@ -245,30 +241,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const pwaContinueBtn = document.getElementById('pwa-success-continue-btn');
   if (pwaContinueBtn) {
     pwaContinueBtn.addEventListener('click', () => {
-      // Ukryj PWA success screen
+      // Ukryj PWA success screen overlay
       const pwaBScreen = document.getElementById('pwa-success-screen');
       if (pwaBScreen) {
         pwaBScreen.classList.remove('show');
         pwaBScreen.style.display = 'none';
       }
       
-      // Pokaż główną aplikację
-      const app = document.getElementById('app');
-      if (app) {
-        app.style.display = 'block';
-      }
-      
-      // Pokaż sidebar
-      const sidebar = document.getElementById('sidebar');
-      if (sidebar) {
-        sidebar.style.display = 'flex';
-      }
-      
-      // Ukryj welcome screen
-      const welcomeScreen = document.getElementById('welcome-screen');
-      if (welcomeScreen) {
-        welcomeScreen.style.display = 'none';
-      }
+      // Główna aplikacja już jest widoczna w tle, tylko ukryj overlay
+      // Nie ma potrzeby pokazywania niczego dodatkowo
       
       console.log('PWA: User continued from success screen to main app');
     });

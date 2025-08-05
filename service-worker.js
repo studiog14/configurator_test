@@ -1,5 +1,5 @@
 // Zwiększ wersję przy każdej zmianie - iOS FALLBACK FIX
-const CACHE_NAME = 'krzesla-v15-full-pwa-ui';
+const CACHE_NAME = 'krzesla-v17-function-exports';
 const urlsToCache = [
   './',
   'index.html',
