@@ -54,14 +54,44 @@ function switchToInstalledContent() {
     // Renderuj kategorie i krzesła w PWA success screen po pokazaniu overlay
     setTimeout(() => {
       if (typeof renderPWACategoryButtons === 'function') {
+        console.log('PWA: Calling renderPWACategoryButtons...');
         renderPWACategoryButtons();
         console.log('PWA: Categories rendered after overlay shown');
+      } else if (typeof window.renderPWACategoryButtons === 'function') {
+        console.log('PWA: Calling window.renderPWACategoryButtons...');
+        window.renderPWACategoryButtons();
+        console.log('PWA: Categories rendered from window after overlay shown');
       } else {
         console.error('PWA: renderPWACategoryButtons function not available');
+        console.log('PWA: Available window functions:', Object.keys(window).filter(k => k.includes('render')));
+      }
+      
+      // Dodaj obsługę przycisku "Przejdź do konfiguratora"
+      const continueBtn = document.getElementById('pwa-success-continue-btn');
+      if (continueBtn) {
+        continueBtn.addEventListener('click', () => {
+          console.log('🎯 PWA: Continue button clicked');
+          // Ukryj PWA success screen
+          const pwaScreen = document.getElementById('pwa-success-screen');
+          if (pwaScreen) {
+            pwaScreen.style.display = 'none';
+            console.log('🎯 PWA: Success screen hidden, showing main app');
+          }
+          // Pokaż główną aplikację
+          if (typeof window.showScreen === 'function') {
+            window.showScreen('models');
+          } else if (typeof showScreen === 'function') {
+            showScreen('models');
+          }
+        });
+        console.log('PWA: Continue button listener added');
+      } else {
+        console.error('PWA: Continue button not found');
       }
     }, 100);
   } else {
     console.error('PWA: Success screen element not found!');
+    console.log('PWA: Available elements with pwa:', document.querySelectorAll('[id*="pwa"]'));
   }
   
   // Ukryj przycisk instalacji na welcome screen
