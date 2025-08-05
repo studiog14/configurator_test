@@ -2137,15 +2137,24 @@
         <p style="margin: 8px 0 0 0; font-size: 14px; color: #666;">Skonfiguruj swoje wymarzone krzesło w technologii 3D</p>
       </div>
       
-      <!-- 🎯 KATEGORIE I KRZESŁA W PWA SUCCESS SCREEN -->
+      <!-- 🎯 KATEGORIE I KRZESŁA W PWA SUCCESS SCREEN - IDENTYCZNE jak DESKTOP -->
       <div id="pwa-category-section" style="margin: 20px 0; padding: 20px; background: #f8f9fa; border-radius: 12px;">
         <h3 style="margin: 0 0 15px 0; font-size: 18px; color: #333; text-align: center;">Wybierz krzesło:</h3>
         
-        <!-- Przyciski kategorii dla PWA -->
-        <div id="pwa-category-buttons-container" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 20px;"></div>
+        <!-- IDENTYCZNE struktury jak desktop -->
+        <!-- Przyciski kategorii - IDENTYCZNE jak desktop -->
+        <div id="category-buttons" style="margin-bottom: 20px;">
+          <h3 style="margin-bottom: 10px; font-size: 16px; color: #555;">Kategorie:</h3>
+          <div id="category-buttons-container" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
+        </div>
         
-        <!-- Sekcja z ikonami krzeseł dla PWA -->
-        <div id="pwa-model-thumbnails" class="options-grid" style="margin-top: 15px;"></div>
+        <!-- Sekcja modeli - IDENTYCZNA jak desktop -->
+        <div id="model-section">
+          <div class="selection-section">
+            <h3>Wybierz model:</h3>
+            <div id="model-thumbnails" class="options-grid"></div>
+          </div>
+        </div>
       </div>
       
       <!-- 🎯 PRZYCISK KONTYNUUJ -->
@@ -5220,7 +5229,7 @@ function setDefaultMaterialsFromSheet() {
         }
       }
 
-      // Funkcja renderująca kategorie i krzesła w PWA Success Screen
+      // Funkcja renderująca kategorie i krzesła w PWA Success Screen - UŻYWA DESKTOP LOGIKI
       function renderPWACategoryButtons() {
         console.log('🎯 renderPWACategoryButtons called, allData:', allData?.length);
         
@@ -5253,132 +5262,38 @@ function setDefaultMaterialsFromSheet() {
           return;
         }
         
-        const container = document.getElementById('pwa-category-buttons-container');
-        const modelsContainer = document.getElementById('pwa-model-thumbnails');
-        console.log('🎯 pwa-category-buttons-container:', container ? 'FOUND' : 'NOT FOUND');
-        console.log('🎯 pwa-model-thumbnails:', modelsContainer ? 'FOUND' : 'NOT FOUND');
+        // PWA używa tych samych kontenerów co desktop!
+        console.log('🎯 PWA: Calling desktop renderCategoryButtons function...');
+        renderCategoryButtons();
         
-        if (!container || !modelsContainer) {
-          console.error('❌ PWA containers not found');
-          return;
-        }
+        console.log('🎯 PWA: Calling desktop renderAllModels function...');
+        renderAllModels();
         
-        container.innerHTML = '';
-        modelsContainer.innerHTML = '';
+        console.log('🎯 PWA: Desktop functions called successfully');
         
-        // IDENTYCZNA logika jak w renderCategoryButtons desktop
-        // Znajdź wszystkie unikalne kategorie
-        const categories = [...new Set(allData
-          .filter(item => item.Kategoria && item.Typ === 'model')
-          .map(item => item.Kategoria)
-        )];
-        
-        console.log('🎯 PWA Categories found:', categories);
-        
-        // Dodaj przycisk "Wszystkie" - IDENTYCZNY jak desktop
-        const allButton = document.createElement('button');
-        allButton.className = 'category-button active';
-        allButton.textContent = 'Wszystkie';
-        allButton.onclick = () => {
-          // Usuń active z innych przycisków
-          container.querySelectorAll('.category-button').forEach(btn => btn.classList.remove('active'));
-          allButton.classList.add('active');
-          
-          // Renderuj wszystkie modele - UŻYWAJ renderOptions jak desktop!
-          const allModels = allData.filter(item => 
-            item.Typ && item.Typ.toLowerCase() === 'model'
-          );
-          console.log('📦 PWA Rendering all models:', allModels.length, 'items');
-          renderOptions('pwa-model-thumbnails', allModels, item => {
-            console.log('🎯 PWA Model clicked:', item.Nazwa);
-            // Ukryj PWA success screen overlay
-            const pwaScreen = document.getElementById('pwa-success-screen');
-            if (pwaScreen) {
-              pwaScreen.style.display = 'none';
-            }
-            // Załaduj model używając tej samej funkcji co desktop
-            if (typeof window.loadModel === 'function') {
-              window.loadModel(item);
-            }
-            // Przejdź do konfiguracji
-            if (typeof window.showScreen === 'function') {
-              window.showScreen('config');
-            }
-          });
-        };
-        container.appendChild(allButton);
-        
-        // Dodaj przyciski dla każdej kategorii - IDENTYCZNA logika jak desktop
-        categories.forEach(category => {
-          const button = document.createElement('button');
-          button.className = 'category-button';
-          button.textContent = category;
-          
-          // Sprawdź czy kategoria ma promocje - IDENTYCZNE jak desktop
-          const hasPromotion = allData.some(item => 
-            item.Kategoria === category && 
-            item.Typ === 'model' && 
-            item.Promocja && 
-            item.Promocja.trim() !== ''
-          );
-          
-          if (hasPromotion) {
-            button.classList.add('promotion');
-          }
-          
-          button.onclick = () => {
-            // Usuń active z innych przycisków
-            container.querySelectorAll('.category-button').forEach(btn => btn.classList.remove('active'));
-            button.classList.add('active');
-            
-            // Renderuj modele z wybranej kategorii - UŻYWAJ renderOptions jak desktop!
-            const categoryModels = allData.filter(item => 
-              item.Typ && item.Typ.toLowerCase() === 'model' &&
-              item.Kategoria === category
-            );
-            console.log(`📦 PWA Rendering models for category "${category}":`, categoryModels.length, 'items');
-            renderOptions('pwa-model-thumbnails', categoryModels, item => {
-              console.log('🎯 PWA Model clicked:', item.Nazwa);
+        // Dodaj funkcjonalność ukrycia PWA overlay po kliknięciu w model
+        const modelsContainer = document.getElementById('model-thumbnails');
+        if (modelsContainer) {
+          // Przepisz event listenery żeby ukrywały PWA overlay
+          const thumbnails = modelsContainer.querySelectorAll('.thumbnail');
+          thumbnails.forEach(thumbnail => {
+            const originalOnClick = thumbnail.onclick;
+            thumbnail.onclick = (e) => {
+              console.log('🎯 PWA: Model thumbnail clicked');
               // Ukryj PWA success screen overlay
               const pwaScreen = document.getElementById('pwa-success-screen');
               if (pwaScreen) {
                 pwaScreen.style.display = 'none';
+                console.log('🎯 PWA: Success screen hidden');
               }
-              // Załaduj model używając tej samej funkcji co desktop
-              if (typeof window.loadModel === 'function') {
-                window.loadModel(item);
+              // Wywołaj oryginalne kliknięcie
+              if (originalOnClick) {
+                originalOnClick.call(thumbnail, e);
               }
-              // Przejdź do konfiguracji
-              if (typeof window.showScreen === 'function') {
-                window.showScreen('config');
-              }
-            });
-          };
-          
-          container.appendChild(button);
-        });
-        
-        // Renderuj wszystkie modele domyślnie - UŻYWAJ renderOptions jak desktop!
-        const allModels = allData.filter(item => 
-          item.Typ && item.Typ.toLowerCase() === 'model'
-        );
-        console.log('📦 PWA Rendering all models by default:', allModels.length, 'items');
-        renderOptions('pwa-model-thumbnails', allModels, item => {
-          console.log('🎯 PWA Model clicked:', item.Nazwa);
-          // Ukryj PWA success screen overlay
-          const pwaScreen = document.getElementById('pwa-success-screen');
-          if (pwaScreen) {
-            pwaScreen.style.display = 'none';
-          }
-          // Załaduj model używając tej samej funkcji co desktop
-          if (typeof window.loadModel === 'function') {
-            window.loadModel(item);
-          }
-          // Przejdź do konfiguracji
-          if (typeof window.showScreen === 'function') {
-            window.showScreen('config');
-          }
-        });
+            };
+          });
+          console.log('🎯 PWA: Model thumbnails event listeners updated:', thumbnails.length);
+        }
       }
 
       // Funkcja odświeżająca wszystkie kafelki z filtrem
