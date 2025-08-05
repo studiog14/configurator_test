@@ -1,5 +1,5 @@
 // Zwiększ wersję przy każdej zmianie - iOS FALLBACK FIX
-const CACHE_NAME = 'krzesla-v12-ios-buttons-fix';
+const CACHE_NAME = 'krzesla-v13-console-errors-fix';
 const urlsToCache = [
   './',
   'index.html',

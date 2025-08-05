@@ -2505,6 +2505,17 @@
 
     async function loadCameraTarget() {
       try {
+        // Sprawdź czy plik istnieje przed próbą załadowania
+        const fileExists = await fetch('camera_target.glb', { method: 'HEAD' })
+          .then(response => response.ok)
+          .catch(() => false);
+        
+        if (!fileExists) {
+          console.warn("Plik 'camera_target.glb' nie istnieje. Używam domyślnych ustawień.");
+          globalCameraTargetPosition = new Vector3(0, 0, 0);
+          return;
+        }
+        
         const targetsContainer = await viewer.load('camera_target.glb');
         if (targetsContainer) {
           // Szukaj obiektu o nazwie "camera_target" (lub zmień na nazwę empty z Blender)
@@ -2706,6 +2717,13 @@
       const sidebar = document.getElementById("sidebar");
       const sidebarWidth = sidebar ? sidebar.offsetWidth : 0;
       const canvas = document.getElementById("canvas");
+      
+      // Sprawdź czy canvas istnieje
+      if (!canvas) {
+        console.warn('resizeCanvas: Canvas element not found');
+        return;
+      }
+      
       const width = window.innerWidth - sidebarWidth;
       const height = window.innerHeight;
       // Ustaw rozmiar CSS
@@ -3789,19 +3807,25 @@ renderOptions('legs-thumbnails', legs, item => {
         try {
           console.log('Loading data from Google Sheets...');
           
+          // Definicje brakujących zmiennych
+          const sheetId = '1lZMJ-4Qd0nDY-7Hl9iV-pJnZSTVzYiA-A3rDq_bC16U';
+          const sheetURL = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=0`;
+          
           // Enhanced mobile detection
           const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
                            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); // iPad detection
           
           // Timeout for mobile devices
           const timeoutDuration = isMobile ? 15000 : 10000;
-          const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error(`Timeout loading data (${timeoutDuration/1000}s)`)), timeoutDuration)
-          );
+          const timeoutPromise = new Promise((_, reject) => {
+            const loaderTimeout = setTimeout(() => reject(new Error(`Timeout loading data (${timeoutDuration/1000}s)`)), timeoutDuration);
+            // Store timeout reference for cleanup
+            window.loaderTimeout = loaderTimeout;
+          });
           
           console.log('Making fetch request...');
           
-          const fetchPromise = fetch(sheetURL + '?nocache=' + Date.now(), { 
+          const fetchPromise = fetch(sheetURL + '&nocache=' + Date.now(), { 
             cache: 'no-store',
             headers: {
               'Accept': 'text/plain,text/csv,application/csv',
@@ -3852,7 +3876,10 @@ renderOptions('legs-thumbnails', legs, item => {
           }
 
           // Wyczyść timeout loader jeśli dane się załadowały
-          clearTimeout(loaderTimeout);
+          if (window.loaderTimeout) {
+            clearTimeout(window.loaderTimeout);
+            window.loaderTimeout = null;
+          }
           console.log('Starting UI initialization...');
 
           // Renderuj przyciski kategorii
@@ -3909,7 +3936,10 @@ renderOptions('legs-thumbnails', legs, item => {
           console.error("Stack trace:", e.stack);
           
           // Wyczyść timeout loader
-          clearTimeout(loaderTimeout);
+          if (window.loaderTimeout) {
+            clearTimeout(window.loaderTimeout);
+            window.loaderTimeout = null;
+          }
           console.log('Timeout cleared after error');
           
           // Ukryj loader nawet przy błędzie
@@ -3929,8 +3959,8 @@ renderOptions('legs-thumbnails', legs, item => {
           // Pokaż komunikat błędu
           document.body.innerHTML = `
             <div style="text-align: center; padding: 50px; font-family: Arial, sans-serif;">
-              <h2>Błąd ładowania danych</h2>
-              <p>${e.message}</p>
+              <h2>Przerwa techniczna</h2>
+              <p>Wracamy wkrótce.</p>
               <button onclick="window.location.reload()" style="padding: 10px 20px; margin-top: 20px;">
                 Spróbuj ponownie
               </button>
