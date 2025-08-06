@@ -1094,11 +1094,6 @@
     overflow-y: auto;
   }
   
-  /* Pokaż mobilną sekcję kategorii w orientacji pionowej */
-  #mobile-main-section {
-    display: block !important;
-  }
-
   #rotation-message {
     display: none !important;
   }
@@ -1580,6 +1575,19 @@
   display: block !important;
   visibility: visible !important;
   opacity: 1 !important;
+}
+
+/* 📱 Mobilna sekcja - widoczna tylko na mobile devices */
+#mobile-main-section {
+  display: none !important; /* Ukryj domyślnie na desktop */
+}
+
+@media (max-width: 820px) {
+  #mobile-main-section {
+    display: block !important; /* Pokaż na mobile */
+    background-color: lime !important; /* Testowy kolor żeby zobaczyć czy CSS działa */
+    border: 3px solid red !important; /* Testowa ramka */
+  }
 }
 
 /* 📱 Style dla mobilnych przycisków kategori PWA */
@@ -2140,8 +2148,8 @@
             </button>
           </div>
           
-          <!-- 📱 MOBILNA SEKCJA KATEGORII I MODELI - widoczna w orientacji pionowej -->
-          <div id="mobile-main-section" style="display: none; margin-top: 30px; padding: 20px; background: rgba(248, 249, 250, 0.9); border-radius: 15px; backdrop-filter: blur(10px);">
+          <!-- 📱 MOBILNA SEKCJA KATEGORII I MODELI - widoczna na mobile -->
+          <div id="mobile-main-section" style="margin-top: 30px; padding: 20px; background: rgba(248, 249, 250, 0.9); border-radius: 15px; backdrop-filter: blur(10px);">
             <h3 style="margin: 0 0 15px 0; font-size: 18px; color: #333; text-align: center;">Wybierz krzesło:</h3>
             
             <!-- Mobilne kategorie -->
@@ -5469,9 +5477,37 @@ function setDefaultMaterialsFromSheet() {
       function renderMobileMainCategories() {
         console.log('📱 renderMobileMainCategories called, allData:', allData?.length);
         
+        // Dodatkowe debugowanie ekranu i viewport
+        console.log('📱 Window dimensions:', window.innerWidth + 'x' + window.innerHeight);
+        console.log('📱 Is mobile viewport (width <= 820):', window.innerWidth <= 820);
+        console.log('📱 User Agent:', navigator.userAgent.substring(0, 100));
+        
+        // Wymusza widoczność mobilnej sekcji jeśli width <= 820
+        const section = document.getElementById('mobile-main-section');
+        if (section && window.innerWidth <= 820) {
+          console.log('📱 Forcing mobile section visibility via JavaScript');
+          section.style.display = 'block';
+          section.style.visibility = 'visible';
+          section.style.opacity = '1';
+          section.style.backgroundColor = 'lightblue'; // Testowy kolor
+          section.style.border = '2px solid orange'; // Testowa ramka
+        }
+        
         const container = document.getElementById('mobile-main-category-buttons');
+        console.log('📱 mobile-main-category-buttons element:', container ? 'FOUND' : 'NOT FOUND');
+        
         if (!container) {
           console.error('❌ mobile-main-category-buttons not found');
+          // Sprawdź czy mobile-main-section istnieje
+          const section = document.getElementById('mobile-main-section');
+          console.log('📱 mobile-main-section element:', section ? 'FOUND' : 'NOT FOUND');
+          if (section) {
+            const styles = window.getComputedStyle(section);
+            console.log('📱 mobile-main-section display:', styles.display);
+            console.log('📱 mobile-main-section visibility:', styles.visibility);
+            console.log('📱 mobile-main-section opacity:', styles.opacity);
+            console.log('📱 mobile-main-section z-index:', styles.zIndex);
+          }
           return;
         }
         
@@ -5540,8 +5576,18 @@ function setDefaultMaterialsFromSheet() {
         const container = document.getElementById('mobile-main-model-thumbnails');
         const loadingText = document.getElementById('mobile-main-loading-text');
         
+        console.log('📱 mobile-main-model-thumbnails element:', container ? 'FOUND' : 'NOT FOUND');
+        console.log('📱 mobile-main-loading-text element:', loadingText ? 'FOUND' : 'NOT FOUND');
+        
         if (!container) {
           console.error('❌ mobile-main-model-thumbnails not found');
+          // Sprawdź czy mobile-main-section istnieje
+          const section = document.getElementById('mobile-main-section');
+          console.log('📱 mobile-main-section element:', section ? 'FOUND' : 'NOT FOUND');
+          if (section) {
+            console.log('📱 mobile-main-section display:', window.getComputedStyle(section).display);
+            console.log('📱 mobile-main-section innerHTML:', section.innerHTML.substring(0, 200) + '...');
+          }
           return;
         }
         
