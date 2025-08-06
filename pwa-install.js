@@ -56,25 +56,16 @@ function switchToInstalledContent() {
     pwaBScreen.style.backgroundColor = 'rgba(255, 255, 255, 0.98)';
     console.log('PWA: Success screen shown as overlay in landscape');
     
-    // UPROŚĆ renderowanie - używaj prawdziwego desktop sidebar
+    // 📱 WYWOŁAJ MOBILNE FUNKCJE RENDEROWANIA KATEGORII
     setTimeout(() => {
-      console.log('🎯 PWA: Making sidebar visible for PWA');
+      console.log('📱 PWA: Calling mobile rendering functions...');
       
-      // Pokaż prawdziwy desktop sidebar w PWA
-      const sidebar = document.getElementById('sidebar');
-      if (sidebar) {
-        sidebar.style.display = 'block';
-        sidebar.style.position = 'relative';
-        sidebar.style.zIndex = '2147483649';
-        sidebar.style.backgroundColor = 'white';
-        sidebar.style.padding = '20px';
-        sidebar.style.borderRadius = '12px';
-        sidebar.style.margin = '20px';
-        sidebar.style.maxHeight = '70vh';
-        sidebar.style.overflowY = 'auto';
-        console.log('🎯 PWA: Desktop sidebar made visible');
+      // Wywołaj mobilne funkcje renderowania
+      if (typeof window.renderPWACategoryButtons === 'function') {
+        window.renderPWACategoryButtons();
+        console.log('📱 PWA: Mobile categories and models rendered');
       } else {
-        console.error('❌ PWA: Sidebar not found');
+        console.error('❌ PWA: renderPWACategoryButtons function not found');
       }
       
       // Dodaj obsługę przycisku "Przejdź do konfiguratora"
