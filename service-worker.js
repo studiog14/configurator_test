@@ -1,5 +1,5 @@
 // Zwiększ wersję przy każdej zmianie - BŁĘDY JS FIX
-const CACHE_NAME = 'v29-show-desktop-sidebar-in-pwa';
+const CACHE_NAME = 'v30-pwa-desktop-sidebar-only';
 const urlsToCache = [
   './',
   'index.html',

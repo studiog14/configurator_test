@@ -5322,6 +5322,8 @@ function setDefaultMaterialsFromSheet() {
         }, 100);
       }
 
+      // PWA TERAZ UŻYWA PRAWDZIWEGO DESKTOP SIDEBAR - usunięto renderPWACategoryButtons
+
       // Funkcja odświeżająca wszystkie kafelki z filtrem
       function refreshAllTiles() {
         console.log('🔄 Refreshing all tiles with filter:', currentSearchFilter);
@@ -6295,7 +6297,7 @@ function setDefaultMaterialsFromSheet() {
       // Eksport funkcji dla PWA
       window.loadModel = loadModel;
       window.showScreen = showScreen;
-      window.renderPWACategoryButtons = renderPWACategoryButtons;
+      // window.renderPWACategoryButtons usunięte - PWA używa desktop sidebar
       window.allData = allData; // Eksport danych dla PWA
       window.viewer = null; // Będzie ustawione w initApp
 

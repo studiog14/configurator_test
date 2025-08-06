@@ -27,6 +27,14 @@ window.addEventListener('appinstalled', (e) => {
 function switchToInstalledContent() {
   console.log('PWA: switchToInstalledContent called');
   
+  // Sprawdź orientację - PWA success screen tylko w poziomiej orientacji
+  const isLandscape = window.innerWidth > window.innerHeight;
+  if (!isLandscape) {
+    console.log('PWA: Portrait orientation detected, not showing PWA success screen');
+    // W orientacji pionowej nie pokazuj PWA success screen
+    return;
+  }
+  
   // Ukryj welcome screen
   const welcomeScreen = document.getElementById('welcome-screen');
   if (welcomeScreen) {
@@ -34,10 +42,7 @@ function switchToInstalledContent() {
     console.log('PWA: Welcome screen hidden');
   }
   
-  // NIE ukrywaj głównej aplikacji - niech się ładuje w tle
-  // Tylko pokaż PWA success screen jako overlay
-  
-  // Pokaż PWA success screen jako overlay
+  // Pokaż PWA success screen jako overlay TYLKO w orientacji poziomej
   const pwaBScreen = document.getElementById('pwa-success-screen');
   if (pwaBScreen) {
     pwaBScreen.classList.add('show');
@@ -49,37 +54,27 @@ function switchToInstalledContent() {
     pwaBScreen.style.height = '100%';
     pwaBScreen.style.zIndex = '2147483648';
     pwaBScreen.style.backgroundColor = 'rgba(255, 255, 255, 0.98)';
-    console.log('PWA: Success screen shown as overlay');
+    console.log('PWA: Success screen shown as overlay in landscape');
     
-    // Renderuj kategorie i krzesła w PWA success screen po pokazaniu overlay
+    // UPROŚĆ renderowanie - używaj prawdziwego desktop sidebar
     setTimeout(() => {
-      console.log('🎯 PWA: About to call renderPWACategoryButtons');
-      console.log('🎯 PWA: allData available?', !!window.allData, 'length:', window.allData?.length);
-      console.log('🎯 PWA: Function available?', typeof window.renderPWACategoryButtons === 'function');
+      console.log('🎯 PWA: Making sidebar visible for PWA');
       
-      // Jeśli dane nie są dostępne, poczekaj dłużej
-      if (!window.allData || !Array.isArray(window.allData) || window.allData.length === 0) {
-        console.log('🎯 PWA: Data not ready, waiting longer...');
-        setTimeout(() => {
-          console.log('🎯 PWA: Retry - allData available?', !!window.allData, 'length:', window.allData?.length);
-          if (typeof window.renderPWACategoryButtons === 'function') {
-            window.renderPWACategoryButtons();
-          }
-        }, 2000);
-        return;
-      }
-      
-      if (typeof renderPWACategoryButtons === 'function') {
-        console.log('PWA: Calling renderPWACategoryButtons...');
-        renderPWACategoryButtons();
-        console.log('PWA: Categories rendered after overlay shown');
-      } else if (typeof window.renderPWACategoryButtons === 'function') {
-        console.log('PWA: Calling window.renderPWACategoryButtons...');
-        window.renderPWACategoryButtons();
-        console.log('PWA: Categories rendered from window after overlay shown');
+      // Pokaż prawdziwy desktop sidebar w PWA
+      const sidebar = document.getElementById('sidebar');
+      if (sidebar) {
+        sidebar.style.display = 'block';
+        sidebar.style.position = 'relative';
+        sidebar.style.zIndex = '2147483649';
+        sidebar.style.backgroundColor = 'white';
+        sidebar.style.padding = '20px';
+        sidebar.style.borderRadius = '12px';
+        sidebar.style.margin = '20px';
+        sidebar.style.maxHeight = '70vh';
+        sidebar.style.overflowY = 'auto';
+        console.log('🎯 PWA: Desktop sidebar made visible');
       } else {
-        console.error('PWA: renderPWACategoryButtons function not available');
-        console.log('PWA: Available window functions:', Object.keys(window).filter(k => k.includes('render')));
+        console.error('❌ PWA: Sidebar not found');
       }
       
       // Dodaj obsługę przycisku "Przejdź do konfiguratora"
@@ -91,27 +86,27 @@ function switchToInstalledContent() {
           const pwaScreen = document.getElementById('pwa-success-screen');
           if (pwaScreen) {
             pwaScreen.style.display = 'none';
-            console.log('🎯 PWA: Success screen hidden, showing main app');
           }
-          // Pokaż główną aplikację
+          // Ukryj sidebar overlay
+          if (sidebar) {
+            sidebar.style.position = '';
+            sidebar.style.zIndex = '';
+            sidebar.style.backgroundColor = '';
+            sidebar.style.padding = '';
+            sidebar.style.borderRadius = '';
+            sidebar.style.margin = '';
+          }
+          // Przejdź do normalnej aplikacji
           if (typeof window.showScreen === 'function') {
             window.showScreen('models');
-          } else if (typeof showScreen === 'function') {
-            showScreen('models');
           }
         });
         console.log('PWA: Continue button listener added');
-      } else {
-        console.error('PWA: Continue button not found');
       }
-    }, 100);
+    }, 500); // Więcej czasu na załadowanie sidebar
   } else {
     console.error('PWA: Success screen element not found!');
-    console.log('PWA: Available elements with pwa:', document.querySelectorAll('[id*="pwa"]'));
   }
-  
-  // Ukryj przycisk instalacji na welcome screen
-  hideWelcomeInstallButton();
   
   console.log('PWA: Switched to success screen after installation');
 }
@@ -261,6 +256,33 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
   
+  // Obsługa zmiany orientacji dla PWA
+  function handleOrientationChange() {
+    if (isAppInstalled() && isMobile) {
+      const isLandscape = window.innerWidth > window.innerHeight;
+      const pwaBScreen = document.getElementById('pwa-success-screen');
+      
+      if (isLandscape) {
+        // W orientacji poziomej pokaż PWA success screen
+        if (pwaBScreen && pwaBScreen.style.display === 'none') {
+          switchToInstalledContent();
+        }
+      } else {
+        // W orientacji pionowej ukryj PWA success screen
+        if (pwaBScreen && pwaBScreen.style.display !== 'none') {
+          pwaBScreen.style.display = 'none';
+          console.log('PWA: Success screen hidden due to portrait orientation');
+        }
+      }
+    }
+  }
+  
+  // Dodaj listenery orientacji
+  window.addEventListener('orientationchange', () => {
+    setTimeout(handleOrientationChange, 100);
+  });
+  window.addEventListener('resize', handleOrientationChange);
+  
   // Show install button after 3 seconds if not installed and on mobile
   // TYMCZASOWO WYŁĄCZONE - nie uruchamiaj timera instalacji
   // setTimeout(() => {
@@ -339,6 +361,13 @@ document.addEventListener('visibilitychange', () => {
 // Show first run thanks popup
 function showFirstRunThanks() {
   console.log('PWA: Showing first run thanks popup');
+  
+  // Sprawdź orientację - komunikat tylko w poziomiej orientacji
+  const isLandscape = window.innerWidth > window.innerHeight;
+  if (!isLandscape) {
+    console.log('PWA: Portrait orientation detected, not showing thanks popup');
+    return;
+  }
   
   const modal = document.createElement('div');
   modal.style.cssText = `
