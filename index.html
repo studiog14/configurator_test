@@ -2590,13 +2590,67 @@
       if (modelSection) {
         modelSection.style.display = (screenName === 'models' || screenName === 'search-results') ? 'block' : 'none';
       } else {
-        console.warn('⚠️ model-section element not found');
+        console.warn('⚠️ model-section element not found - trying to create it');
+        // Spróbuj stworzyć brakujący element
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar) {
+          const newModelSection = document.createElement('div');
+          newModelSection.id = 'model-section';
+          newModelSection.innerHTML = `
+            <div class="selection-section">
+              <h3>Wybierz model:</h3>
+              <div id="model-thumbnails" class="options-grid"></div>
+            </div>
+          `;
+          
+          // Dodaj po sekcji kategorii
+          const categorySection = sidebar.querySelector('#category-buttons');
+          if (categorySection) {
+            categorySection.after(newModelSection);
+          } else {
+            sidebar.appendChild(newModelSection);
+          }
+          
+          console.log('✅ Created missing model-section');
+          newModelSection.style.display = (screenName === 'models' || screenName === 'search-results') ? 'block' : 'none';
+        }
       }
       
       if (configSection) {
         configSection.style.display = screenName === 'config' ? 'block' : 'none';
       } else {
-        console.warn('⚠️ config-section element not found');
+        console.warn('⚠️ config-section element not found - trying to create it');
+        // Spróbuj stworzyć brakujący element
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar) {
+          const newConfigSection = document.createElement('div');
+          newConfigSection.id = 'config-section';
+          newConfigSection.style.display = 'none';
+          newConfigSection.innerHTML = `
+            <div id="back-to-models-container" style="margin-bottom: 15px;"></div>
+            <div id="legs-section" class="selection-section">
+              <h3>Nogi:</h3>
+              <div id="legs-thumbnails" class="options-grid"></div>
+            </div>
+            <div id="parts-section" class="selection-section">
+              <h3>Wybierz element:</h3>
+              <div id="part-tabs" class="options-grid"></div>
+            </div>
+            <div id="materials-section" class="selection-section">
+              <h3>Wybierz materiał:</h3>
+              <div id="material-options" style="display: none;"></div>
+              <div id="collection-container" style="display: flex; gap: 24px; margin-top: 20px;">
+                <div id="collection-icons" style="display: flex; flex-direction: column; gap: 14px; width: 88px;"></div>
+                <div id="material-panel-viewer" class="options-grid" style="flex-grow: 1;"></div>
+              </div>
+            </div>
+            <div id="summary"></div>
+          `;
+          
+          sidebar.appendChild(newConfigSection);
+          console.log('✅ Created missing config-section');
+          newConfigSection.style.display = screenName === 'config' ? 'block' : 'none';
+        }
       }
       
       // Upewnij się że loader jest ukryty gdy pokazujemy główny ekran
@@ -2616,37 +2670,7 @@
       }
     }
 
-
-    async function loadCameraTarget() {
-      try {
-        // Sprawdź czy plik istnieje przed próbą załadowania
-        const fileExists = await fetch('camera_target.glb', { method: 'HEAD' })
-          .then(response => response.ok)
-          .catch(() => false);
-        
-        if (!fileExists) {
-          console.warn("Plik 'camera_target.glb' nie istnieje. Używam domyślnych ustawień.");
-          globalCameraTargetPosition = new Vector3(0, 0, 0);
-          return;
-        }
-        
-        const targetsContainer = await viewer.load('camera_target.glb');
-        if (targetsContainer) {
-          // Szukaj obiektu o nazwie "camera_target" (lub zmień na nazwę empty z Blender)
-          const targetObject = targetsContainer.getObjectByName('camera_target');
-          if (targetObject) {
-            globalCameraTargetPosition = targetObject.getWorldPosition(new Vector3());
-          } else {
-            // Jeśli nie znajdzie, użyj środka sceny
-            globalCameraTargetPosition = new Vector3(0, 0, 0);
-          }
-          viewer.scene.remove(targetsContainer); // nie pokazuj empty w scenie
-        }
-      } catch (e) {
-        console.warn("Nie udało się załadować 'camera_target.glb'. Używam domyślnych ustawień.");
-        globalCameraTargetPosition = new Vector3(0, 0, 0);
-      }
-    }
+    // USUNIĘTO loadCameraTarget - niepotrzebny plik camera_target.glb
 
     async function loadModelWithFreshness(path, viewer, options = {}) {
       try {
@@ -2764,7 +2788,9 @@
         console.error("Błąd ładowania HDR:", e); 
       }
 
-      await loadCameraTarget();
+      // USUNIĘTO await loadCameraTarget() - niepotrzebny plik
+      globalCameraTargetPosition = new Vector3(0, 0, 0); // Domyślna pozycja kamery
+      
       window.addEventListener("resize", resizeCanvas);
       resizeCanvas();
       
@@ -5111,9 +5137,61 @@ function setDefaultMaterialsFromSheet() {
           return;
         }
         
+        // Dodatkowy debug
+        console.log('🎯 Looking for category-buttons-container...');
+        const sidebar = document.getElementById('sidebar');
+        console.log('🎯 sidebar element:', sidebar ? 'FOUND' : 'NOT FOUND');
+        if (sidebar) {
+          console.log('🎯 sidebar display:', window.getComputedStyle(sidebar).display);
+          console.log('🎯 sidebar visibility:', window.getComputedStyle(sidebar).visibility);
+        }
+        
         const container = document.getElementById('category-buttons-container');
         console.log('🎯 category-buttons-container:', container ? 'FOUND' : 'NOT FOUND');
+        
         if (!container) {
+          // Spróbuj ręcznie stworzyć kontener jeśli nie istnieje
+          if (sidebar) {
+            console.log('🎯 Trying to create missing category container...');
+            
+            // Znajdź lub stwórz sekcję kategorii
+            let categorySection = sidebar.querySelector('#category-buttons');
+            if (!categorySection) {
+              categorySection = document.createElement('div');
+              categorySection.id = 'category-buttons';
+              categorySection.style.cssText = 'margin-bottom: 20px;';
+              
+              const title = document.createElement('h3');
+              title.style.cssText = 'margin-bottom: 10px; font-size: 16px; color: #555;';
+              title.textContent = 'Kategorie:';
+              categorySection.appendChild(title);
+              
+              const buttonsContainer = document.createElement('div');
+              buttonsContainer.id = 'category-buttons-container';
+              buttonsContainer.style.cssText = 'display: flex; flex-wrap: wrap; gap: 8px;';
+              categorySection.appendChild(buttonsContainer);
+              
+              // Dodaj przed search container
+              const searchContainer = sidebar.querySelector('#search-container');
+              if (searchContainer) {
+                sidebar.insertBefore(categorySection, searchContainer.nextSibling);
+              } else {
+                sidebar.appendChild(categorySection);
+              }
+              
+              console.log('🎯 Created missing category section');
+            }
+            
+            // Spróbuj ponownie pobrać kontener
+            const newContainer = document.getElementById('category-buttons-container');
+            if (newContainer) {
+              console.log('🎯 Successfully created category-buttons-container');
+              // Kontynuuj z renderowaniem
+              renderCategoriesContent(newContainer);
+              return;
+            }
+          }
+          
           if (retryCount < maxRetries) {
             console.error(`❌ category-buttons-container not found, retrying in 500ms... (${retryCount + 1}/${maxRetries})`);
             setTimeout(() => renderCategoryButtons(retryCount + 1), 500);
@@ -5123,6 +5201,11 @@ function setDefaultMaterialsFromSheet() {
           return;
         }
         
+        renderCategoriesContent(container);
+      }
+      
+      // Wydzielona funkcja renderowania zawartości kategorii
+      function renderCategoriesContent(container) {
         container.innerHTML = '';
         
         // Znajdź wszystkie unikalne kategorie
