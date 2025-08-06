@@ -2611,7 +2611,7 @@
     width: 100%;
     height: 100%;
     background: linear-gradient(135deg, #f8f9fa 0%, #e3f2fd 100%);
-    z-index: 999;
+    z-index: 10000;
     display: none;
     overflow-y: auto;
     padding: 20px;
@@ -4062,12 +4062,20 @@ renderOptions('legs-thumbnails', legs, item => {
           console.log('✅ allData exported to window for PWA');
 
           // Renderuj UI
-          renderCategoryButtons();
-          renderPromotions();
-          showScreen('models');
+          // 📱 Warunkowo: Desktop LUB Mobile UI (nie oba!)
+          console.log('🔍 Window width:', window.innerWidth, 'Is mobile:', window.innerWidth <= 820);
+          if (window.innerWidth > 820) {
+            // Desktop UI
+            console.log('🖥️ Desktop UI initialization');
+            renderCategoryButtons();
+            renderPromotions();
+          } else {
+            // Mobile UI
+            console.log('📱 Mobile UI initialization');
+            createMobileCategories();
+          }
           
-          // 📱 Nowe mobilne UI
-          createMobileCategories();
+          showScreen('models');
 
           const hdrEntries = allData.filter(d => d.HDR && d.HDRIcon);
           renderHDROptions(hdrEntries);
@@ -4195,15 +4203,26 @@ renderOptions('legs-thumbnails', legs, item => {
           }
           console.log('Starting UI initialization...');
 
-          // Renderuj przyciski kategorii
-          console.log('About to render category buttons...');
-          renderCategoryButtons();
-          console.log('Category buttons rendered');
-          
-          // Renderuj promocje na starcie
-          console.log('About to render promotions...');
-          renderPromotions();
-          console.log('Promotions rendered');
+          // 📱 Warunkowo: Desktop LUB Mobile UI (nie oba!)
+          console.log('🔍 Second check - Window width:', window.innerWidth, 'Is mobile:', window.innerWidth <= 820);
+          if (window.innerWidth > 820) {
+            // Desktop UI
+            console.log('🖥️ Desktop UI second initialization');
+            console.log('About to render category buttons...');
+            renderCategoryButtons();
+            console.log('Category buttons rendered');
+            
+            // Renderuj promocje na starcie
+            console.log('About to render promotions...');
+            renderPromotions();
+            console.log('Promotions rendered');
+          } else {
+            // Mobile UI
+            console.log('📱 Mobile UI second initialization');
+            console.log('About to create mobile categories...');
+            createMobileCategories();
+            console.log('Mobile categories created');
+          }
           
           console.log('About to show models screen...');
           showScreen('models');
@@ -5721,10 +5740,19 @@ function setDefaultMaterialsFromSheet() {
           text-align: center;
         `;
         
-        // Użyj mobile image path jeśli dostępny, inaczej fallback
-        const imagePath = model.Mobile && model.Mobile.trim() !== '' 
-          ? `mobile_icons/${model.Mobile}`
-          : (model.Image || 'icons/placeholder.svg');
+        // Użyj mobile image path - jeśli już zawiera mobile_icons/ to nie dodawaj ponownie
+        let imagePath;
+        if (model.Mobile && model.Mobile.trim() !== '') {
+          // Jeśli już zawiera mobile_icons/, użyj bezpośrednio
+          if (model.Mobile.includes('mobile_icons/')) {
+            imagePath = model.Mobile;
+          } else {
+            // W przeciwnym razie dodaj folder
+            imagePath = `mobile_icons/${model.Mobile}`;
+          }
+        } else {
+          imagePath = model.Image || 'icons/placeholder.svg';
+        }
         
         console.log('📱 Model:', model.Nazwa, 'Mobile path:', model.Mobile, 'Final path:', imagePath);
         

@@ -1,5 +1,5 @@
 // Zwiększ wersję przy każdej zmianie - BŁĘDY JS FIX
-const CACHE_NAME = 'v39-standalone-mobile-ui';
+const CACHE_NAME = 'v40-mobile-desktop-conditional';
 const urlsToCache = [
   './',
   'index.html',
@@ -7,7 +7,11 @@ const urlsToCache = [
   'pwa-install.js',
   'icons/FK_logo.png',
   'icons/favicon.png',
-  'icons/favicon.jpg'
+  'icons/favicon.jpg',
+  'mobile_icons/soul.webp',
+  'mobile_icons/soul_plus.webp',
+  'mobile_icons/fargo.webp',
+  'mobile_icons/tulla.webp'
 ];
 
 self.addEventListener('install', e => {
