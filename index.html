@@ -2602,11 +2602,58 @@
         });
     });
   </script>
-
-
-
-
-
+  
+  <!-- 🚀 OSOBNY MOBILNY KONTENER - globalny, niezależny od welcome-screen -->
+  <div id="standalone-mobile-ui" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e3f2fd 100%);
+    z-index: 999;
+    display: none;
+    overflow-y: auto;
+    padding: 20px;
+    box-sizing: border-box;
+  ">
+    <div style="max-width: 500px; margin: 0 auto; padding-top: 60px;">
+      <div style="text-align: center; margin-bottom: 30px;">
+        <img src="icons/FK_logo.png" alt="Fajne Krzesła" style="max-width: 120px; height: auto; border-radius: 10px;">
+        <h1 style="margin: 15px 0 5px 0; color: #333; font-size: 24px;">Konfigurator krzeseł</h1>
+        <p style="color: #666; margin: 0; font-size: 14px;">Wybierz swoje idealne krzesło</p>
+      </div>
+      
+      <!-- Mobilne kategorie -->
+      <div style="margin-bottom: 20px;">
+        <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #333; text-align: center;">Kategorie:</h3>
+        <div id="standalone-mobile-categories" style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;">
+          <!-- Kategorie tutaj -->
+        </div>
+      </div>
+      
+      <!-- Mobilne modele -->
+      <div style="margin-bottom: 20px;">
+        <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #333; text-align: center;">Krzesła:</h3>
+        <div id="standalone-mobile-models" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px;">
+          <!-- Modele tutaj -->
+        </div>
+      </div>
+      
+      <div style="text-align: center; margin-top: 30px;">
+        <button id="close-mobile-ui" style="
+          background: #dc3545;
+          color: white;
+          border: none;
+          border-radius: 8px;
+          padding: 12px 24px;
+          font-size: 14px;
+          cursor: pointer;
+          transition: all 0.3s ease;
+        ">Zamknij mobilny widok</button>
+      </div>
+    </div>
+  </div>
 
   <script type="module">
     // Główna biblioteka Three.js (z importmap)
@@ -5530,10 +5577,20 @@ function setDefaultMaterialsFromSheet() {
       
       function createMobileCategories() {
         console.log('📱 createMobileCategories called');
+        console.log('📱 Window width:', window.innerWidth, 'Is mobile:', window.innerWidth <= 820);
         
-        const container = document.getElementById('mobile-categories-container');
+        // Pokaż osobny mobilny kontener na mobile
+        const standaloneMobileUI = document.getElementById('standalone-mobile-ui');
+        if (standaloneMobileUI && window.innerWidth <= 820) {
+          standaloneMobileUI.style.display = 'block';
+          console.log('📱 Standalone mobile UI shown');
+        }
+        
+        const container = document.getElementById('standalone-mobile-categories');
+        console.log('📱 standalone-mobile-categories:', container ? 'FOUND' : 'NOT FOUND');
+        
         if (!container) {
-          console.error('❌ mobile-categories-container not found');
+          console.error('❌ standalone-mobile-categories not found');
           return;
         }
         
@@ -5546,24 +5603,40 @@ function setDefaultMaterialsFromSheet() {
           const button = document.createElement('button');
           button.className = 'mobile-category-btn';
           button.textContent = category;
+          button.style.cssText = `
+            background: linear-gradient(135deg, #F5C842, #E5B432);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(245, 200, 66, 0.3);
+          `;
           
           // Pierwszy przycisk aktywny
           if (index === 0) {
             button.classList.add('active');
+            button.style.background = 'linear-gradient(135deg, #E5B432, #D1A029)';
           }
           
           button.onclick = () => {
             // Usuń aktywny ze wszystkich
-            document.querySelectorAll('.mobile-category-btn').forEach(btn => 
-              btn.classList.remove('active'));
+            document.querySelectorAll('.mobile-category-btn').forEach(btn => {
+              btn.classList.remove('active');
+              btn.style.background = 'linear-gradient(135deg, #F5C842, #E5B432)';
+            });
             // Dodaj aktywny do klikniętego
             button.classList.add('active');
+            button.style.background = 'linear-gradient(135deg, #E5B432, #D1A029)';
             
             // Renderuj modele dla kategorii
             if (category === 'Wszystkie') {
-              renderMobileAllModels();
+              renderStandaloneMobileAllModels();
             } else {
-              renderMobileModelsByCategory(category);
+              renderStandaloneMobileModelsByCategory(category);
             }
           };
           
@@ -5573,8 +5646,150 @@ function setDefaultMaterialsFromSheet() {
         console.log('📱 Mobile categories created:', mobileCategories.length);
         
         // Automatycznie załaduj wszystkie modele
-        setTimeout(() => renderMobileAllModels(), 100);
+        setTimeout(() => renderStandaloneMobileAllModels(), 100);
       }
+      
+      function renderStandaloneMobileAllModels() {
+        console.log('📱 renderStandaloneMobileAllModels called');
+        
+        const container = document.getElementById('standalone-mobile-models');
+        if (!container) {
+          console.error('❌ standalone-mobile-models not found');
+          return;
+        }
+        
+        if (!allData || !Array.isArray(allData) || allData.length === 0) {
+          console.log('⏳ allData not ready for mobile models');
+          return;
+        }
+        
+        container.innerHTML = '';
+        
+        // Filtruj tylko modele (jak na desktop)
+        const models = allData.filter(item => item.Typ === 'model');
+        console.log('📱 Found models for mobile:', models.length);
+        
+        models.forEach(model => {
+          const modelElement = createStandaloneMobileModelElement(model);
+          container.appendChild(modelElement);
+        });
+        
+        console.log('📱 Standalone mobile all models rendered:', models.length);
+      }
+      
+      function renderStandaloneMobileModelsByCategory(category) {
+        console.log('📱 renderStandaloneMobileModelsByCategory called for:', category);
+        
+        const container = document.getElementById('standalone-mobile-models');
+        if (!container) {
+          console.error('❌ standalone-mobile-models not found');
+          return;
+        }
+        
+        if (!allData || !Array.isArray(allData) || allData.length === 0) {
+          console.log('⏳ allData not ready for mobile category models');
+          return;
+        }
+        
+        container.innerHTML = '';
+        
+        // Filtruj modele według kategorii (jak na desktop)
+        const models = allData.filter(item => 
+          item.Typ === 'model' && 
+          item.Kategoria === category
+        );
+        
+        console.log('📱 Found models for category', category + ':', models.length);
+        
+        models.forEach(model => {
+          const modelElement = createStandaloneMobileModelElement(model);
+          container.appendChild(modelElement);
+        });
+        
+        console.log('📱 Standalone mobile category models rendered:', models.length);
+      }
+      
+      function createStandaloneMobileModelElement(model) {
+        const div = document.createElement('div');
+        div.style.cssText = `
+          background: white;
+          border-radius: 12px;
+          padding: 10px;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+          transition: all 0.3s ease;
+          cursor: pointer;
+          text-align: center;
+        `;
+        
+        // Użyj mobile image path jeśli dostępny, inaczej fallback
+        const imagePath = model.Mobile && model.Mobile.trim() !== '' 
+          ? `mobile_icons/${model.Mobile}`
+          : (model.Image || 'icons/placeholder.svg');
+        
+        console.log('📱 Model:', model.Nazwa, 'Mobile path:', model.Mobile, 'Final path:', imagePath);
+        
+        div.innerHTML = `
+          <img src="${imagePath}" alt="${model.Nazwa}" 
+               style="width: 100%; height: 100px; object-fit: cover; border-radius: 8px; margin-bottom: 8px;"
+               onerror="this.src='icons/placeholder.svg'">
+          <div style="font-size: 12px; font-weight: 600; color: #333; margin-bottom: 4px;">
+            ${model.Nazwa}
+          </div>
+          <div style="font-size: 11px; color: #666;">
+            ${model.Cena || 'Brak ceny'}
+          </div>
+        `;
+        
+        // Hover effect
+        div.onmouseenter = () => {
+          div.style.transform = 'translateY(-2px)';
+          div.style.boxShadow = '0 6px 20px rgba(0,0,0,0.15)';
+        };
+        div.onmouseleave = () => {
+          div.style.transform = 'translateY(0)';
+          div.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+        };
+        
+        // Kliknięcie w model
+        div.onclick = () => {
+          console.log('📱 Standalone mobile model clicked:', model.Nazwa);
+          
+          // Ukryj mobilny kontener
+          const standaloneMobileUI = document.getElementById('standalone-mobile-ui');
+          if (standaloneMobileUI) {
+            standaloneMobileUI.style.display = 'none';
+          }
+          
+          // Zamknij welcome screen
+          const welcomeScreen = document.getElementById('welcome-screen');
+          if (welcomeScreen) {
+            welcomeScreen.style.display = 'none';
+          }
+          
+          // Załaduj model (użyj istniejącej funkcji)
+          if (typeof loadChairModel === 'function') {
+            loadChairModel(model['3D model']);
+          }
+          
+          // Ustaw aktywny model
+          window.currentModel = model;
+        };
+        
+        return div;
+      }
+      
+      // Handler dla przycisku zamykania mobilnego UI
+      document.addEventListener('DOMContentLoaded', () => {
+        const closeMobileUIBtn = document.getElementById('close-mobile-ui');
+        if (closeMobileUIBtn) {
+          closeMobileUIBtn.onclick = () => {
+            const standaloneMobileUI = document.getElementById('standalone-mobile-ui');
+            if (standaloneMobileUI) {
+              standaloneMobileUI.style.display = 'none';
+            }
+          };
+        }
+      });
       
       function renderMobileAllModels() {
         console.log('📱 renderMobileAllModels called');
@@ -5648,6 +5863,8 @@ function setDefaultMaterialsFromSheet() {
         const imagePath = model.Mobile && model.Mobile.trim() !== '' 
           ? `mobile_icons/${model.Mobile}`
           : (model.Image || 'icons/placeholder.svg');
+        
+        console.log('📱 Model:', model.Nazwa, 'Mobile path:', model.Mobile, 'Final path:', imagePath);
         
         div.innerHTML = `
           <img src="${imagePath}" alt="${model.Nazwa}" 

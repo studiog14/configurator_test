@@ -1,5 +1,5 @@
 // Zwiększ wersję przy każdej zmianie - BŁĘDY JS FIX
-const CACHE_NAME = 'v38-new-mobile-ui';
+const CACHE_NAME = 'v39-standalone-mobile-ui';
 const urlsToCache = [
   './',
   'index.html',
