@@ -1070,7 +1070,7 @@
       margin: 0;
     }
 
-   /* 📱 Tryb PIONOWY — ukryj aplikację, pokaż komunikat */
+   /* 📱 Tryb PIONOWY — ukryj aplikację, pokaż komunikat i mobilne kategorie */
 @media (max-width: 820px) and (orientation: portrait) {
   #app,
   #bottom-toolbar,
@@ -1081,21 +1081,26 @@
     display: none !important;
   }
 
-  #rotation-message {
+  /* Pokaż welcome screen z mobilną sekcją w orientacji pionowej */
+  #welcome-screen {
     display: flex !important;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    padding: 40px;
-    font-size: 18px;
-    background: #FFD700;
-    color: #333;
-    position: fixed;
+    position: fixed !important;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    z-index: 2000;
+    z-index: 2001;
+    background: #fff;
+    overflow-y: auto;
+  }
+  
+  /* Pokaż mobilną sekcję kategorii w orientacji pionowej */
+  #mobile-main-section {
+    display: block !important;
+  }
+
+  #rotation-message {
+    display: none !important;
   }
 
    #export-panel {
@@ -2133,6 +2138,25 @@
             " onmouseover="this.style.transform='scale(1.05)'; this.style.background='linear-gradient(135deg, #E5B432, #D1A029)'" onmouseout="this.style.transform='scale(1)'; this.style.background='linear-gradient(135deg, #F5C842, #E5B432)'">
               📱 Zainstaluj jako aplikację
             </button>
+          </div>
+          
+          <!-- 📱 MOBILNA SEKCJA KATEGORII I MODELI - widoczna w orientacji pionowej -->
+          <div id="mobile-main-section" style="display: none; margin-top: 30px; padding: 20px; background: rgba(248, 249, 250, 0.9); border-radius: 15px; backdrop-filter: blur(10px);">
+            <h3 style="margin: 0 0 15px 0; font-size: 18px; color: #333; text-align: center;">Wybierz krzesło:</h3>
+            
+            <!-- Mobilne kategorie -->
+            <div id="mobile-main-category-buttons" style="margin: 10px 0; text-align: center;">
+              <!-- Kategorie będą tutaj renderowane -->
+            </div>
+            
+            <!-- Mobilne modele -->
+            <div id="mobile-main-model-thumbnails" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; margin-top: 20px;">
+              <!-- Modele będą tutaj renderowane -->
+            </div>
+            
+            <p id="mobile-main-loading-text" style="text-align: center; color: #666; font-style: italic; margin: 20px 0;">
+              Ładowanie kategorii i modeli...
+            </p>
           </div>
       </div>
     </div>
@@ -3932,6 +3956,10 @@ renderOptions('legs-thumbnails', legs, item => {
           renderCategoryButtons();
           renderPromotions();
           showScreen('models');
+          
+          // 📱 Renderuj mobilne UI
+          renderMobileMainCategories();
+          renderMobileMainModels();
 
           const hdrEntries = allData.filter(d => d.HDR && d.HDRIcon);
           renderHDROptions(hdrEntries);
@@ -5437,6 +5465,163 @@ function setDefaultMaterialsFromSheet() {
         console.log('📱 Added mobile category buttons:', categories.length + 1);
       }
       
+      // Funkcja renderująca kategorie w głównej mobilnej sekcji (welcome screen)
+      function renderMobileMainCategories() {
+        console.log('📱 renderMobileMainCategories called, allData:', allData?.length);
+        
+        const container = document.getElementById('mobile-main-category-buttons');
+        if (!container) {
+          console.error('❌ mobile-main-category-buttons not found');
+          return;
+        }
+        
+        if (!allData || !Array.isArray(allData) || allData.length === 0) {
+          console.log('⏳ allData not ready for mobile main categories');
+          return;
+        }
+        
+        container.innerHTML = '';
+        
+        // Znajdź wszystkie unikalne kategorie
+        const categories = [...new Set(allData
+          .filter(item => item.Kategoria && item.Typ === 'model')
+          .map(item => item.Kategoria)
+        )];
+        
+        console.log('📱 Found mobile main categories:', categories);
+        
+        // Dodaj przycisk "Wszystkie"
+        const allButton = document.createElement('button');
+        allButton.className = 'category-button active';
+        allButton.textContent = 'Wszystkie';
+        allButton.style.cssText = 'margin: 5px; padding: 10px 18px; border: 2px solid #F5C842; background: #F5C842; color: #333; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px;';
+        allButton.onclick = () => {
+          document.querySelectorAll('#mobile-main-category-buttons .category-button').forEach(btn => {
+            btn.classList.remove('active');
+            btn.style.background = '#fff';
+            btn.style.color = '#333';
+          });
+          allButton.classList.add('active');
+          allButton.style.background = '#F5C842';
+          allButton.style.color = '#333';
+          renderMobileMainModels();
+        };
+        container.appendChild(allButton);
+        
+        // Dodaj przyciski dla każdej kategorii
+        categories.forEach(category => {
+          const button = document.createElement('button');
+          button.className = 'category-button';
+          button.textContent = category;
+          button.style.cssText = 'margin: 5px; padding: 10px 18px; border: 2px solid #F5C842; background: #fff; color: #333; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px;';
+          
+          button.onclick = () => {
+            document.querySelectorAll('#mobile-main-category-buttons .category-button').forEach(btn => {
+              btn.classList.remove('active');
+              btn.style.background = '#fff';
+              btn.style.color = '#333';
+            });
+            button.classList.add('active');
+            button.style.background = '#F5C842';
+            button.style.color = '#333';
+            renderMobileMainModels(category);
+          };
+          
+          container.appendChild(button);
+        });
+        
+        console.log('📱 Added mobile main category buttons:', categories.length + 1);
+      }
+      
+      // Funkcja renderująca modele w głównej mobilnej sekcji (welcome screen)
+      function renderMobileMainModels(selectedCategory = null) {
+        console.log('📱 renderMobileMainModels called, category:', selectedCategory);
+        
+        const container = document.getElementById('mobile-main-model-thumbnails');
+        const loadingText = document.getElementById('mobile-main-loading-text');
+        
+        if (!container) {
+          console.error('❌ mobile-main-model-thumbnails not found');
+          return;
+        }
+        
+        if (!allData || !Array.isArray(allData) || allData.length === 0) {
+          console.log('⏳ allData not ready for mobile main models');
+          return;
+        }
+        
+        // Ukryj tekst ładowania
+        if (loadingText) {
+          loadingText.style.display = 'none';
+        }
+        
+        container.innerHTML = '';
+        
+        // Filtruj modele
+        let models = allData.filter(item => item.Typ === 'model');
+        
+        if (selectedCategory) {
+          models = models.filter(item => item.Kategoria === selectedCategory);
+        }
+        
+        console.log('📱 Rendering mobile main models:', models.length);
+        
+        models.forEach(item => {
+          const wrapper = document.createElement('div');
+          wrapper.style.cssText = 'text-align: center; cursor: pointer; padding: 10px; background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: transform 0.2s ease;';
+          
+          const img = document.createElement('img');
+          img.src = item.Obrazek && item.Obrazek.length > 4 ? item.Obrazek : 'icons/placeholder.svg';
+          img.alt = item.Nazwa;
+          img.style.cssText = 'width: 100%; height: 80px; object-fit: cover; border-radius: 8px; margin-bottom: 8px;';
+          img.onerror = () => {
+            img.src = 'icons/placeholder.svg';
+          };
+          
+          const caption = document.createElement('div');
+          caption.textContent = item.Nazwa;
+          caption.style.cssText = 'font-size: 12px; font-weight: 600; color: #333; line-height: 1.2;';
+          
+          const price = document.createElement('div');
+          if (item.Cena) {
+            price.textContent = `${item.Cena} PLN`;
+            price.style.cssText = 'font-size: 11px; color: #F5C842; font-weight: bold; margin-top: 4px;';
+          }
+          
+          wrapper.appendChild(img);
+          wrapper.appendChild(caption);
+          if (item.Cena) wrapper.appendChild(price);
+          
+          wrapper.onclick = () => {
+            console.log('📱 Mobile main model clicked:', item.Nazwa);
+            // Ukryj welcome screen i przejdź do konfiguratora
+            const welcomeScreen = document.getElementById('welcome-screen');
+            if (welcomeScreen) {
+              welcomeScreen.style.display = 'none';
+            }
+            // Pokaż aplikację
+            const app = document.getElementById('app');
+            if (app) {
+              app.style.display = 'block';
+            }
+            // Załaduj model
+            loadModel(item);
+          };
+          
+          wrapper.onmouseenter = () => {
+            wrapper.style.transform = 'scale(1.05)';
+          };
+          
+          wrapper.onmouseleave = () => {
+            wrapper.style.transform = 'scale(1)';
+          };
+          
+          container.appendChild(wrapper);
+        });
+        
+        console.log('📱 Mobile main models rendered successfully');
+      }
+      
       // Funkcja renderująca modele w mobilnej sekcji PWA
       function renderMobileModels(selectedCategory = null) {
         console.log('📱 renderMobileModels called, category:', selectedCategory);
@@ -6490,6 +6675,8 @@ function setDefaultMaterialsFromSheet() {
       window.showScreen = showScreen;
       window.renderMobileCategories = renderMobileCategories;
       window.renderMobileModels = renderMobileModels;
+      window.renderMobileMainCategories = renderMobileMainCategories;
+      window.renderMobileMainModels = renderMobileMainModels;
       window.renderPWACategoryButtons = renderPWACategoryButtons;
       window.allData = allData; // Eksport danych dla PWA
       window.viewer = null; // Będzie ustawione w initApp
